@@ -1,14 +1,14 @@
-import { AddonsModule } from '@opensumi/ide-addons/lib/node';
+import { AddonsModule } from '@opensumi/ide-addons/node';
 import { ConstructorOf, NodeModule, ServerCommonModule } from '@opensumi/ide-core-node';
-import { ExtensionModule } from '@opensumi/ide-extension/lib/node';
-import { OpenVsxExtensionManagerModule } from '@opensumi/ide-extension-manager/lib/node';
-import { FileSchemeNodeModule } from '@opensumi/ide-file-scheme/lib/node';
-import { FileSearchModule } from '@opensumi/ide-file-search/lib/node';
-import { FileServiceModule } from '@opensumi/ide-file-service/lib/node';
-import { LogServiceModule } from '@opensumi/ide-logs/lib/node';
-import { ProcessModule } from '@opensumi/ide-process/lib/node';
-import { SearchModule } from '@opensumi/ide-search/lib/node';
-import { TerminalNodePtyModule } from '@opensumi/ide-terminal-next/lib/node';
+import { ExtensionModule } from '@opensumi/ide-extension/node';
+import { OpenVsxExtensionManagerModule } from '@opensumi/ide-extension-manager/node';
+import { FileSchemeNodeModule } from '@opensumi/ide-file-scheme/node';
+import { FileSearchModule } from '@opensumi/ide-file-search/node';
+import { FileServiceModule } from '@opensumi/ide-file-service/node';
+import { LogServiceModule } from '@opensumi/ide-logs/node';
+import { ProcessModule } from '@opensumi/ide-process/node';
+import { SearchModule } from '@opensumi/ide-search/node';
+import { TerminalNodePtyModule } from '@opensumi/ide-terminal-next/node';
 
 import { startServer } from './server';
 

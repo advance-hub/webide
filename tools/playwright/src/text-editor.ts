@@ -16,7 +16,10 @@ abstract class ViewsModel {
 
 class GlyphMarginModel extends ViewsModel {
   async getElement() {
-    const glyphMargin = await this.viewElement?.$('.glyph-margin');
+    // The workbench can retain hidden Monaco editors for other open tabs.
+    // Debug decorations are applied to the visible editor, so do not bind
+    // assertions to whichever glyph margin happens to be first in the DOM.
+    const glyphMargin = await this.viewElement?.$('.monaco-editor:visible .glyph-margin');
     const parent = await glyphMargin?.getProperty('parentNode');
     return parent?.asElement();
   }
@@ -420,14 +423,31 @@ export class OpenSumiTextEditor extends OpenSumiEditor {
   }
 
   private async waitForEditorTextFocus(): Promise<void> {
-    await this.page.waitForFunction(
-      (selector) => {
-        const editor = document.querySelector(selector);
-        const activeElement = document.activeElement;
-        return !!editor && !!activeElement && editor.contains(activeElement);
-      },
-      `${this.viewSelector} .monaco-editor`,
-      { timeout: 3000 },
-    );
+    const waitForFocus = (timeout: number) =>
+      this.page.waitForFunction(
+        (viewSelector) => {
+          const editorView = document.querySelector(viewSelector);
+          const activeElement = document.activeElement;
+          return (
+            !!editorView &&
+            activeElement instanceof HTMLElement &&
+            editorView.contains(activeElement) &&
+            !!activeElement.closest('.monaco-editor')
+          );
+        },
+        this.viewSelector,
+        { timeout },
+      );
+
+    try {
+      await waitForFocus(1000);
+    } catch {
+      // Linux can retain focus on a pinned-tab action after the editor line is
+      // clicked. Focus Monaco's live textarea so subsequent keyboard input is
+      // delivered to the editor instead of relying on a test-level retry.
+      const editorInput = this.page.locator(`${this.viewSelector} .monaco-editor:visible textarea`).last();
+      await editorInput.focus();
+      await waitForFocus(5000);
+    }
   }
 }

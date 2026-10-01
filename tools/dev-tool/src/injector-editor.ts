@@ -1,4 +1,5 @@
-import { MonacoService } from '@opensumi/ide-core-browser/lib/monaco';
+import { MonacoService } from '@opensumi/ide-core-browser';
+import { IDocPersistentCacheProvider } from '@opensumi/ide-editor';
 import {
   EditorCollectionService,
   EditorComponentRegistry,
@@ -10,24 +11,23 @@ import {
   ILanguageService,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/lib/browser/component';
-import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/lib/browser/doc-model/editor-document-model-service';
-import { EditorDocumentModelContentRegistryImpl } from '@opensumi/ide-editor/lib/browser/doc-model/editor-document-registry';
-import { EditorCollectionServiceImpl } from '@opensumi/ide-editor/lib/browser/editor-collection.service';
-import { EditorDecorationCollectionService } from '@opensumi/ide-editor/lib/browser/editor.decoration.service';
-import { EditorFeatureRegistryImpl } from '@opensumi/ide-editor/lib/browser/feature';
-import { LanguageService } from '@opensumi/ide-editor/lib/browser/language/language.service';
-import { ResourceServiceImpl } from '@opensumi/ide-editor/lib/browser/resource.service';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { IDocPersistentCacheProvider } from '@opensumi/ide-editor/lib/common';
+} from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { EditorDocumentModelContentRegistryImpl } from '@opensumi/ide-editor/documents';
+import { ResourceServiceImpl } from '@opensumi/ide-editor/resources';
+import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/runtime';
+import { EditorCollectionServiceImpl } from '@opensumi/ide-editor/runtime';
+import { EditorDecorationCollectionService } from '@opensumi/ide-editor/runtime';
+import { EditorFeatureRegistryImpl } from '@opensumi/ide-editor/runtime';
+import { LanguageService } from '@opensumi/ide-editor/runtime';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks/workspace-service';
-
-import { TestEditorDocumentProvider } from '../../../packages/editor/__tests__/browser/test-providers';
-import { MockedMonacoService } from '../../../packages/monaco/__mocks__/monaco.service.mock';
 
 import { MockInjector } from './mock-injector';
+import { TestEditorDocumentProvider } from './mocks/editor-providers';
+import { MockedMonacoService } from './mocks/monaco/monaco.service.mock';
+import { MockWorkspaceService } from './mocks/workspace-service';
+
 export function addEditorProviders(injector: MockInjector) {
   injector.addProviders(
     {

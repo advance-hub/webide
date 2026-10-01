@@ -68,7 +68,7 @@ export interface AcpBddFixturePass extends AcpBddFixtureOptions {
 
 export const ACP_BDD_REPO_ROOT = path.resolve(__dirname, '../../../../..');
 export const ACP_BDD_DEFAULT_WORKSPACE = path.join(ACP_BDD_REPO_ROOT, 'tools/playwright/src/tests/workspaces/default');
-export const ACP_BDD_MOCK_ACP_AGENT = path.join(ACP_BDD_REPO_ROOT, 'test/bdd/fixtures/acp-agent/mock-acp-agent.mjs');
+export const ACP_BDD_MOCK_ACP_AGENT = path.join(ACP_BDD_REPO_ROOT, 'test/bdd/fixtures/acp-agent/mock-acp-agent.ts');
 const DEFAULT_AGENT_TYPE = 'claude-agent-acp';
 const LOCK_ROOT = path.join(os.tmpdir(), 'opensumi-bdd-acp-fixture-runtime');
 const LOCK_STALE_MS = 5 * 60 * 1000;
@@ -109,6 +109,27 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function hasDeadRuntimeLockOwner(lockDir: string): Promise<boolean> {
+  try {
+    const owner = JSON.parse(await fs.readFile(path.join(lockDir, 'owner.json'), 'utf8')) as { pid?: unknown };
+    if (!Number.isSafeInteger(owner.pid) || (owner.pid as number) <= 0) {
+      return false;
+    }
+
+    try {
+      process.kill(owner.pid as number, 0);
+      return false;
+    } catch (error: any) {
+      return error?.code === 'ESRCH';
+    }
+  } catch (error: any) {
+    if (error?.code === 'ENOENT') {
+      return false;
+    }
+    return false;
+  }
+}
+
 export async function clearAcpBddTransientSessionState(page: Page): Promise<void> {
   if (!/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\//.test(page.url())) {
     return;
@@ -145,7 +166,7 @@ async function acquireRuntimeLock(): Promise<() => Promise<void>> {
 
       try {
         const stat = await fs.stat(lockDir);
-        if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
+        if (Date.now() - stat.mtimeMs > LOCK_STALE_MS || (await hasDeadRuntimeLockOwner(lockDir))) {
           await fs.rm(lockDir, { recursive: true, force: true });
           continue;
         }

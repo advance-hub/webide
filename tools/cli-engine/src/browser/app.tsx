@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Injector } from '@opensumi/di';
 import { IClientAppOpts } from '@opensumi/ide-core-browser';
-import { ClientApp } from '@opensumi/ide-core-browser/lib/bootstrap/app';
+import { ClientApp } from '@opensumi/ide-core-browser/bootstrap';
 
 export async function renderApp(opts: IClientAppOpts) {
   const { hostname } = window.location;
@@ -40,7 +40,6 @@ export async function renderApp(opts: IClientAppOpts) {
   opts.injector = injector;
   const app = new ClientApp(opts);
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await app.start(document.getElementById('main')!, 'web');
 
   const watchServerPath = (window as any).SUMI_SDK_CONFIG.watchServerPath;

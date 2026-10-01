@@ -33,6 +33,7 @@ module.exports = {
         test: /\.tsx?$/,
         loader: 'ts-loader',
         options: {
+          compiler: 'typescript-api',
           configFile: tsConfigPath,
         },
       },

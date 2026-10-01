@@ -1,7 +1,8 @@
 import { ConstructorOf, CreatorStatus, Injector, InstanceOpts, Token, TokenResult } from '@opensumi/di';
-import { MockLoggerManageClient, MockLoggerService } from '@opensumi/ide-core-browser/__mocks__/logger';
 import { CommandRegistry, ILogServiceManager, ILoggerManagerClient, getDebugLogger } from '@opensumi/ide-core-common';
 import { INodeLogger, NodeModule, ServerApp } from '@opensumi/ide-core-node';
+
+import { MockLoggerManageClient, MockLoggerService } from './mocks/logger';
 
 export class MockInjector extends Injector {
   private mockMap = new Map<Token, [any, any][]>();

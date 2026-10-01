@@ -1,4 +1,4 @@
-import { extProcessInit } from '@opensumi/ide-extension/lib/hosted/ext.process-base.js';
+import { extProcessInit } from '@opensumi/ide-extension/host/initialize';
 
 import LogServiceClass from './mock-log-service';
 

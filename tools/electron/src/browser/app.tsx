@@ -2,12 +2,12 @@
 console.time('Render');
 import { Domain, Injector } from '@opensumi/di';
 import { IClientAppOpts, URI, electronEnv } from '@opensumi/ide-core-browser';
-import { ClientApp } from '@opensumi/ide-core-browser/lib/bootstrap/app';
+import { ClientApp } from '@opensumi/ide-core-browser/bootstrap';
 // 引入公共样式文件
-import '@opensumi/ide-core-browser/lib/style/index.less';
+import '@opensumi/ide-core-browser/styles/index.less';
 // 引入本地icon，不使用cdn版本，与useCdnIcon配套使用
-import '@opensumi/ide-core-browser/lib/style/icon.less';
-import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/lib/electron';
+import '@opensumi/ide-core-browser/styles/icon.less';
+import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/electron';
 
 export async function renderApp(main: Domain, modules?: Domain[]);
 export async function renderApp(opts: IClientAppOpts);

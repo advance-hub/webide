@@ -1,9 +1,9 @@
 import '@opensumi/ide-i18n';
 import { BrowserModule, ConstructorOf, IClientAppOpts } from '@opensumi/ide-core-browser';
-import { ExpressFileServerModule } from '@opensumi/ide-express-file-server/lib/browser';
-import { defaultConfig } from '@opensumi/ide-main-layout/lib/browser/default-config';
-import { CommonBrowserModules } from '@opensumi/ide-startup/lib/browser/common-modules';
-import '@opensumi/ide-core-browser/lib/style/index.less';
+import { ExpressFileServerModule } from '@opensumi/ide-express-file-server/browser';
+import { defaultConfig } from '@opensumi/ide-main-layout/defaults';
+import { CommonBrowserModules } from '@opensumi/ide-startup/browser/modules';
+import '@opensumi/ide-core-browser/styles/index.less';
 
 import { renderApp } from './app';
 import './style.less';

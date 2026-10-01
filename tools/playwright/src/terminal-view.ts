@@ -32,32 +32,27 @@ export class OpenSumiTerminalView extends OpenSumiPanel {
     }
     await this.waitForTerminalReady();
     await this.focus();
-    const box = await this.view?.boundingBox();
-    if (box) {
-      await this.app.page.mouse.click(box.x + box?.width / 2, box.y + box?.height / 2);
-    }
+    // xterm keeps its input textarea at zero size, so Playwright's `:visible`
+    // pseudo-class must be applied to the live terminal root instead.
+    const textarea = this.page
+      .locator(`${this.viewSelector} .xterm:visible`)
+      .last()
+      .locator('textarea.xterm-helper-textarea');
+    await textarea.evaluate((element) => element.focus());
+    await this.page.waitForFunction(
+      (selector) => document.activeElement?.matches(selector),
+      `${this.viewSelector} textarea.xterm-helper-textarea:focus`,
+    );
     await this.page.keyboard.type(text);
     await this.app.page.keyboard.press('Enter');
   }
 
   async createTerminalByType(type: TerminalType) {
-    const buttonWrapper = await this.view?.$('[class*="item_wrapper__"]');
-    const buttons = await buttonWrapper?.$$('.kaitian-icon');
-    if (!buttons) {
-      return;
-    }
-    let button;
-    for (const item of buttons) {
-      const title = await item.getAttribute('title');
-      if (title === 'Create terminal by type') {
-        button = item;
-        break;
-      }
-    }
-    if (!button) {
-      return;
-    }
-    await button.click();
+    const button = this.page.locator(`${this.viewSelector} [title="Create terminal by type"]:visible`).last();
+    await button.waitFor();
+    // The terminal title and toolbar can briefly overlap on Linux. Trigger the
+    // same element action directly so a transient overlay cannot swallow it.
+    await button.evaluate((element) => (element as HTMLElement).click());
     const menu = new OpenSumiContextMenu(this.app);
     await menu.waitForVisible();
     await menu.clickMenuItem(type);

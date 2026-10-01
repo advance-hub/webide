@@ -3,9 +3,9 @@ import inspector from 'inspector';
 import net from 'net';
 
 import { Deferred, LogLevel } from '@opensumi/ide-core-common';
-import { DEFAULT_OPENVSX_REGISTRY } from '@opensumi/ide-core-common/lib/const';
+import { DEFAULT_OPENVSX_REGISTRY } from '@opensumi/ide-core-common/const';
 import { IServerAppOpts, NodeModule, ServerApp } from '@opensumi/ide-core-node';
-import { parseArgv } from '@opensumi/ide-utils/lib/argv';
+import { parseArgv } from '@opensumi/ide-utils/argv';
 const argv = parseArgv(process.argv.slice(2));
 
 export async function startServer(arg1: NodeModule[] | Partial<IServerAppOpts>) {

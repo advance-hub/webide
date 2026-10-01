@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 import http from 'http';
+import { createRequire } from 'node:module';
 import path from 'path';
 
+import KoaRouter from '@koa/router';
 import Koa from 'koa';
-import KoaRouter from 'koa-router';
 import Static from 'koa-static';
 
 import { Injector } from '@opensumi/di';
@@ -15,8 +16,13 @@ import {
   IRemoteOpenerClient,
   RemoteOpenerClientToken,
   RemoteOpenerServiceToken,
-} from '@opensumi/ide-remote-opener/lib/common';
-import { RemoteOpenerServiceImpl } from '@opensumi/ide-remote-opener/lib/node';
+} from '@opensumi/ide-remote-opener';
+import { RemoteOpenerServiceImpl } from '@opensumi/ide-remote-opener/node';
+
+// Bundlers replace require.resolve(<literal>) with a numeric module id,
+// which crashes path.dirname/child-process usage at runtime. A real resolver
+// anchored at this file keeps paths correct in dev and in bundles alike.
+const runtimeResolve: (id: string) => string = createRequire(__filename).resolve;
 
 export async function startServer(
   arg1: NodeModule[] | Partial<IServerAppOpts>,
@@ -25,6 +31,11 @@ export async function startServer(
     injector?: Injector;
   },
 ) {
+  const configuredExtensionHostIdleTimeout = Number(process.env.EXTENSION_HOST_IDLE_TIMEOUT);
+  const extensionHostIdleTimeout =
+    Number.isSafeInteger(configuredExtensionHostIdleTimeout) && configuredExtensionHostIdleTimeout > 0
+      ? configuredExtensionHostIdleTimeout
+      : 5 * 60 * 1000;
   const app = new Koa();
   const router = new KoaRouter();
   const deferred = new Deferred<http.Server>();
@@ -59,6 +70,13 @@ export async function startServer(
     app.use(
       Static(options.mountStaticPath, {
         maxage: 30 * 24 * 60 * 60 * 1000,
+        // Entry documents reference content-hashed assets; they must always
+        // revalidate or browsers pin a stale asset list for the maxage.
+        setHeaders: (res: any, filepath: string) => {
+          if (filepath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
       }),
     );
   }
@@ -73,23 +91,21 @@ export async function startServer(
     marketplace: {
       showBuiltinExtensions: true,
     },
-    processCloseExitThreshold: 5 * 60 * 1000,
+    processCloseExitThreshold: extensionHostIdleTimeout,
     terminalPtyCloseThreshold: 5 * 60 * 1000,
     staticAllowOrigin: '*',
     staticAllowPath: [
-      path.join(__dirname, '../../../packages/extension'),
-      path.join(__dirname, '../../../tools/extensions'),
+      path.dirname(runtimeResolve('@opensumi/ide-extension/package.json')),
+      path.join(process.cwd(), 'tools/extensions'),
       '/',
     ],
-    extLogServiceClassPath: path.join(__dirname, './mock-log-service.js'),
+    extLogServiceClassPath: runtimeResolve('@opensumi/ide-dev-tool/host/logger'),
     /**
      * 集成时可使用自定义的 extHost 入口传入内置 command
      *  extHost: path.join(__dirname, './ext-host.js') || process.env.EXTENSION_HOST_ENTRY,
      */
-    extHost:
-      process.env.EXTENSION_HOST_ENTRY || path.join(__dirname, '../../../packages/extension/lib/hosted/ext.process.js'),
-    watcherHost:
-      process.env.WATCHER_HOST_ENTRY || path.join(__dirname, '../../../packages/file-service/lib/node/hosted/watcher.process.js'),
+    extHost: process.env.EXTENSION_HOST_ENTRY || runtimeResolve('@opensumi/ide-extension/host/process'),
+    watcherHost: process.env.WATCHER_HOST_ENTRY || runtimeResolve('@opensumi/ide-file-service/node/watcher-process'),
     onDidCreateExtensionHostProcess: (extHostProcess) => {
       console.log(`Extension host process ${extHostProcess.pid} created`);
     },

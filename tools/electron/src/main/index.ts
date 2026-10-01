@@ -4,7 +4,7 @@ import { app } from 'electron';
 
 import { URI } from '@opensumi/ide-core-common';
 import { ElectronMainApp } from '@opensumi/ide-core-electron-main';
-import { WebviewElectronMainModule } from '@opensumi/ide-webview/lib/electron-main';
+import { WebviewElectronMainModule } from '@opensumi/ide-webview/electron-main';
 
 const getExtensionDir = () => {
   const appPath = app.getAppPath();

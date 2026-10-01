@@ -55,6 +55,7 @@ module.exports = {
           {
             loader: require.resolve('ts-loader'),
             options: {
+              compiler: 'typescript-api',
               happyPackMode: true,
               transpileOnly: true,
               configFile: tsConfigPath,

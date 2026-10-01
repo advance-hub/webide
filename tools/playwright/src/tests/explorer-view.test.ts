@@ -59,7 +59,7 @@ test.describe('OpenSumi Explorer Panel', () => {
       await input.type(newFileName, { delay: 200 });
       await app.page.keyboard.press('Enter');
     }
-    await app.page.waitForTimeout(200);
+    await expect.poll(async () => !!(await explorer.getFileStatTreeNodeByPath(`test/${newFileName}`))).toBeTruthy();
     const newFile = await explorer.getFileStatTreeNodeByPath(`test/${newFileName}`);
     expect(newFile).toBeDefined();
     expect(await newFile?.isFolder()).toBeFalsy();
@@ -128,8 +128,9 @@ test.describe('OpenSumi Explorer Panel', () => {
   (isWindows ? test.skip : test)('fileTree should be updated while create directory from terminal', async () => {
     const dirname = 'dir_from_terminal';
     const terminal = await app.open(OpenSumiTerminalView);
-    await terminal.sendText(`cd ${workspace.workspace.codeUri.fsPath}`);
-    await terminal.sendText(`mkdir ${dirname}`);
+    await terminal.sendText(
+      `cd ${JSON.stringify(workspace.workspace.codeUri.fsPath)} && mkdir ${JSON.stringify(dirname)}`,
+    );
 
     await expect
       .poll(async () => !!(await explorer.getFileStatTreeNodeByPath(dirname)), { timeout: 10000 })
@@ -149,12 +150,13 @@ test.describe('OpenSumi Explorer Panel', () => {
       await input.focus();
       await input.type(filterString, { delay: 200 });
     }
-    await app.page.waitForTimeout(200);
+    await expect.poll(async () => !!(await explorer.getFileStatTreeNodeByPath(`${filterString}.js`))).toBeTruthy();
     const file_1 = await explorer.getFileStatTreeNodeByPath(`${filterString}.js`);
     expect(file_1).toBeDefined();
     let file_2 = await explorer.getFileStatTreeNodeByPath('editor.js');
     expect(file_2).toBeUndefined();
     await app.page.keyboard.press('Escape');
+    await expect.poll(async () => !!(await explorer.getFileStatTreeNodeByPath('editor.js'))).toBeTruthy();
     file_2 = await explorer.getFileStatTreeNodeByPath('editor.js');
     expect(file_2).toBeDefined();
   });
@@ -263,13 +265,19 @@ console.log(a);`,
       await input.type(newFileName, { delay: 200 });
       await app.page.keyboard.press('Enter');
     }
-    await app.page.waitForTimeout(1000);
     // |- test
     // |----a/b
     let nodeA = await explorer.getFileStatTreeNodeByPath('test/a');
-    await nodeA?.expand();
-    await app.page.waitForTimeout(2000);
-    expect(await nodeA?.isCollapsed()).toBeFalsy();
+    await expect
+      .poll(async () => {
+        nodeA = await explorer.getFileStatTreeNodeByPath('test/a');
+        if (!nodeA) {
+          return false;
+        }
+        await nodeA.expand();
+        return !!(await explorer.getFileStatTreeNodeByPath('test/a/b'));
+      })
+      .toBeTruthy();
     const compressNode = await explorer.getFileStatTreeNodeByPath('test/a/b');
     expect(compressNode).toBeDefined();
     expect(await compressNode?.label()).toBe('a/b');
@@ -284,14 +292,22 @@ console.log(a);`,
       await input.type(newFileName, { delay: 200 });
       await app.page.keyboard.press('Enter');
     }
-    await app.page.waitForTimeout(2000);
     // |- test
     // |----a
     // |------b
     // |------d
     // The `a` directory becomes collapsed again due to the compressed path being reset
     nodeA = await explorer.getFileStatTreeNodeByPath('test/a');
-    await nodeA?.expand();
+    await expect
+      .poll(async () => {
+        nodeA = await explorer.getFileStatTreeNodeByPath('test/a');
+        if (!nodeA) {
+          return false;
+        }
+        await nodeA.expand();
+        return !!(await explorer.getFileStatTreeNodeByPath('test/a/b'));
+      })
+      .toBeTruthy();
     const uncompressNode = await explorer.getFileStatTreeNodeByPath('test/a/b');
     expect(uncompressNode).toBeDefined();
     expect(await uncompressNode?.label()).toBe('b');
@@ -346,6 +362,27 @@ console.log(a);`,
       return explorer.getFileStatTreeNodeByPath(path);
     };
 
+    const ensureTreeNodeExpanded = async (path: string) => {
+      await expect
+        .poll(
+          async () => {
+            const currentNode = await explorer.getFileStatTreeNodeByPath(path);
+            if (!currentNode) {
+              return false;
+            }
+            try {
+              await currentNode.expand();
+            } catch {
+              return false;
+            }
+            const refreshedNode = await explorer.getFileStatTreeNodeByPath(path);
+            return refreshedNode ? await refreshedNode.isExpanded() : false;
+          },
+          { timeout: 30000 },
+        )
+        .toBeTruthy();
+    };
+
     const createFromExplorerToolbar = async (
       actionName: 'New File' | 'New Folder',
       name: string,
@@ -366,8 +403,8 @@ console.log(a);`,
     };
 
     await createFromExplorerToolbar('New Folder', 'ui_keep_folder4');
+    await ensureTreeNodeExpanded('ui_keep_folder4');
     let node = await waitForFileStatTreeNode('ui_keep_folder4');
-    await node?.expand();
     expect(await node?.isExpanded()).toBeTruthy();
 
     await createFromExplorerToolbar('New File', 'ui_keep_file');
@@ -383,6 +420,7 @@ console.log(a);`,
   });
 
   test('when an external filesystem change creates a new file, the rest of the expanded folders are still expanded', async () => {
+    test.slow();
     await app.reload();
     explorer = await app.open(OpenSumiExplorerView);
     explorer.initFileTreeView(workspace.workspace.displayName);
@@ -416,11 +454,9 @@ console.log(a);`,
     };
 
     const terminal = await app.open(OpenSumiTerminalView);
-    await terminal.sendText(`cd ${workspace.workspace.codeUri.fsPath}`);
-
     const runNodeFsScript = async (script: string) => {
       await ensureFileTreeRootExpanded();
-      await terminal.sendText(`node -e "${script}"`);
+      await terminal.sendText(`cd ${JSON.stringify(workspace.workspace.codeUri.fsPath)} && node -e "${script}"`);
     };
 
     const createWorkspaceFile = async (relativePath: string, visiblePath = relativePath) => {

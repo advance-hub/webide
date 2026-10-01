@@ -12,7 +12,7 @@ import mount from 'koa-mount';
 
 import { IClientAppOpts } from '@opensumi/ide-core-browser';
 import { Deferred, LogLevel } from '@opensumi/ide-core-common';
-import { DEFAULT_OPENVSX_REGISTRY } from '@opensumi/ide-core-common/lib/const';
+import { DEFAULT_OPENVSX_REGISTRY } from '@opensumi/ide-core-common/const';
 import { IServerAppOpts, ServerApp } from '@opensumi/ide-core-node';
 
 import * as env from './env';
@@ -110,7 +110,7 @@ export async function startServer(serverParams: ServerParams, ideAppOpts: IDESer
   await serverApp.start(server);
 
   app.use(
-    mount<{}>('/', async (ctx) => {
+    mount('/', async (ctx) => {
       console.log('REQUEST URL:', ctx.url);
       let staticPath;
       let _path = ctx.url;

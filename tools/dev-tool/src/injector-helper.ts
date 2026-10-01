@@ -1,10 +1,7 @@
 import { Injectable, Injector } from '@opensumi/di';
-import { MockLogger, MockLoggerManageClient, MockLoggerService } from '@opensumi/ide-core-browser/__mocks__/logger';
-import { useMockStorage } from '@opensumi/ide-core-browser/__mocks__/storage';
-import { ClientApp } from '@opensumi/ide-core-browser/lib/bootstrap/app';
-import { BrowserModule } from '@opensumi/ide-core-browser/lib/browser-module';
-import { IContextKeyService } from '@opensumi/ide-core-browser/lib/context-key';
-import { RecentFilesManager } from '@opensumi/ide-core-browser/lib/quick-open';
+import { BrowserModule, IContextKeyService } from '@opensumi/ide-core-browser';
+import { ClientApp } from '@opensumi/ide-core-browser/bootstrap';
+import { RecentFilesManager } from '@opensumi/ide-core-browser/quick-open';
 import {
   CommonServerPath,
   ConstructorOf,
@@ -16,9 +13,11 @@ import {
   OS,
   getDebugLogger,
 } from '@opensumi/ide-core-common';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
 
 import { MockInjector } from './mock-injector';
+import { MockLogger, MockLoggerManageClient, MockLoggerService } from './mocks/logger';
+import { MockContextKeyService } from './mocks/monaco/monaco.context-key.service';
+import { useMockStorage } from './mocks/storage';
 
 @Injectable()
 class MockMainLayout extends BrowserModule {}
