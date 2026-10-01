@@ -38,3 +38,28 @@ git log --reverse --format=fuller 9a7057aec..HEAD
 Prettier 和 ESLint 原先会并发改写相同文件，AI 模块批次曾出现临时 JSX 解析错误；单独检查源文件正常。独立修复提交将两个写入任务串行执行，随后该批次通过。
 
 具体构建与测试结果见 [迁移状态](MIGRATION.md)。本地配置、数据库、凭据、插件下载缓存和原始性能采样不进入提交。共享 watcher 保留实验开关，完整平台的剩余迁移和验收事项继续记录在迁移状态中。
+
+## 2026-10-02 Node 控制面补齐
+
+本轮删除 Go 运行引擎，补齐资源、Git 和机器控制面，并执行本机 Docker/OpenSandbox 及上游回归。沿用原历史与 `main`，只完成本地提交，未推送。
+
+| 提交        | 主题                                                        |
+| ----------- | ----------------------------------------------------------- |
+| `1a8fb74cf` | refactor(runtime): 移除 Go 引擎并统一 Node 服务退出链路     |
+| `afdf2cfeb` | fix(watcher): 崩溃后重建共享宿主并恢复存活订阅              |
+| `57409f7cb` | feat(runtime): 实现开发机数据维护身份恢复与真实卷释放       |
+| `80892527f` | feat(workbench): 接通开发资源 Git 发布与开发机维护控制面    |
+| `ee8ee4474` | build(docker): 提供 Node 24 镜像与隔离 OpenSandbox 验收入口 |
+| `d3954d89c` | test(ide): 修复上游回归接口与终端夹具资源回收               |
+| `542af435a` | test(sandbox): 验证真实 IDE 页面与 WebSocket 代理通道       |
+| `2e53f5205` | docs(webide): 沉淀 Node 控制面契约与实际验收边界            |
+
+本表在最后的 `docs(commits): 登记 Node 控制面分批提交与验收结果` 提交中保存；该记录提交自身的哈希以 `git log` 为准。本轮共 9 次提交。
+
+```sh
+git log --reverse --format=fuller 0789312e1..HEAD
+```
+
+Node 回归 140 套件/1,481 项测试、jsdom 回归 350 套件/3,264 项测试通过；终端读流修复后 Jest 正常退出。控制面 21 项、辅助工具 29 项、工程契约 62 项与 Server 诊断 26 项通过。最终 Node 镜像在专属 DinD 内通过双账户、HTTP/WS、加密备份恢复、升级保留 PVC 和实际删除等六阶段验收，测试容器、context、网络和数据卷已清理。详细计数和未验收范围见 [迁移状态](MIGRATION.md)和 [可移植摘要](node-control-plane-acceptance-20261002.json)。
+
+每次提交前检查明确的暂存范围和 `git diff --cached --check`，格式化、ESLint 与 commitlint 钩子均执行。运行数据和凭据只保留在忽略目录，本轮没有跳过检查、改写上游历史或创建外部 MR/PR。
