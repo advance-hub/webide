@@ -31,10 +31,22 @@ OPENSUMI_NODE_WATCHER_MODE=shared pnpm start
 pnpm exec tsx scripts/profile-node-watcher-sharing.ts shared-node /absolute/snapshots/fixture /absolute/output 5 parcel
 ```
 
-探针只允许 `node`、`shared-node`，始终关闭 Workspace Agent 和 Gateway。工作区必须是带 README.md 的隔离 `/snapshots/` 路径；`default` 可替换最后的 `parcel`。
+探针只允许 `node`、`shared-node`；Go Agent、Gateway 与相关配置已从当前产品删除。工作区必须是带 README.md 的隔离 `/snapshots/` 路径；`default` 可替换最后的 `parcel`。
 
 ## 性能证据与限制
 
 [原项目实验记录](./shared-node-watcher-experiment-20261001.md)和 [summary JSON](./shared-node-watcher-experiment-20261001.json)保留为历史证据。本次验证不包含扩展宿主或 Chromium，也没有重跑原项目九轮完整 IDE 浏览器性能对照，不能据此宣称整棵 IDE 内存或延迟改善。
 
-Windows/Linux、共享宿主异常退出后的自动重订阅、活跃浏览器连接下的 Server 退出仍未在本次移植中验收。原记录中活跃连接下 Server 主进程驻留的失败没有因本次移植而被宣告修复。
+## 崩溃恢复与活跃连接退出（2026-10-02）
+
+共享宿主异常退出会向存活租约发送 rescan，然后在同一池重建原生订阅。公开逻辑 ID 保留，旧事件关联 ID 被丢弃；已关闭租约不会重建。恢复启动受取消控制，最多 3 次失败尝试，服务停止取消启动与迟到注册。默认 per-client 保持不变。
+
+23 项定向 Jest 验证崩溃、退租、释放失败和恢复取消。macOS Parcel、macOS 默认后端、Linux x64 Docker Parcel 各跑 5 连接实际崩溃探针，重订阅后的磁盘事件、不同根隔离、关闭连接与最终回收均通过：
+
+```sh
+pnpm exec tsx scripts/profile-node-watcher-sharing.ts shared-node /absolute/snapshots/fixture /absolute/output 5 parcel crash
+```
+
+原始证据在 output/runtime-profiles/node-recovery-20261002。此次浏览器保留打开的 IDE 和运行中的终端，先对测试 Server 发 SIGTERM；server/connections/contributions/injector 四阶段完成，6 个采样进程在 204 ms 内退出，结果在 node-control-plane-20261002/active-browser-stop.json。该结果覆盖原记录的退出场景，但没有重做其九轮性能测量。
+
+Windows 原生尚未运行，Linux 仅覆盖本机 Docker x64 模拟环境。rescan 是补偿通知，不保证宕机期间短暂事件的逐条重放；反复成功恢复后继续崩溃的长期频率控制仍需专项验收。更多边界见 [控制面方案](../NODE-CONTROL-PLANE.md)。

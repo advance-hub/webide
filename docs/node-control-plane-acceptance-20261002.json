@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-02",
+  "upstream": "9a7057aec548b11598b8ec5f39a5538546b218e2",
+  "implementationBaseline": "0789312e1",
+  "runtime": "Node-only",
+  "host": {
+    "os": "macOS",
+    "architecture": "arm64",
+    "node": "24.16.0"
+  },
+  "build": {
+    "typescriptProjects": 60,
+    "knownWarnings": 13,
+    "pluginConfigurations": 70,
+    "images": [
+      {
+        "tag": "opensumi-webide-node:20261002",
+        "id": "sha256:4ad355845f3293895c67a9de25c069fa698db01e6d15822bb4adb7752003d7e7",
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      {
+        "tag": "opensumi-webide-workspace:20261002",
+        "id": "sha256:77c0f10ce99a8eb766238d25786b18b8785a95323b0391528339b9a148fed1ee",
+        "architecture": "amd64",
+        "os": "linux"
+      }
+    ]
+  },
+  "regression": {
+    "node": {
+      "passedSuites": 140,
+      "passedTests": 1481,
+      "skippedSuites": 4,
+      "skippedTests": 29,
+      "snapshots": 6
+    },
+    "jsdom": {
+      "passedSuites": 350,
+      "passedTests": 3264,
+      "skippedSuites": 2,
+      "skippedTests": 28,
+      "snapshots": 7,
+      "exitCode": 0
+    },
+    "controlPlanePassedTests": 21,
+    "runtimeHelpersPassedTests": 29,
+    "runtimeScriptsPassedTests": 62,
+    "serverDiagnosticsPassedTests": 26,
+    "watcherTargetedPassedTests": 23
+  },
+  "nativeWatcherRecovery": [
+    {
+      "backend": "mac-parcel",
+      "platform": "darwin",
+      "connections": 5,
+      "diskSteps": 9,
+      "functionalPass": true,
+      "lifecyclePass": true,
+      "crashRecoveryPass": true,
+      "sha256": "654618931aac74d9970295457728c271375de40e89a9211c996a152d52a79e0d"
+    },
+    {
+      "backend": "mac-default",
+      "platform": "darwin",
+      "connections": 5,
+      "diskSteps": 9,
+      "functionalPass": true,
+      "lifecyclePass": true,
+      "crashRecoveryPass": true,
+      "sha256": "2f2c4b70a0e0348455f2290f5b8d9012b75bea835ea903df1677c901cf6b6dd7"
+    },
+    {
+      "backend": "linux-parcel",
+      "platform": "linux",
+      "connections": 5,
+      "diskSteps": 9,
+      "functionalPass": true,
+      "lifecyclePass": true,
+      "crashRecoveryPass": true,
+      "sha256": "e34457e9b05a17456027214e880a2cdbdf52a6ff29f6e4296dd2cc32a02ce929"
+    }
+  ],
+  "activeBrowserStop": {
+    "passed": true,
+    "phaseCount": 4,
+    "sampledProcesses": 6,
+    "remainingProcesses": 0,
+    "elapsedMs": 204,
+    "note": "Browser and terminal stayed open when Server was signalled; activeConnections in report is the post-shutdown count."
+  },
+  "sandbox": {
+    "passed": true,
+    "serverVersion": "0.2.3",
+    "execdVersion": "1.1.0",
+    "sdkVersion": "1.1.0",
+    "dockerDaemonVersion": "29.3.0",
+    "platform": "linux/amd64",
+    "hostEmulation": true,
+    "steps": [
+      {
+        "name": "real-sdk-provision-and-start-two-accounts",
+        "passed": true
+      },
+      {
+        "name": "node24-os-and-api-account-isolation",
+        "passed": true
+      },
+      {
+        "name": "actual-ide-http-and-websocket-proxy",
+        "passed": true
+      },
+      {
+        "name": "real-encrypted-backup-and-dirty-file-restore",
+        "passed": true
+      },
+      {
+        "name": "actual-container-runtime-upgrade-retains-pvc",
+        "passed": true
+      },
+      {
+        "name": "actual-container-and-docker-pvc-release",
+        "passed": true
+      }
+    ],
+    "environmentCleanup": "Private DinD container, context, network, volume and upgrade fixture image removed by trap.",
+    "upgradeBoundary": "Fixture changes image fingerprint; container replacement and retained data are verified, cross-release application migration is not."
+  },
+  "unverified": [
+    "Windows native product acceptance",
+    "Real Kubernetes cluster PVC deletion",
+    "External GitHub/GitLab/Gitee accounts and real MR/PR creation",
+    "Real cloud COS/MySQL and other resource deployments",
+    "Full Linux browser interaction matrix",
+    "Long-term stability, quiet-host indexing and whole-IDE performance"
+  ],
+  "localEvidenceDirectory": "output/runtime-profiles/node-control-plane-20261002",
+  "evidenceSha256": "d5ca375e551307828dd2bd6c62cba126cd91d93f408b26040ea93cdb87371c00"
+}

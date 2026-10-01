@@ -2,7 +2,7 @@
 
 基于 [OpenSumi](https://github.com/opensumi/core) 的 Web IDE 重建版，使用 Node.js 24、pnpm、TypeScript 7 和 Rspack。工作台控制面使用 Koa 3，负责项目、个人开发机、工作区和 IDE 入口；框架与扩展 API 保留 OpenSumi 兼容性。
 
-当前是本机可运行的迁移开发版。工作台和真实 Node IDE 已通过本机验证；远程 OpenSandbox 通过官方 SDK 协议测试，完整远程部署、Docker 镜像和上游 CI 仍需补齐。具体进度见 [迁移状态](docs/MIGRATION.md)。
+当前版本使用 Node 控制面与 Node IDE，已删除 Go watcher/search、Gateway、协议、构建入口与 Go 插件。开发资源、Git 凭据桥与发布、开发机维护、运行时升级、孤儿恢复和卷删除均已接入。macOS 与本机 Docker 中的 Linux/OpenSandbox 已执行验收；Windows、真实 Kubernetes 和外部代码源/云资源仍需对应环境验收。具体范围见 [迁移状态](docs/MIGRATION.md)和 [控制面设计](docs/NODE-CONTROL-PLANE.md)。
 
 ## 工具链
 
@@ -51,6 +51,16 @@ node scripts/verify-extensions.cjs
 
 完整安装、端口、配置、沙箱与 Git 远程设置见 [运行说明](docs/RUNNING.md)。前后端入口分别位于 [client](client/README.md)、[server](server/README.md)，工作台代码位于 `application/`。
 
+## Docker 与沙箱验收
+
+```sh
+docker build -t opensumi-webide-node:dev .
+docker build -f application/runtime/Dockerfile --build-arg OPENSUMI_BASE=opensumi-webide-node:dev -t opensumi-webide-workspace:dev .
+WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:dev bash scripts/run-local-sandbox-acceptance.sh
+```
+
+验收脚本在私有 DinD 中启动官方 OpenSandbox；测试账户、沙箱与卷全部隔离，并在退出时清理该测试环境。运行前需安装仓库依赖并启用 Docker，详情和版本边界见 [运行说明](docs/RUNNING.md)。
+
 ## 共享 Node watcher
 
 默认仍按连接启动 watcher；实验模式需要显式设置：
@@ -59,7 +69,7 @@ node scripts/verify-extensions.cjs
 OPENSUMI_NODE_WATCHER_MODE=shared pnpm start
 ```
 
-共享仅限同一个 IDE Server 的多个连接，独立工作区 Server 不会跨进程共享。移植后的 39 个 watcher 测试、3 轮五连接实盘验证通过；整棵 IDE 的内存和延迟改善仍未验收。详见 [共享 watcher 说明](docs/architecture/shared-node-watcher.md)及其中保留的原项目实验记录。
+共享仅限同一个 IDE Server 的多个连接，独立工作区 Server 不会跨进程共享。共享宿主崩溃时会通知客户端重扫并重建存活租约，停止时取消恢复。macOS 的 Parcel/默认后端及 Linux Parcel 五连接崩溃探针、活跃浏览器下的 Server 退出检查通过；整棵 IDE 的内存和延迟改善仍未验收。详见 [共享 watcher 说明](docs/architecture/shared-node-watcher.md)及其中保留的原项目实验记录。
 
 ## 来源与许可证
 

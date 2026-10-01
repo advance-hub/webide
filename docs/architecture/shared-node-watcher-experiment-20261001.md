@@ -1,5 +1,7 @@
 # Node watcher 共享实验（2026-10-01）
 
+> 历史测量记录：2026-10-02 当前产品已删除 Go Agent/Gateway、相关协议和构建入口。下文 Node/Go 数字与失败记录原样保留，仅作为原项目实验来源，不表示本版提供 Go 模式。
+
 > 原项目的历史实验记录：数据来自 `opensumi` 的 `32dff6c` 基线及当时未提交的共享 watcher 实现，不代表重建版的重新验收。重建版保留 Node 与共享 Node 两种探针，不包含 Go 对照；当前启用方式与移植验收见 [共享 watcher](./shared-node-watcher.md)。
 
 共享 Node 已在本机移除大部分重复 watcher 进程的内存成本，但整棵 IDE 的性能尚未通过稳定性验收。默认继续按连接启动 Node watcher；设置 `OPENSUMI_NODE_WATCHER_MODE=shared` 才启用实验。
