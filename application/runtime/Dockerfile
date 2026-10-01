@@ -1,0 +1,81 @@
+# Build the current repository Dockerfile as opensumi-workbench-base:dev first.
+ARG OPENSUMI_BASE=opensumi-workbench-base:dev
+FROM maven:3.9.16-eclipse-temurin-21 AS java-tools
+FROM eclipse-temurin:8-jdk-jammy AS java8
+FROM eclipse-temurin:11-jdk-jammy AS java11
+FROM eclipse-temurin:17-jdk-jammy AS java17
+FROM ${OPENSUMI_BASE}
+USER root
+COPY --from=java-tools /opt/java/openjdk /opt/java/openjdk
+COPY --from=java-tools /usr/share/maven /opt/maven
+ENV JAVA_HOME=/opt/java/openjdk \
+    MAVEN_HOME=/opt/maven \
+    PATH=/opt/java/openjdk/bin:/opt/maven/bin:${PATH}
+RUN test "$(java -version 2>&1 | sed -n '1s/.*\"\([0-9]*\)\..*/\1/p')" = 21 \
+  && mvn -version | grep -q 'Apache Maven 3.9.16'
+ARG GO_MODULE_PROXY=https://goproxy.cn,direct
+ARG GO_EXTENSION_VERSION=0.44.0
+ARG STATICCHECK_VERSION=v0.6.1
+ARG NACOS_CLI_VERSION=v1.1.4
+ENV GOPROXY=${GO_MODULE_PROXY}
+RUN GOBIN=/opt/go-tools/bin GOTOOLCHAIN=local go install honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION} \
+  && GOBIN=/opt/go-tools/bin GOTOOLCHAIN=local go install github.com/nacos-group/nacos-cli@${NACOS_CLI_VERSION} \
+  && test "$(node -p "require('/app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/package.json').version")" = "${GO_EXTENSION_VERSION}" \
+  && GOTOOLCHAIN=local go mod download github.com/golang/vscode-go@v${GO_EXTENSION_VERSION} \
+  && mkdir -p /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin \
+  && (cd "$(go env GOPATH)/pkg/mod/github.com/golang/vscode-go@v${GO_EXTENSION_VERSION}" \
+      && GOTOOLCHAIN=local go build -trimpath \
+        -o /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin/vscgo ./vscgo) \
+  && go clean -modcache -cache \
+  && staticcheck -version \
+  && /opt/go-tools/bin/nacos-cli --help >/dev/null \
+  && test -x /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin/vscgo
+ARG OPENCODE_VERSION=1.18.32
+RUN npm install --prefix /opt/opensumi/opencode --omit=dev --no-audit --no-fund \
+      "opencode-ai@${OPENCODE_VERSION}" \
+  && npm install --prefix /opt/opensumi/opencode-config --omit=dev --no-audit --no-fund \
+      "@opencode-ai/plugin@${OPENCODE_VERSION}" \
+  && ln -s ../opencode/node_modules/.bin/opencode /opt/opensumi/bin/opencode \
+  && /opt/opensumi/bin/opencode --version | grep -Fx "${OPENCODE_VERSION}" \
+  && test "$(node -p "require('/opt/opensumi/opencode-config/node_modules/@opencode-ai/plugin/package.json').version")" = "${OPENCODE_VERSION}"
+ARG OH_MY_ZSH_COMMIT=74965c96098134b192f00084f966b4b02438a739
+RUN git init -q /opt/oh-my-zsh \
+  && git -C /opt/oh-my-zsh remote add origin https://github.com/ohmyzsh/ohmyzsh.git \
+  && git -C /opt/oh-my-zsh fetch --depth 1 origin "$OH_MY_ZSH_COMMIT" \
+  && git -C /opt/oh-my-zsh checkout -q FETCH_HEAD \
+  && rm -rf /opt/oh-my-zsh/.git \
+  && test -f /opt/oh-my-zsh/oh-my-zsh.sh \
+  && command -v flock && command -v curl && /bin/zsh --version \
+  && test -f /app/builtin-extensions.manifest.json \
+  && test -d /app/builtin-extensions.manifest.json.d
+# Keep frequently edited entrypoints after the expensive tool installation layers.
+COPY --from=java8 /opt/java/openjdk /opt/java/8
+COPY --from=java11 /opt/java/openjdk /opt/java/11
+COPY --from=java17 /opt/java/openjdk /opt/java/17
+RUN /opt/java/8/bin/java -version && /opt/java/11/bin/java -version && /opt/java/17/bin/java -version
+COPY application/runtime/start-workspace.sh /opt/opensumi/bin/start-workspace
+COPY application/runtime/default-settings.json /opt/opensumi/default-settings.json
+COPY application/runtime/zshrc /opt/opensumi/default-zshrc
+COPY application/runtime/ensure-default-settings.cjs /opt/opensumi/bin/ensure-default-settings.cjs
+COPY application/runtime/opencode.json /opt/opensumi/opencode.json
+COPY application/runtime/stop-ide.cjs /opt/opensumi/bin/stop-ide.cjs
+COPY application/runtime/development.cjs /opt/opensumi/bin/development.cjs
+COPY application/runtime/maven.cjs /opt/opensumi/bin/maven.cjs
+COPY application/runtime/maven-metadata.py /opt/opensumi/bin/maven-metadata.py
+COPY application/runtime/editor-connections.cjs /opt/opensumi/bin/editor-connections.cjs
+COPY application/runtime/git.cjs application/runtime/git-credential.cjs /opt/opensumi/bin/
+COPY application/runtime/toolchain.cjs application/runtime/tool-versions.cjs application/runtime/maven-config.cjs /opt/opensumi/bin/
+COPY application/runtime/services.cjs application/runtime/restore-machine.cjs /opt/opensumi/bin/
+COPY application/runtime/personal-settings.cjs application/runtime/preferences.cjs application/runtime/machine.cjs /opt/opensumi/bin/
+RUN chmod 0755 /opt/opensumi/bin/start-workspace && sh -n /opt/opensumi/bin/start-workspace
+ENV HOME=/workspace/home \
+    PORT=4317 \
+    MY_WORKSPACE=/workspace/project \
+    MAX_EXTENSION_HOSTS=3 \
+    MAX_MANAGED_EXTENSION_PROCESSES=3 \
+    ENABLE_COLLABORATION=0 \
+    ENABLE_AI=1
+WORKDIR /app
+# OpenSandbox injects execd and overrides the entrypoint. The control plane
+# starts OpenSumi after mounting the volume and preparing the repository.
+CMD ["sleep", "infinity"]

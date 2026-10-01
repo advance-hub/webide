@@ -1,0 +1,23 @@
+{
+  "general.icon": "vscode-icons",
+  "java.jdt.ls.vmargs": "-Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication",
+  "java.import.gradle.jvmArguments": "-Xmx256m",
+  "spring-boot.ls.java.heap": "256m",
+  "xml.server.vmargs": "-Xmx128m",
+  "liveServer.settings.NoBrowser": true,
+  "git.autofetch": false,
+  "git.enableStatusBarSync": true,
+  "git.showActionButton": { "commit": true, "publish": true, "sync": true },
+  "go.toolsManagement.checkForUpdates": "off",
+  "ai.native.agent.builtInsEnabled": false,
+  "ai.native.agent.configs": {
+    "opencode": {
+      "command": "opencode",
+      "args": ["acp"],
+      "streaming": true,
+      "description": "OpenCode"
+    }
+  },
+  "ai.native.agent.defaultType": "opencode",
+  "ai.native.webmcp.enabled": false
+}
