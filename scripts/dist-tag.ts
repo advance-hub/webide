@@ -4,7 +4,7 @@ import { createInterface } from 'readline';
 import { existsSync, readdirSync } from 'fs-extra';
 import * as semver from 'semver';
 
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import Package from './pkg';
 

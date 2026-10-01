@@ -1,4 +1,4 @@
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { startFromFolder } from './fn/module';
 

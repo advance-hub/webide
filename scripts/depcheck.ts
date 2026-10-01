@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import depcheck from 'depcheck';
 import { existsSync, readdirSync } from 'fs-extra';
 
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 const packagesDir = join(__dirname, '../packages');
 

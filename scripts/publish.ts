@@ -8,8 +8,9 @@ import { ensureFileSync, readFileSync, writeFileSync } from 'fs-extra';
 import git from 'git-rev-sync';
 import semver from 'semver';
 
+import { argv } from '@opensumi/ide-core-common/node/cli';
+
 import pkg from '../lerna.json';
-import { argv } from '../packages/core-common/src/node/cli';
 
 import { generateManifest } from './manifest';
 import Package, { readAllMainPackages } from './pkg';

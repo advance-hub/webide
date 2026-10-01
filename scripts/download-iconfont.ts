@@ -9,9 +9,9 @@ import Hbs from 'handlebars';
 import isGitClean from 'is-git-clean';
 import download from 'offline-iconfont';
 
-import { defaultIconfont } from '../packages/components/src/icon/iconfont/iconMap';
-import { IDE_ICONFONT_CN_CSS } from '../packages/core-browser/src/style/icon/ide-iconfont';
-import pkg from '../packages/core-common/package.json';
+import { defaultIconfont } from '@opensumi/ide-components/icon-font-data';
+import { IDE_ICONFONT_CN_CSS } from '@opensumi/ide-core-browser/icon-font-data';
+import pkg from '@opensumi/ide-core-common/package.json';
 
 const targetDir = path.resolve(__dirname, '../packages/components/src/icon/iconfont');
 

@@ -6,8 +6,8 @@ import { join } from 'path';
 import { command } from 'execa';
 import { mkdirSync, pathExistsSync, readJSONSync, readdirSync, removeSync, writeJSONSync } from 'fs-extra';
 
-import { parseArgv } from '../packages/utils/src/argv';
-import { pSeries } from '../packages/utils/src/promises';
+import { pSeries } from '@opensumi/ide-utils';
+import { parseArgv } from '@opensumi/ide-utils/argv';
 
 const argv = parseArgv(process.argv.slice(2));
 
@@ -18,7 +18,10 @@ const packagesDirNames = readdirSync(packagesDir);
 class CheckPoint {
   dirPath: string;
 
-  constructor(private name: string, clean?: boolean) {
+  constructor(
+    private name: string,
+    clean?: boolean,
+  ) {
     this.dirPath = join(cacheDir, name);
     if (clean) {
       this.clean();
@@ -80,7 +83,7 @@ const funcs = packagesDirNames.map((target) => async () => {
         if ((argv as any).strictPromise) {
           env['EXIT_ON_UNHANDLED_REJECTION'] = 'true';
         }
-        let cmd = `yarn test:module --module=${target} --project=${v}`;
+        let cmd = `pnpm run test:module --module=${target} --project=${v}`;
         if ((argv as any).serial) {
           cmd += ' --no-runInBand';
         }

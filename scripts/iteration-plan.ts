@@ -3,7 +3,7 @@ import path from 'path';
 
 import chalk from 'chalk';
 
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { getPrList } from './changelog/github';
 import { formatBytes, getChangelog } from './changelog/util';
@@ -14,7 +14,7 @@ if (!process.env.GITHUB_TOKEN) {
   console.log(chalk.yellow('Please keep your github access token carefully'));
   process.exit();
 } else if (!argv.time || !argv.branch) {
-  console.log(chalk.yellow('Please process a time argv, like `yarn run iteration --time=2022-2-2 --branch=2.18`'));
+  console.log(chalk.yellow('Please process a time argv, like `pnpm run iteration --time=2022-2-2 --branch=2.18`'));
   process.exit();
 }
 

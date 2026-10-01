@@ -1,4 +1,4 @@
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { runTest } from './jest/runTest';
 
@@ -6,7 +6,7 @@ const modulePath: string | undefined = argv.module as any;
 
 if (!modulePath) {
   console.error(
-    'The module name must be provided using the `--module={folder}` parameter, eg: yarn run test:module --module=editor',
+    'The module name must be provided using the `--module={folder}` parameter, eg: pnpm run test:module --module=editor',
   );
   process.exit(1);
 }

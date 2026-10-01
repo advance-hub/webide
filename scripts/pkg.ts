@@ -4,7 +4,7 @@ import { join } from 'path';
 
 import { readFileSync, readJSONSync, writeFileSync } from 'fs-extra';
 
-import { argv } from '../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 export default class Package {
   path: string;

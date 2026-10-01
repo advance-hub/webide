@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import chalk from 'chalk';
 
-import { argv } from '../../packages/core-common/src/node/cli';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { run } from './run';
 
@@ -12,8 +12,8 @@ if (!process.env.GITHUB_TOKEN) {
   process.exit();
 }
 
-// yarn run changelog --from=v1.34.0 --to=1.35.0
-// yarn run changelog --from=v1.34.0
+// pnpm run changelog --from=v1.34.0 --to=1.35.0
+// pnpm run changelog --from=v1.34.0
 const from = argv.from as string;
 const to = argv.to as string;
 const isRemote = argv.remote as boolean;
