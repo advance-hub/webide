@@ -5,6 +5,7 @@ on:
 
 jobs:
   labeler:
+    if: github.repository == 'opensumi/core'
     runs-on: ubuntu-latest
 
     steps:

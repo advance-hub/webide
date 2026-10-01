@@ -1,45 +1,29 @@
-name: Deploy Iconfont Page
-
+name: Build iconfont artifact
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/core-browser/src/style/icon/**'
-
+permissions:
+  contents: read
 jobs:
-  deploy:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+  artifact:
+    runs-on: ubuntu-latest
     steps:
-      - uses: opensumi/actions/bot-token@main
-        id: bot-token
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
         with:
-          token-server: ${{ secrets.BOT_TOKEN_SERVER }}
-          flag: ${{ secrets.BOT_FLAG }}
-      - uses: actions/checkout@v4
-      - name: Get yarn cache directory path
-        id: yarn_cache_dir_path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
-        id: yarn_cache
+          node-version: '24.16.0'
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
         with:
-          path: ${{ steps.yarn_cache_dir_path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('./yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Build
-        run: |
-          yarn install --immutable
-          yarn run update:iconfont
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: ${{ github.ref == 'refs/heads/main' }}
+          version: '12.8.1'
+          cache: true
+      - name: Linux native dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev
+      - run: pnpm install --frozen-lockfile
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: pnpm update:iconfont
+      - uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ env.GITHUB_TOKEN }}
-          publish_dir: ./packages/components/src/icon/iconfont
+          name: iconfont
+          path: packages/components/src/icon/iconfont

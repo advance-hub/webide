@@ -1,0 +1,31 @@
+name: Isolated OpenSandbox acceptance
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.16.0'
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: '12.8.1'
+          cache: true
+      - run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev
+      - run: pnpm install --frozen-lockfile
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: docker build -t opensumi-webide-node:dev .
+      - run: docker build -f application/runtime/Dockerfile --build-arg OPENSUMI_BASE=opensumi-webide-node:dev -t opensumi-webide-workspace:dev .
+      - run: bash scripts/run-local-sandbox-acceptance.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sandbox-acceptance
+          path: output/runtime-profiles/node-control-plane-20261002

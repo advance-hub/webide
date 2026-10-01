@@ -7,7 +7,7 @@ on:
 jobs:
   issue-need-more-detail:
     runs-on: ubuntu-latest
-    if: github.actor != github.event.issue.user.login
+    if: github.repository == 'opensumi/core' && github.actor != github.event.issue.user.login
     steps:
       - uses: opensumi/actions/bot-token@main
         id: bot-token
@@ -29,7 +29,7 @@ jobs:
 
   issue-need-reproduce:
     runs-on: ubuntu-latest
-    if: github.actor != github.event.issue.user.login
+    if: github.repository == 'opensumi/core' && github.actor != github.event.issue.user.login
     steps:
       - uses: opensumi/actions/bot-token@main
         id: bot-token

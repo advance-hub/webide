@@ -1,11 +1,14 @@
-# Build the current repository Dockerfile as opensumi-workbench-base:dev first.
-ARG OPENSUMI_BASE=opensumi-workbench-base:dev
+# Build the repository Dockerfile as opensumi-webide-node:dev first.
+ARG OPENSUMI_BASE=opensumi-webide-node:dev
 FROM maven:3.9.16-eclipse-temurin-21 AS java-tools
 FROM eclipse-temurin:8-jdk-jammy AS java8
 FROM eclipse-temurin:11-jdk-jammy AS java11
 FROM eclipse-temurin:17-jdk-jammy AS java17
 FROM ${OPENSUMI_BASE}
 USER root
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV NODE_USE_ENV_PROXY=1
 COPY --from=java-tools /opt/java/openjdk /opt/java/openjdk
 COPY --from=java-tools /usr/share/maven /opt/maven
 ENV JAVA_HOME=/opt/java/openjdk \
@@ -13,28 +16,12 @@ ENV JAVA_HOME=/opt/java/openjdk \
     PATH=/opt/java/openjdk/bin:/opt/maven/bin:${PATH}
 RUN test "$(java -version 2>&1 | sed -n '1s/.*\"\([0-9]*\)\..*/\1/p')" = 21 \
   && mvn -version | grep -q 'Apache Maven 3.9.16'
-ARG GO_MODULE_PROXY=https://goproxy.cn,direct
-ARG GO_EXTENSION_VERSION=0.44.0
-ARG STATICCHECK_VERSION=v0.6.1
-ARG NACOS_CLI_VERSION=v1.1.4
-ENV GOPROXY=${GO_MODULE_PROXY}
-RUN GOBIN=/opt/go-tools/bin GOTOOLCHAIN=local go install honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION} \
-  && GOBIN=/opt/go-tools/bin GOTOOLCHAIN=local go install github.com/nacos-group/nacos-cli@${NACOS_CLI_VERSION} \
-  && test "$(node -p "require('/app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/package.json').version")" = "${GO_EXTENSION_VERSION}" \
-  && GOTOOLCHAIN=local go mod download github.com/golang/vscode-go@v${GO_EXTENSION_VERSION} \
-  && mkdir -p /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin \
-  && (cd "$(go env GOPATH)/pkg/mod/github.com/golang/vscode-go@v${GO_EXTENSION_VERSION}" \
-      && GOTOOLCHAIN=local go build -trimpath \
-        -o /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin/vscgo ./vscgo) \
-  && go clean -modcache -cache \
-  && staticcheck -version \
-  && /opt/go-tools/bin/nacos-cli --help >/dev/null \
-  && test -x /app/tools/extensions/golang.go-${GO_EXTENSION_VERSION}/bin/vscgo
 ARG OPENCODE_VERSION=1.18.32
 RUN npm install --prefix /opt/opensumi/opencode --omit=dev --no-audit --no-fund \
       "opencode-ai@${OPENCODE_VERSION}" \
   && npm install --prefix /opt/opensumi/opencode-config --omit=dev --no-audit --no-fund \
       "@opencode-ai/plugin@${OPENCODE_VERSION}" \
+  && mkdir -p /opt/opensumi/bin \
   && ln -s ../opencode/node_modules/.bin/opencode /opt/opensumi/bin/opencode \
   && /opt/opensumi/bin/opencode --version | grep -Fx "${OPENCODE_VERSION}" \
   && test "$(node -p "require('/opt/opensumi/opencode-config/node_modules/@opencode-ai/plugin/package.json').version")" = "${OPENCODE_VERSION}"
@@ -65,12 +52,14 @@ COPY application/runtime/maven-metadata.py /opt/opensumi/bin/maven-metadata.py
 COPY application/runtime/editor-connections.cjs /opt/opensumi/bin/editor-connections.cjs
 COPY application/runtime/git.cjs application/runtime/git-credential.cjs /opt/opensumi/bin/
 COPY application/runtime/toolchain.cjs application/runtime/tool-versions.cjs application/runtime/maven-config.cjs /opt/opensumi/bin/
-COPY application/runtime/services.cjs application/runtime/restore-machine.cjs /opt/opensumi/bin/
+COPY application/runtime/services.cjs application/runtime/restore-machine.cjs application/runtime/machine-archive.cjs /opt/opensumi/bin/
 COPY application/runtime/personal-settings.cjs application/runtime/preferences.cjs application/runtime/machine.cjs /opt/opensumi/bin/
 RUN chmod 0755 /opt/opensumi/bin/start-workspace && sh -n /opt/opensumi/bin/start-workspace
 ENV HOME=/workspace/home \
     PORT=4317 \
     MY_WORKSPACE=/workspace/project \
+    WORKBENCH_MACHINE_HOME=/workspace/home \
+    WORKBENCH_LOCAL_DEMO=1 \
     MAX_EXTENSION_HOSTS=3 \
     MAX_MANAGED_EXTENSION_PROCESSES=3 \
     ENABLE_COLLABORATION=0 \
