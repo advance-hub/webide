@@ -1,10 +1,14 @@
 {
-  "version": "3.0.0",
+  "version": "3.3.0",
   "extensions": {
     "vscode": [
       {
         "name": "typescript-language-features",
-        "version": "1.60.0"
+        "version": "1.60.0",
+        "displayName": "TypeScript / JavaScript",
+        "category": "Web",
+        "purpose": "类型检查、补全、定义跳转与重构",
+        "curated": true
       },
       {
         "name": "configuration-editing",
@@ -137,6 +141,30 @@
       {
         "name": "vscode-theme-seti",
         "version": "1.88.1"
+      },
+      {
+        "name": "markdown",
+        "version": "1.88.1"
+      },
+      {
+        "name": "shellscript",
+        "version": "1.88.1"
+      },
+      {
+        "name": "go",
+        "version": "1.88.1"
+      },
+      {
+        "name": "docker",
+        "version": "1.88.1"
+      },
+      {
+        "name": "ini",
+        "version": "1.88.1"
+      },
+      {
+        "name": "sql",
+        "version": "1.88.1"
       }
     ],
     "ms-python": [
@@ -177,6 +205,238 @@
       {
         "name": "pyright",
         "version": "1.1.372"
+      }
+    ],
+    "dbaeumer": [
+      {
+        "name": "vscode-eslint",
+        "version": "2.4.4",
+        "displayName": "ESLint",
+        "category": "Web",
+        "purpose": "JavaScript / TypeScript 代码检查",
+        "curated": true
+      }
+    ],
+    "christian-kohler": [
+      {
+        "name": "path-intellisense",
+        "version": "2.8.0",
+        "displayName": "Path Intellisense",
+        "category": "Web",
+        "purpose": "文件路径补全",
+        "curated": true
+      }
+    ],
+    "dsznajder": [
+      {
+        "name": "es7-react-js-snippets",
+        "version": "3.1.1",
+        "displayName": "React Snippets",
+        "category": "Web",
+        "purpose": "React / JSX / TSX 代码片段",
+        "curated": true
+      }
+    ],
+    "redhat": [
+      {
+        "name": "java",
+        "version": "1.39.0",
+        "displayName": "Java Language Support",
+        "category": "Java",
+        "purpose": "Java 语言服务与代码导航",
+        "curated": true
+      },
+      {
+        "name": "vscode-yaml",
+        "version": "1.15.0",
+        "displayName": "YAML",
+        "category": "通用",
+        "purpose": "YAML 校验、Schema 与补全",
+        "curated": true
+      },
+      {
+        "name": "vscode-xml",
+        "version": "0.27.1",
+        "displayName": "XML",
+        "category": "Java",
+        "purpose": "Maven POM、MyBatis XML 的补全与校验",
+        "curated": true
+      }
+    ],
+    "vscjava": [
+      {
+        "name": "vscode-java-debug",
+        "version": "0.58.0",
+        "displayName": "Debugger for Java",
+        "category": "Java",
+        "purpose": "Java 断点与调试",
+        "curated": true
+      },
+      {
+        "name": "vscode-maven",
+        "version": "0.45.3",
+        "displayName": "Maven for Java",
+        "category": "Java",
+        "purpose": "Maven 目标与依赖管理",
+        "curated": true
+      },
+      {
+        "name": "vscode-spring-initializr",
+        "version": "0.11.2",
+        "displayName": "Spring Initializr",
+        "category": "Java",
+        "purpose": "创建 Maven / Gradle Spring Boot 工程",
+        "curated": true
+      },
+      {
+        "name": "vscode-spring-boot-dashboard",
+        "version": "0.14.0",
+        "displayName": "Spring Boot Dashboard",
+        "category": "Java",
+        "purpose": "Spring Boot 应用启动、停止与调试",
+        "curated": true
+      },
+      {
+        "name": "vscode-java-test",
+        "version": "0.43.0",
+        "displayName": "Test Runner for Java",
+        "category": "Java",
+        "purpose": "JUnit / TestNG 测试与调试",
+        "curated": true
+      },
+      {
+        "name": "vscode-java-dependency",
+        "version": "0.23.3",
+        "displayName": "Project Manager for Java",
+        "category": "Java",
+        "purpose": "Java 工程、依赖和源目录管理",
+        "curated": true
+      }
+    ],
+    "golang": [
+      {
+        "name": "go",
+        "version": "0.44.0",
+        "displayName": "Go",
+        "category": "Go",
+        "purpose": "Go 语言服务、运行和调试",
+        "curated": true
+      }
+    ],
+    "mtxr": [
+      {
+        "name": "sqltools",
+        "version": "0.28.6",
+        "displayName": "SQLTools",
+        "category": "数据库",
+        "purpose": "SQL 编辑与数据库连接",
+        "curated": true
+      },
+      {
+        "name": "sqltools-driver-pg",
+        "version": "0.5.8",
+        "displayName": "PostgreSQL Driver",
+        "category": "数据库",
+        "purpose": "PostgreSQL 连接驱动",
+        "curated": true
+      },
+      {
+        "name": "sqltools-driver-mysql",
+        "version": "0.6.7",
+        "displayName": "MySQL Driver",
+        "category": "数据库",
+        "purpose": "MySQL / MariaDB 连接驱动",
+        "curated": true
+      }
+    ],
+    "ps-aditya": [
+      {
+        "name": "redis-live",
+        "version": "0.3.1",
+        "displayName": "Redis Live",
+        "category": "数据库",
+        "purpose": "Redis 连接、键浏览和命令终端",
+        "curated": true
+      }
+    ],
+    "donjayamanne": [
+      {
+        "name": "githistory",
+        "version": "0.6.19",
+        "displayName": "Git History",
+        "category": "Git",
+        "purpose": "提交历史、文件历史与分支比较",
+        "curated": true
+      }
+    ],
+    "mhutchie": [
+      {
+        "name": "git-graph",
+        "version": "1.30.0",
+        "displayName": "Git Graph",
+        "category": "Git",
+        "purpose": "提交图、分支与提交差异",
+        "curated": true
+      }
+    ],
+    "ritwickdey": [
+      {
+        "name": "LiveServer",
+        "version": "5.7.10",
+        "displayName": "Live Server",
+        "category": "前端",
+        "purpose": "按需启动本地预览服务",
+        "curated": true
+      }
+    ],
+    "esbenp": [
+      {
+        "name": "prettier-vscode",
+        "version": "10.4.0",
+        "displayName": "Prettier",
+        "category": "前端",
+        "purpose": "按项目配置格式化 JS、TS、React 和样式文件",
+        "curated": true
+      }
+    ],
+    "EditorConfig": [
+      {
+        "name": "EditorConfig",
+        "version": "0.16.4",
+        "displayName": "EditorConfig",
+        "category": "通用",
+        "purpose": "统一缩进、换行和文件编码",
+        "curated": true
+      }
+    ],
+    "mikestead": [
+      {
+        "name": "dotenv",
+        "version": "1.0.1",
+        "displayName": "DotENV",
+        "category": "通用",
+        "purpose": "环境变量文件高亮",
+        "curated": true
+      }
+    ],
+    "vmware": [
+      {
+        "name": "vscode-spring-boot",
+        "version": "1.55.1",
+        "displayName": "Spring Boot Tools",
+        "category": "Java",
+        "purpose": "Spring Boot 配置补全、Bean 导航与语言服务",
+        "curated": true
+      }
+    ],
+    "Greenplumwine": [
+      {
+        "name": "mybatis-helper",
+        "version": "0.0.3",
+        "displayName": "MyBatis Helper",
+        "category": "Java",
+        "purpose": "Mapper 接口与 XML 互跳、SQL 高亮与格式化",
+        "curated": true
       }
     ]
   }

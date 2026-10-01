@@ -1,181 +1,206 @@
-const os = require('os');
-const path = require('path');
-const pipeline = require('stream').pipeline;
+'use strict';
 
-const retry = require('async-retry');
-const awaitEvent = require('await-event');
-const compressing = require('compressing');
-const log = require('debug')('InstallExtension');
-const fs = require('fs-extra');
-const nodeFetch = require('node-fetch');
-const rimraf = require('rimraf');
+const { execFile } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const fs = require('node:fs');
+const fsp = require('node:fs/promises');
+const path = require('node:path');
+const { promisify } = require('node:util');
 
-// 放置 extension 的目录
-const targetDir = path.resolve(__dirname, '../tools/extensions/');
+const { expectedExtensions, receiptPath, verifyExtension, verifyExtensions } = require('./verify-extensions.cjs');
 
-const extensionFileName = 'vscode-extensions.json';
-const { extensions } = require(path.resolve(__dirname, `../configs/${extensionFileName}`));
-const headers = {};
+const registry = (process.env.OPENVSX_REGISTRY || 'https://open-vsx.org').replace(/\/$/, '');
+const targetDir = path.resolve(process.env.OPENSUMI_EXTENSION_DIR || path.join(__dirname, '../tools/extensions'));
+const targetPlatform = process.env.OPENSUMI_EXTENSION_PLATFORM || `${process.platform}-${process.arch}`;
 
-// 限制并发数，运行promise
-const parallelRunPromise = (lazyPromises, n) => {
-  const results = [];
-  let index = 0;
-  let working = 0;
-  let complete = 0;
-
-  const addWorking = (res, rej) => {
-    while (working < n && index < lazyPromises.length) {
-      const current = lazyPromises[index++];
-      working++;
-
-      ((index) => {
-        current().then((result) => {
-          working--;
-          complete++;
-          results[index] = result;
-
-          if (complete === lazyPromises.length) {
-            res(results);
-            return;
-          }
-
-          // note: 虽然addWorking中有while，这里其实每次只会加一个promise
-          addWorking(res, rej);
-        }, rej);
-      })(index - 1);
-    }
-  };
-
-  return new Promise(addWorking);
-};
-
-async function downloadExtension(url, namespace, extensionName, version) {
-  const tmpPath = path.join(os.tmpdir(), 'extension');
-  const [tempFileName] = path.basename(url).split('?');
-  const tmpZipFile = path.join(tmpPath, `${tempFileName}-${version}`);
-  await fs.mkdirp(tmpPath);
-
-  const tmpStream = fs.createWriteStream(tmpZipFile);
-  const res = await nodeFetch(url, { timeout: 100000, headers });
-
-  if (res.status !== 200) {
-    throw new Error(`${res.status} ${res.statusText}`);
+async function archiveHash(file) {
+  const hash = createHash('sha256');
+  for await (const chunk of fs.createReadStream(file)) {
+    hash.update(chunk);
   }
-
-  res.body.pipe(tmpStream);
-  await Promise.race([awaitEvent(res.body, 'end'), awaitEvent(res.body, 'error')]);
-  tmpStream.close();
-
-  const targetDirName = path.basename(`${namespace}.${extensionName}-${version}`);
-
-  return { tmpZipFile, targetDirName };
+  return hash.digest('hex');
 }
 
-function unzipFile(dist, targetDirName, tmpZipFile) {
-  const sourcePathRegex = new RegExp('^extension');
-  return new Promise((resolve, reject) => {
+async function downloadArchive(url, archive, checksum) {
+  await fsp.mkdir(path.dirname(archive), { recursive: true });
+  if (fs.existsSync(archive) && (await archiveHash(archive)) === checksum) {
+    return;
+  }
+  // Keep partial archives across retries and invocations. Curl's HTTP/1.1 range
+  // handling works with the official CDN and does not buffer large Java VSIXs.
+  await promisify(execFile)(
+    'curl',
+    [
+      '--fail',
+      '--location',
+      '--http1.1',
+      '--silent',
+      '--show-error',
+      '--connect-timeout',
+      '15',
+      '--max-time',
+      '600',
+      '--continue-at',
+      '-',
+      '--output',
+      archive,
+      '--url',
+      url,
+    ],
+    { timeout: 615000, maxBuffer: 65536 },
+  );
+  if ((await archiveHash(archive)) !== checksum) {
+    await fsp.rm(archive, { force: true });
+    throw new Error('Extension checksum mismatch');
+  }
+}
+
+async function request(url, timeout = 120_000) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeout) });
+  if (!response.ok) {
+    await response.body?.cancel();
+    throw new Error(`Extension download HTTP ${response.status}: ${url}`);
+  }
+  return response;
+}
+
+function selectPlatform(metadata, platform) {
+  if (metadata.downloads?.[platform]) {
+    return platform;
+  }
+  if (metadata.downloads?.universal) {
+    return 'universal';
+  }
+  throw new Error(`No extension artifact for ${platform}: ${metadata.namespace}.${metadata.name}`);
+}
+
+async function installExtension(extension) {
+  const id = `${extension.publisher}.${extension.name}-${extension.version}`;
+  const destination = path.join(targetDir, id);
+  try {
+    verifyExtension(destination, extension, targetPlatform);
+    console.log(`Extension ready: ${id}`);
+    return;
+  } catch {
+    // Replace only this pinned extension after a complete download.
+    // Preserve other installs and keep the previous version on download failure.
+  }
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const staging = await fsp.mkdtemp(path.join(path.dirname(targetDir), '.opensumi-extension-'));
     try {
-      const extensionDir = path.join(dist, targetDirName);
-      const stream = new compressing.zip.UncompressStream({ source: tmpZipFile });
-      stream
-        .on('error', (err) => {
-          reject(err);
-        })
-        .on('finish', () => {
-          if (!fs.pathExistsSync(path.join(extensionDir, 'package.json'))) {
-            reject(`Download Error: ${extensionDir}/package.json`);
-            return;
-          }
-          fs.remove(tmpZipFile).then(() => resolve(extensionDir));
-        })
-        .on('entry', (header, stream, next) => {
-          stream.on('end', next);
-          if (!sourcePathRegex.test(header.name)) {
-            stream.resume();
-            return;
-          }
-          const fileName = header.name.replace(sourcePathRegex, '');
-          if (/\/$/.test(fileName)) {
-            const targetFileName = path.join(extensionDir, fileName);
-            fs.mkdirp(targetFileName, (err) => {
-              if (err) {
-                return reject(err);
-              }
-              stream.resume();
-            });
-            return;
-          }
-          const targetFileName = path.join(extensionDir, fileName);
-          fs.mkdirp(path.dirname(targetFileName), (err) => {
-            if (err) {
-              return reject(err);
-            }
-            const writerStream = fs.createWriteStream(targetFileName, { mode: header.mode });
-            pipeline(stream, writerStream, (err) => {
-              if (err) {
-                return reject(err);
-              }
-            });
-          });
-        });
-    } catch (err) {
-      reject(err);
+      const apiPath = `${registry}/api/${extension.publisher}/${extension.name}`;
+      let metadata = await (await request(`${apiPath}/${extension.version}`)).json();
+      const platform = selectPlatform(metadata, targetPlatform);
+      if (metadata.targetPlatform !== platform) {
+        metadata = await (await request(`${apiPath}/${platform}/${extension.version}`)).json();
+      }
+      if (metadata.version !== extension.version || !metadata.files?.download || !metadata.files?.sha256) {
+        throw new Error(`Incomplete pinned extension metadata: ${id}`);
+      }
+      const checksum = (await (await request(metadata.files.sha256)).text()).trim().split(/\s+/)[0];
+      if (!/^[a-f0-9]{64}$/i.test(checksum)) {
+        throw new Error(`Invalid SHA256 for ${id}`);
+      }
+      const archive = path.join(__dirname, '../.cache/extension-downloads', `${id}-${platform}-${checksum}.vsix`);
+      await downloadArchive(metadata.files.download, archive, checksum.toLowerCase());
+      await promisify(execFile)('unzip', ['-q', archive, '-d', staging], { timeout: 120_000 });
+      const unpacked = path.join(staging, 'extension');
+      // Keep our receipt outside the vendor directory: extensions can validate
+      // their own file inventory during activation.
+      const receipt = { platform, sha256: checksum };
+      await fsp.writeFile(receiptPath(unpacked), JSON.stringify(receipt));
+      verifyExtension(unpacked, extension, targetPlatform, receipt);
+      const backup = path.join(staging, 'previous');
+      const hadPrevious = fs.existsSync(destination);
+      if (hadPrevious) {
+        await fsp.rename(destination, backup);
+      }
+      let installed = false;
+      try {
+        await fsp.rename(unpacked, destination);
+        installed = true;
+        await fsp.rename(receiptPath(unpacked), receiptPath(destination));
+      } catch (error) {
+        if (installed) {
+          await fsp.rm(destination, { recursive: true, force: true });
+        }
+        if (hadPrevious) {
+          await fsp.rename(backup, destination);
+        }
+        throw error;
+      }
+      console.log(`Extension installed: ${id} (${platform})`);
+      await fsp.rm(archive, { force: true });
+      return;
+    } catch (error) {
+      if (attempt === 3) {
+        throw new Error(`Cannot install ${id}: ${error.message}`, { cause: error });
+      }
+      console.warn(`Retry extension ${id} (${attempt}/3): ${error.message}`);
+    } finally {
+      await fsp.rm(staging, { recursive: true, force: true });
     }
-  });
+  }
 }
 
-const installExtension = async (namespace, name, version) => {
-  const path = version ? `${namespace}/${name}/${version}` : `${namespace}/${name}`;
-  const getDetailApi = `https://open-vsx.org/api/${path}`;
-  const res = await nodeFetch(getDetailApi, { timeout: 100000, headers });
-  const data = await res.json();
-  const downloadUrl = data.files?.download;
-
-  if (downloadUrl) {
-    // 下载解压插件容易出错，因此这里加一个重试逻辑
-    await retry(
-      async () => {
-        const { targetDirName, tmpZipFile } = await downloadExtension(downloadUrl, namespace, name, version);
-        await unzipFile(targetDir, targetDirName, tmpZipFile);
-        rimraf.sync(tmpZipFile);
-      },
-      { retries: 5 },
+async function main() {
+  await fsp.mkdir(targetDir, { recursive: true });
+  const queue = [...expectedExtensions()];
+  const results = await Promise.allSettled(
+    Array.from({ length: 3 }, async () => {
+      while (queue.length) {
+        await installExtension(queue.shift());
+      }
+    }),
+  );
+  const failures = results.filter((result) => result.status === 'rejected');
+  if (failures.length) {
+    throw new AggregateError(
+      failures.map((result) => result.reason),
+      'Builtin extension installation failed',
     );
   }
-};
+  verifyExtensions(targetDir, targetPlatform);
+  await retireSupersededExtensions(targetDir, expectedExtensions());
+}
 
-const downloadVscodeExtensions = async () => {
-  log('清空 extension 目录：%s', targetDir);
-  rimraf.sync(targetDir);
-  fs.mkdirpSync(targetDir);
-
-  const promises = [];
-  const publishers = Object.keys(extensions);
-  for (const publisher of publishers) {
-    const items = extensions[publisher];
-
-    for (const item of items) {
-      const { name, version } = item;
-      promises.push(async () => {
-        log('开始安装：%s', name, version);
-        try {
-          await installExtension(publisher, name, version);
-        } catch (e) {
-          console.log(`${name} 插件安装失败: ${e.message}`);
-        }
-      });
+// The scanner sees every directory. Leaving a newer but incompatible version
+// beside a pinned downgrade can silently select the wrong one at startup.
+async function retireSupersededExtensions(directory, expected) {
+  const wanted = new Map(expected.map((e) => [`${e.publisher}.${e.name}`.toLowerCase(), e.version]));
+  let backup;
+  for (const entry of await fsp.readdir(directory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
     }
+    const location = path.join(directory, entry.name);
+    if (!fs.existsSync(receiptPath(location))) {
+      continue;
+    } // Leave user-managed directories alone.
+    let manifest;
+    try {
+      manifest = JSON.parse(await fsp.readFile(path.join(location, 'package.json'), 'utf8'));
+    } catch {
+      continue;
+    }
+    if (!manifest.publisher || !manifest.name || !manifest.version) {
+      continue;
+    }
+    const id = `${manifest.publisher}.${manifest.name}`;
+    if (wanted.get(id.toLowerCase()) === manifest.version) {
+      continue;
+    }
+    backup ||= await fsp.mkdtemp(path.join(path.dirname(directory), '.opensumi-retired-'));
+    await fsp.rename(location, path.join(backup, entry.name));
+    await fsp.rename(receiptPath(location), receiptPath(path.join(backup, entry.name)));
+    console.log(`Extension superseded: ${id}-${manifest.version}`);
   }
+}
 
-  // 限制并发 promise 数
-  await parallelRunPromise(promises, 3);
-  log('安装完毕');
-};
-
-// 执行并捕捉异常
-downloadVscodeExtensions().catch((e) => {
-  console.trace(e);
-  rimraf();
-  process.exit(128);
-});
+module.exports = { selectPlatform, retireSupersededExtensions };
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
