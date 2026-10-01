@@ -9,6 +9,7 @@ import { Emitter, isPromiseCanceledError } from '@opensumi/ide-utils';
 
 import { SUMI_WATCHER_PROCESS_SOCK_KEY, WATCHER_INIT_DATA_KEY } from '../../common/watcher';
 
+import { SharedWatcherHostService } from './shared-watcher.host.service';
 import { WatcherProcessLogger } from './watch-process-log';
 import { WatcherHostServiceImpl } from './watcher.host.service';
 
@@ -36,8 +37,12 @@ async function initWatcherProcess() {
   });
 
   const logger = new WatcherProcessLogger(watcherInjector, initData.logDir, initData.logLevel);
-  const watcherHostService = new WatcherHostServiceImpl(watcherProtocol, logger, initData.backend);
-  await watcherHostService.initWatcherServer();
+  if (initData.shared) {
+    new SharedWatcherHostService(watcherProtocol, logger, initData.backend);
+  } else {
+    const watcherHostService = new WatcherHostServiceImpl(watcherProtocol, logger, initData.backend);
+    await watcherHostService.initWatcherServer();
+  }
 }
 
 (async () => {

@@ -14,10 +14,30 @@ describe('WatcherProcessManagerImpl', () => {
   const originalExtMode = process.env.EXT_MODE;
   const originalWatcherStdioDiagnostics = process.env.OPENSUMI_WATCHER_STDIO_DIAGNOSTICS;
   const originalWorkspaceAgentWatchMode = process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE;
+  const originalNodeWatcherMode = process.env.OPENSUMI_NODE_WATCHER_MODE;
   const originalFallback = process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
   const originalExecArgv = process.execArgv.slice();
 
+  const createRuntimeManager = () => {
+    const manager = createManager() as any;
+    manager.disposing = false;
+    manager.lifecycleGeneration = 0;
+    manager.workspaceAgentWatches = new Map();
+    manager.logger = { debug: jest.fn(), error: jest.fn(), log: jest.fn(), warn: jest.fn() };
+    manager.closeWatcherServers = jest.fn().mockResolvedValue(undefined);
+    manager.stopWatcherProcess = jest.fn().mockResolvedValue(undefined);
+    manager.startNodeWatcherProcess = jest.fn().mockResolvedValue(1234);
+    Object.defineProperty(manager, 'sharedNodeWatcherPool', { value: { acquire: jest.fn() } });
+    process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE = 'off';
+    return manager;
+  };
+
   afterEach(() => {
+    if (originalNodeWatcherMode === undefined) {
+      delete process.env.OPENSUMI_NODE_WATCHER_MODE;
+    } else {
+      process.env.OPENSUMI_NODE_WATCHER_MODE = originalNodeWatcherMode;
+    }
     if (originalFallback === undefined) {
       delete process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
     } else {
@@ -39,6 +59,61 @@ describe('WatcherProcessManagerImpl', () => {
       process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE = originalWorkspaceAgentWatchMode;
     }
     process.execArgv.splice(0, process.execArgv.length, ...originalExecArgv);
+  });
+
+  it.each([undefined, 'per-client'])('keeps connection-owned watchers for mode %s', async (mode) => {
+    expect.hasAssertions();
+    const manager = createRuntimeManager();
+    if (mode === undefined) {
+      delete process.env.OPENSUMI_NODE_WATCHER_MODE;
+    } else {
+      process.env.OPENSUMI_NODE_WATCHER_MODE = mode;
+    }
+    expect(await manager.createProcess('private-client')).toBe(1234);
+    expect(manager.startNodeWatcherProcess).toHaveBeenCalledWith('private-client', undefined);
+    expect(manager.sharedNodeWatcherPool.acquire).not.toHaveBeenCalled();
+    await manager.dispose();
+  });
+
+  it('routes an opted-in connection through its shared lease and releases only that lease', async () => {
+    expect.hasAssertions();
+    const manager = createRuntimeManager();
+    process.env.OPENSUMI_NODE_WATCHER_MODE = 'shared';
+    const lease = {
+      pid: Promise.resolve(5678),
+      watch: jest.fn().mockResolvedValue(73),
+      unWatch: jest.fn().mockResolvedValue(undefined),
+      setExcludes: jest.fn().mockResolvedValue(undefined),
+      dispose: jest.fn().mockResolvedValue(undefined),
+    };
+    manager.sharedNodeWatcherPool.acquire.mockResolvedValue(lease);
+    const client = { onDidFilesChanged: jest.fn() };
+    manager.setClient(client);
+    expect(await manager.createProcess('shared-client')).toBe(5678);
+    await manager.whenReady;
+    expect(manager.startNodeWatcherProcess).not.toHaveBeenCalled();
+    const uri = { scheme: 'file', path: '/shared' };
+    expect(await manager.watch(uri, { recursive: true })).toBe(73);
+    expect(lease.watch).toHaveBeenCalledWith(uri, { recursive: true });
+    await manager.setWatcherFileExcludes(['**/private/**']);
+    expect(lease.setExcludes).toHaveBeenCalledWith(['**/private/**']);
+    manager.sharedNodeWatcherPool.acquire.mock.calls[0][0].onDidFilesChanged({ changes: [] });
+    expect(client.onDidFilesChanged).toHaveBeenCalledWith({ changes: [] });
+    await manager.unWatch(73);
+    expect(lease.unWatch).toHaveBeenCalledWith(73);
+    await manager.dispose();
+    expect(lease.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts the shared host directly without recursively acquiring another shared lease', async () => {
+    expect.hasAssertions();
+    const manager = createRuntimeManager();
+    process.env.OPENSUMI_NODE_WATCHER_MODE = 'shared';
+    manager.useSharedNodeHost();
+    expect(await manager.createProcess('pool-host')).toBe(1234);
+    expect(manager.sharedNodeWatcherPool.acquire).not.toHaveBeenCalled();
+    expect(manager.startNodeWatcherProcess).toHaveBeenCalledTimes(1);
+    await manager.dispose();
   });
 
   it('uses source watcher host in js mode when configured host is the default built host', () => {

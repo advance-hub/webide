@@ -73,6 +73,7 @@ export class WatcherHostServiceImpl implements IWatcherHostService {
     private rpcProtocol: SumiConnectionMultiplexer,
     private logger: WatcherProcessLogger,
     private backend: RecursiveWatcherBackend,
+    private readonly exitOnDispose = true,
   ) {
     this.rpcProtocol.set(WatcherServiceProxy, this);
     this.defaultExcludes = flattenExcludes(defaultFilesWatcherExcludes);
@@ -354,6 +355,8 @@ export class WatcherHostServiceImpl implements IWatcherHostService {
     this.logger.log('dispose watcher host service');
     this.unrecursiveFileSystemWatcher?.dispose();
     this.recursiveFileSystemWatcher?.dispose();
-    process.exit(0);
+    if (this.exitOnDispose) {
+      process.exit(0);
+    }
   }
 }

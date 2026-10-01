@@ -28,6 +28,7 @@
     "../../scripts/fn/memory.ts",
     "../../scripts/lint.ts",
     "../../scripts/profile-browser-runtime.ts",
+    "../../scripts/profile-node-watcher-sharing.ts",
     "../../scripts/profile-real-workspace.ts",
     "../../scripts/profile-ws-gateway.ts",
     "../../scripts/run-workspace-agent-capacity.ts",

@@ -1,4 +1,4 @@
-import { Injectable, Injector, Token } from '@opensumi/di';
+import { INJECTOR_TOKEN, Inject, Injectable, Injector, Token } from '@opensumi/di';
 import { IConnectionScopeRetirement, NodeModule } from '@opensumi/ide-core-node';
 
 import {
@@ -14,6 +14,11 @@ import { DiskFileServiceProtocol } from '../common/protocols/disk-file-service';
 
 import { DiskFileSystemProvider } from './disk-file-system.provider';
 import { getSafeFileservice } from './file-service';
+import {
+  SharedNodeWatcherLifecycleContribution,
+  SharedNodeWatcherPool,
+  SharedNodeWatcherPoolToken,
+} from './shared-node-watcher';
 import { WatcherProcessManagerImpl, WatcherProcessManagerToken } from './watcher-process-manager';
 import {
   WorkspaceAgentClient,
@@ -24,6 +29,17 @@ import {
 export * from './file-service';
 
 const fsInstanceMap = new WeakMap<Injector, FileSystemProvider>();
+
+@Injectable()
+class ServerSharedNodeWatcherPool extends SharedNodeWatcherPool {
+  constructor(@Inject(INJECTOR_TOKEN) injector: Injector) {
+    super(() => {
+      const host = injector.get(WatcherProcessManagerToken) as WatcherProcessManagerImpl;
+      host.useSharedNodeHost();
+      return host;
+    });
+  }
+}
 function getConnectionScopeRetirement(injector: Injector): IConnectionScopeRetirement | undefined {
   return injector.creatorMap?.has(IConnectionScopeRetirement)
     ? (injector.get(IConnectionScopeRetirement) as IConnectionScopeRetirement)
@@ -68,6 +84,8 @@ export class FileServiceModule extends NodeModule {
     { token: IDiskFileProvider, useFactory: (injector: Injector) => getFileservice(injector, DiskFileSystemProvider) },
     { token: WorkspaceAgentClientToken, useClass: WorkspaceAgentClient },
     WorkspaceAgentLifecycleContribution,
+    { token: SharedNodeWatcherPoolToken, useClass: ServerSharedNodeWatcherPool },
+    SharedNodeWatcherLifecycleContribution,
     { token: WatcherProcessManagerToken, useClass: WatcherProcessManagerImpl },
   ];
 

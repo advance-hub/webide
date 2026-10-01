@@ -167,7 +167,7 @@ rm -f -- ${q(bundle)}`,
     }
     await this.service.run(
       this.environment(workspace),
-      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
+      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node OPENSUMI_NODE_WATCHER_MODE=${q(this.config.nodeWatcherMode)} PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
       180,
     );
     const state = await this.inspect(workspace);

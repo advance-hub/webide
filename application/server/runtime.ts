@@ -174,6 +174,7 @@ export class LocalRuntime implements RuntimeDriver {
         WORKSPACE_ID: workspace.id,
         IDE_ALLOW_ROOT: this.projectDirectory(workspace),
         OPENSUMI_RUNTIME_MODE: 'node',
+        OPENSUMI_NODE_WATCHER_MODE: this.config.nodeWatcherMode,
         OPENSUMI_WORKSPACE_AGENT_WATCH_MODE: 'off',
         OPENSUMI_WORKSPACE_AGENT_SEARCH_MODE: 'off',
         OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE: 'off',

@@ -9,6 +9,7 @@ export interface Config {
   ideHost: string;
   localDemo: boolean;
   driver: 'local' | 'sandbox';
+  nodeWatcherMode: 'per-client' | 'shared';
   sandboxURL: string;
   sandboxKey: string;
   sandboxImage: string;
@@ -38,6 +39,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (driver !== 'local' && driver !== 'sandbox') {
     throw new Error('WORKBENCH_RUNTIME_DRIVER must be local or sandbox');
   }
+  const nodeWatcherMode = env.OPENSUMI_NODE_WATCHER_MODE || 'per-client';
+  if (nodeWatcherMode !== 'per-client' && nodeWatcherMode !== 'shared') {
+    throw new Error('OPENSUMI_NODE_WATCHER_MODE must be per-client or shared');
+  }
   const storageMode = env.WORKBENCH_STORAGE_MODE || 'pvc';
   if (storageMode !== 'pvc' && storageMode !== 'retained') {
     throw new Error('WORKBENCH_STORAGE_MODE must be pvc or retained');
@@ -59,6 +64,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ideHost: env.WORKBENCH_IDE_HOST || 'localhost',
     localDemo,
     driver,
+    nodeWatcherMode,
     sandboxURL: env.OPEN_SANDBOX_URL || '',
     sandboxKey: env.OPEN_SANDBOX_API_KEY || '',
     sandboxImage: env.OPEN_SANDBOX_IMAGE || '',

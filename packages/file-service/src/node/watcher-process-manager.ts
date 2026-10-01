@@ -26,6 +26,7 @@ import {
   WatcherServiceProxy,
 } from '../common/watcher';
 
+import { SharedNodeWatcherLease, SharedNodeWatcherPool, SharedNodeWatcherPoolToken } from './shared-node-watcher';
 import {
   WorkspaceAgentClient,
   WorkspaceAgentClientToken,
@@ -60,6 +61,16 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
   private watcherSocket?: Socket;
 
   private watcherProcess?: ChildProcess;
+
+  @Autowired(SharedNodeWatcherPoolToken)
+  private readonly sharedNodeWatcherPool: SharedNodeWatcherPool;
+
+  private sharedNodeLease?: SharedNodeWatcherLease;
+  private sharedNodeHost = false;
+
+  useSharedNodeHost(): void {
+    this.sharedNodeHost = true;
+  }
 
   private logger: ILogService;
 
@@ -385,6 +396,7 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
         logLevel: this.appConfig.logLevel,
         backend,
         clientId,
+        shared: this.sharedNodeHost,
       })}`,
     ];
 
@@ -416,6 +428,8 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
   async createProcess(clientId: string, backend?: RecursiveWatcherBackend) {
     this.assertAcceptingWork();
     const generation = this.lifecycleGeneration;
+    await this.sharedNodeLease?.dispose();
+    this.sharedNodeLease = undefined;
     await this.closeWatcherServers();
     await this.stopWatcherProcess();
     this.assertCurrentGeneration(generation);
@@ -426,7 +440,7 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     this.workspaceAgentWatches.clear();
 
     const configuredMode = parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE);
-    if (configuredMode === 'enabled') {
+    if (!this.sharedNodeHost && configuredMode === 'enabled') {
       try {
         const pid = await this.workspaceAgent.ensureStarted('workspace.watch.v1');
         this.assertCurrentGeneration(generation);
@@ -446,6 +460,25 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
 
     this.watcherRuntime = 'node';
     try {
+      if (!this.sharedNodeHost && process.env.OPENSUMI_NODE_WATCHER_MODE === 'shared') {
+        const lease = await this.sharedNodeWatcherPool.acquire(
+          {
+            onDidFilesChanged: (event) => this.$onDidFilesChanged(event),
+            onWatcherOverflow: (event) => this.$onWatcherOverflow(event),
+            onWatcherFailed: (event) => this.$onWatcherFailed(event),
+          },
+          backend,
+        );
+        try {
+          this.assertCurrentGeneration(generation);
+          this.sharedNodeLease = lease;
+          this._whenReadyDeferred.resolve();
+          return await lease.pid;
+        } catch (error) {
+          await lease.dispose();
+          throw error;
+        }
+      }
       const pid = await this.startNodeWatcherProcess(clientId, backend);
       this.assertCurrentGeneration(generation);
       return pid;
@@ -469,6 +502,11 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
   }
 
   private async doDispose(): Promise<void> {
+    if (this.sharedNodeLease) {
+      await this.sharedNodeLease.dispose();
+      this.sharedNodeLease = undefined;
+      return;
+    }
     this.logger.debug(`Dispose ${this.workspaceAgentWatches.size} Workspace Agent watcher subscriptions`);
     for (const state of this.workspaceAgentWatches.values()) {
       state.generation += 1;
@@ -506,6 +544,16 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     await this._whenReadyDeferred.promise;
     this.assertCurrentGeneration(generation);
     this.logger.log('start watch: ', uri);
+    if (this.sharedNodeLease) {
+      const id = await this.sharedNodeLease.watch(uri, options);
+      try {
+        this.assertCurrentGeneration(generation);
+        return id;
+      } catch (error) {
+        await this.sharedNodeLease?.unWatch(id);
+        throw error;
+      }
+    }
     if (this.watcherRuntime === 'agent') {
       const watcherId = this.workspaceAgentWatcherSequence++;
       const state: WorkspaceAgentWatchState = { uri, options, generation: 0 };
@@ -538,6 +586,9 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     if (this.disposing) {
       return;
     }
+    if (this.sharedNodeLease) {
+      return this.sharedNodeLease.unWatch(watcheId);
+    }
     if (this.watcherRuntime === 'agent' || this.watcherRuntime === 'agent-fallback') {
       const state = this.workspaceAgentWatches.get(watcheId);
       if (!state) {
@@ -558,6 +609,9 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     this.assertAcceptingWork();
     await this._whenReadyDeferred.promise;
     this.assertAcceptingWork();
+    if (this.sharedNodeLease) {
+      return this.sharedNodeLease.setExcludes(excludes);
+    }
     if (this.watcherRuntime === 'agent') {
       this.workspaceAgentDefaultExcludes = excludes;
       await Promise.all(
