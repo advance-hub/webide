@@ -11,8 +11,8 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
-    "build": "webpack --config=webpack.config.js"
+    "prepublishOnly": "pnpm run build",
+    "build": "rspack build --config=rspack.config.js"
   },
   "repository": {
     "type": "git",
@@ -21,11 +21,12 @@
   "dependencies": {
     "@opensumi/ide-utils": "workspace:*",
     "chalk": "^4.1.2",
-    "mri": "^1.2.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@types/node-fetch": "^2.6.1"
+    "@types/node-fetch": "^2.6.1",
+    "@rspack/core": "2.2.8",
+    "@rspack/cli": "2.2.8"
   }
 }

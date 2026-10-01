@@ -9,7 +9,7 @@
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.core-node.json"
   },
   "typings": "lib/index.d.ts",
@@ -21,9 +21,42 @@
     "@opensumi/ide-connection": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
-    "keytar": "^7.7.0"
+    "keytar": "^7.9.0",
+    "@opensumi/di": "^1.8.0",
+    "tslib": "^2.6.2",
+    "koa": "^2.16.4",
+    "ws": "^8.21.3",
+    "@types/koa": "^2.14.0",
+    "@types/ws": "^8.5.10"
   },
   "devDependencies": {
-    "@opensumi/ide-dev-tool": "workspace:*"
+    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
+    "@opensumi/ide-express-file-server": "workspace:*",
+    "@opensumi/ide-extension": "workspace:*",
+    "@opensumi/ide-ai-native": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/types.ts",
+      "types": "./lib/types.d.ts",
+      "default": "./lib/types.js"
+    },
+    "./logger": {
+      "opensumi-source": "./src/logger/node-logger.ts",
+      "types": "./lib/logger/node-logger.d.ts",
+      "default": "./lib/logger/node-logger.js"
+    },
+    "./shell": {
+      "opensumi-source": "./src/bootstrap/shell-path.ts",
+      "types": "./lib/bootstrap/shell-path.d.ts",
+      "default": "./lib/bootstrap/shell-path.js"
+    },
+    "./package.json": "./package.json"
   }
 }

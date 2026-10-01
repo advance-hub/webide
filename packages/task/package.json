@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.task.json"
   },
   "repository": {
@@ -17,16 +17,51 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-terminal-next": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-output": "workspace:*",
     "@opensumi/ide-preferences": "workspace:*",
+    "@opensumi/ide-terminal-next": "workspace:*",
     "@opensumi/ide-variable": "workspace:*",
-    "@opensumi/ide-workspace": "workspace:*"
+    "@opensumi/ide-workspace": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./tasks": {
+      "opensumi-source": "./src/common/task.ts",
+      "types": "./lib/common/task.d.ts",
+      "default": "./lib/common/task.js"
+    },
+    "./service": {
+      "opensumi-source": "./src/browser/task.service.ts",
+      "types": "./lib/browser/task.service.d.ts",
+      "default": "./lib/browser/task.service.js"
+    },
+    "./terminal-system": {
+      "opensumi-source": "./src/browser/terminal-task-system.ts",
+      "types": "./lib/browser/terminal-task-system.d.ts",
+      "default": "./lib/browser/terminal-task-system.js"
+    },
+    "./package.json": "./package.json",
+    "./problem-collector": {
+      "opensumi-source": "./src/common/problem-collector.ts",
+      "types": "./lib/common/problem-collector.d.ts",
+      "default": "./lib/common/problem-collector.js"
+    }
   }
 }

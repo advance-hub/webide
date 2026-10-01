@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "jsx": "preserve",
     "skipLibCheck": true,
+    "types": ["node"],
+    "noEmitOnError": true,
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,7 +14,6 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "declaration": true,
-    "baseUrl": "../src/node",
     "outDir": "../lib/node"
   },
   "include": ["../src/node"],

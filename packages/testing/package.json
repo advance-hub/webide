@@ -15,19 +15,65 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*",
-    "react-virtualized-auto-sizer": "^1.0.2"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-markdown": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
-    "@opensumi/ide-monaco-enhance": "workspace:*"
+    "@opensumi/ide-monaco-enhance": "workspace:*",
+    "@opensumi/ide-theme": "workspace:*",
+    "react-virtualized-auto-sizer": "^1.0.2",
+    "tslib": "^2.6.2",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./collection": {
+      "opensumi-source": "./src/common/testCollection.ts",
+      "types": "./lib/common/testCollection.d.ts",
+      "default": "./lib/common/testCollection.js"
+    },
+    "./observable": {
+      "opensumi-source": "./src/common/observableValue.ts",
+      "types": "./lib/common/observableValue.d.ts",
+      "default": "./lib/common/observableValue.js"
+    },
+    "./profiles": {
+      "opensumi-source": "./src/common/test-profile.ts",
+      "types": "./lib/common/test-profile.d.ts",
+      "default": "./lib/common/test-profile.js"
+    },
+    "./results": {
+      "opensumi-source": "./src/common/test-result.ts",
+      "types": "./lib/common/test-result.d.ts",
+      "default": "./lib/common/test-result.js"
+    },
+    "./package.json": "./package.json",
+    "./commands": {
+      "opensumi-source": "./src/common/commands.ts",
+      "types": "./lib/common/commands.d.ts",
+      "default": "./lib/common/commands.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

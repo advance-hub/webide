@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.file-tree-next.json"
   },
   "repository": {
@@ -17,23 +17,51 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-node": "workspace:*",
-    "@opensumi/ide-file-service": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-decoration": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-explorer": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*",
-    "@opensumi/ide-terminal-next": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
     "@opensumi/ide-workspace": "workspace:*",
-    "@opensumi/ide-workspace-edit": "workspace:*"
+    "@opensumi/ide-workspace-edit": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-terminal-next": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/common/index.ts",
+      "types": "./lib/common/index.d.ts",
+      "default": "./lib/common/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./contribution": {
+      "opensumi-source": "./src/browser/file-tree-contribution.ts",
+      "types": "./lib/browser/file-tree-contribution.d.ts",
+      "default": "./lib/browser/file-tree-contribution.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

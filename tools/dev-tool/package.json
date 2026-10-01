@@ -12,30 +12,333 @@
     "access": "public"
   },
   "dependencies": {
+    "@koa/router": "^15.7.0",
+    "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-core-node": "workspace:*",
+    "@opensumi/ide-editor": "workspace:*",
+    "@opensumi/ide-extension": "workspace:*",
+    "@opensumi/ide-monaco": "workspace:*",
+    "@opensumi/ide-remote-opener": "workspace:*",
+    "@opensumi/ide-workspace": "workspace:*",
     "@types/koa": "^2.14.0",
     "@types/koa-bodyparser": "^4.3.7",
-    "@types/koa-router": "^7.4.2",
-    "copy-webpack-plugin": "^12.0.2",
-    "css-loader": "^6.9.1",
-    "fork-ts-checker-webpack-plugin": "^9.0.2",
-    "html-webpack-plugin": "^5.6.0",
-    "koa": "^2.15.0",
+    "css-loader": "^7.1.4",
+    "koa": "^2.16.4",
     "koa-bodyparser": "^4.3.0",
-    "koa-router": "^12.0.1",
     "koa-static": "^5.0.0",
-    "less": "^3.9.0",
-    "less-loader": "^12.1.0",
-    "mini-css-extract-plugin": "^2.7.7",
+    "less": "^4.9.0",
+    "less-loader": "^13.0.0",
     "null-loader": "^4.0.1",
-    "optimize-css-assets-webpack-plugin": "^6.0.1",
-    "react-dom": "^18.2.0",
-    "style-loader": "^3.3.4",
-    "ts-loader": "^9.5.1",
+    "react-dom": "^18.3.1",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.6.2",
     "tsconfig-paths": "^4.2.0",
-    "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "typescript": "^5.6.3",
-    "webpack": "^5.90.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-merge": "^5.10.0"
+    "typescript": "7.0.2",
+    "webpack-merge": "^5.10.0",
+    "@rspack/core": "2.2.8",
+    "@rspack/cli": "2.2.8",
+    "@rspack/dev-server": "2.2.1",
+    "fs-extra": "^11.2.0",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "path-browserify": "^1.0.1",
+    "util": "^0.12.5",
+    "assert": "^2.1.0",
+    "@opensumi/di": "^1.8.0",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "tslib": "^2.6.2",
+    "@opensumi/ide-file-service": "workspace:*",
+    "@opensumi/ide-theme": "workspace:*",
+    "@opensumi/ide-connection": "workspace:*",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "mri": "^1.2.0",
+    "@opensumi/ide-terminal-next": "workspace:*",
+    "http-proxy": "^1.18.0",
+    "@types/http-proxy": "^1.17.2",
+    "ws": "^8.21.3",
+    "@types/ws": "^8.5.10",
+    "node-pty": "1.1.0",
+    "@xterm/xterm": "5.5.0",
+    "@opensumi/ide-quick-open": "workspace:*"
+  },
+  "files": [
+    "lib",
+    "src",
+    "cli"
+  ],
+  "scripts": {
+    "build": "node ./cli/build.js",
+    "prepublishOnly": "pnpm run build"
+  },
+  "exports": {
+    "./injector": {
+      "opensumi-source": "./src/mock-injector.ts",
+      "types": "./lib/mock-injector.d.ts",
+      "default": "./lib/mock-injector.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/injector-helper.ts",
+      "types": "./lib/injector-helper.d.ts",
+      "default": "./lib/injector-helper.js"
+    },
+    "./editor": {
+      "opensumi-source": "./src/injector-editor.ts",
+      "types": "./lib/injector-editor.d.ts",
+      "default": "./lib/injector-editor.js"
+    },
+    "./assertions": {
+      "opensumi-source": "./src/assertions.ts",
+      "types": "./lib/assertions.d.ts",
+      "default": "./lib/assertions.js"
+    },
+    "./server": {
+      "opensumi-source": "./src/server.ts",
+      "types": "./lib/server.d.ts",
+      "default": "./lib/server.js"
+    },
+    "./rspack": {
+      "opensumi-source": "./src/rspack.js",
+      "types": "./lib/rspack.d.ts",
+      "default": "./lib/rspack.js"
+    },
+    "./asset-manifest": {
+      "opensumi-source": "./src/asset-manifest.js",
+      "types": "./lib/asset-manifest.d.ts",
+      "default": "./lib/asset-manifest.js"
+    },
+    "./webpack": {
+      "opensumi-source": "./src/webpack.js",
+      "types": "./lib/webpack.d.ts",
+      "default": "./lib/webpack.js"
+    },
+    "./jest/resolver": {
+      "opensumi-source": "./src/jest-resolver.js",
+      "types": "./lib/jest-resolver.d.ts",
+      "default": "./lib/jest-resolver.js"
+    },
+    "./jest/file-type": {
+      "opensumi-source": "./src/jest-file-type.js",
+      "types": "./lib/jest-file-type.d.ts",
+      "default": "./lib/jest-file-type.js"
+    },
+    "./jest/styles": {
+      "opensumi-source": "./src/mock-exports.js",
+      "types": "./lib/mock-exports.d.ts",
+      "default": "./lib/mock-exports.js"
+    },
+    "./host/extension": {
+      "types": "./lib/ext-host.d.ts",
+      "default": "./lib/ext-host.js"
+    },
+    "./host/logger": {
+      "types": "./lib/mock-log-service.d.ts",
+      "default": "./lib/mock-log-service.js"
+    },
+    "./mocks/monaco": {
+      "opensumi-source": "./src/mocks/monaco/monaco/index.ts",
+      "types": "./lib/mocks/monaco/monaco/index.d.ts",
+      "default": "./lib/mocks/monaco/monaco/index.js"
+    },
+    "./mocks/monaco/context-keys": {
+      "opensumi-source": "./src/mocks/monaco/monaco.context-key.service.ts",
+      "types": "./lib/mocks/monaco/monaco.context-key.service.d.ts",
+      "default": "./lib/mocks/monaco/monaco.context-key.service.js"
+    },
+    "./mocks/monaco/service": {
+      "opensumi-source": "./src/mocks/monaco/monaco.service.mock.ts",
+      "types": "./lib/mocks/monaco/monaco.service.mock.d.ts",
+      "default": "./lib/mocks/monaco/monaco.service.mock.js"
+    },
+    "./mocks/ws-channel": {
+      "opensumi-source": "./src/mocks/ws-channel.ts",
+      "types": "./lib/mocks/ws-channel.d.ts",
+      "default": "./lib/mocks/ws-channel.js"
+    },
+    "./mocks/context-key": {
+      "opensumi-source": "./src/mocks/context-key.ts",
+      "types": "./lib/mocks/context-key.d.ts",
+      "default": "./lib/mocks/context-key.js"
+    },
+    "./mocks/logger": {
+      "opensumi-source": "./src/mocks/logger.ts",
+      "types": "./lib/mocks/logger.d.ts",
+      "default": "./lib/mocks/logger.js"
+    },
+    "./mocks/preference": {
+      "opensumi-source": "./src/mocks/preference.ts",
+      "types": "./lib/mocks/preference.d.ts",
+      "default": "./lib/mocks/preference.js"
+    },
+    "./mocks/progress-service": {
+      "opensumi-source": "./src/mocks/progress-service.ts",
+      "types": "./lib/mocks/progress-service.d.ts",
+      "default": "./lib/mocks/progress-service.js"
+    },
+    "./mocks/storage": {
+      "opensumi-source": "./src/mocks/storage.ts",
+      "types": "./lib/mocks/storage.d.ts",
+      "default": "./lib/mocks/storage.js"
+    },
+    "./mocks/file-service-client": {
+      "opensumi-source": "./src/mocks/file-service-client.ts",
+      "types": "./lib/mocks/file-service-client.d.ts",
+      "default": "./lib/mocks/file-service-client.js"
+    },
+    "./mocks/file-system-provider": {
+      "opensumi-source": "./src/mocks/file-system-provider.ts",
+      "types": "./lib/mocks/file-system-provider.d.ts",
+      "default": "./lib/mocks/file-system-provider.js"
+    },
+    "./mocks/editor-providers": {
+      "opensumi-source": "./src/mocks/editor-providers.ts",
+      "types": "./lib/mocks/editor-providers.d.ts",
+      "default": "./lib/mocks/editor-providers.js"
+    },
+    "./mocks/workspace-service": {
+      "opensumi-source": "./src/mocks/workspace-service.ts",
+      "types": "./lib/mocks/workspace-service.d.ts",
+      "default": "./lib/mocks/workspace-service.js"
+    },
+    "./mocks/editor-workbench": {
+      "opensumi-source": "./src/mocks/editor-workbench.ts",
+      "types": "./lib/mocks/editor-workbench.d.ts",
+      "default": "./lib/mocks/editor-workbench.js"
+    },
+    "./mocks/theme-service": {
+      "opensumi-source": "./src/mocks/theme-service.ts",
+      "types": "./lib/mocks/theme-service.d.ts",
+      "default": "./lib/mocks/theme-service.js"
+    },
+    "./mocks/file-scheme-document": {
+      "opensumi-source": "./src/mocks/file-scheme-document.ts",
+      "types": "./lib/mocks/file-scheme-document.d.ts",
+      "default": "./lib/mocks/file-scheme-document.js"
+    },
+    "./mocks/electron-renderer": {
+      "opensumi-source": "./src/mocks/electron-renderer.ts",
+      "types": "./lib/mocks/electron-renderer.d.ts",
+      "default": "./lib/mocks/electron-renderer.js"
+    },
+    "./mocks/electron-ipc-renderer": {
+      "opensumi-source": "./src/mocks/electron-ipc-renderer.ts",
+      "types": "./lib/mocks/electron-ipc-renderer.d.ts",
+      "default": "./lib/mocks/electron-ipc-renderer.js"
+    },
+    "./mocks/monaco/uri": {
+      "opensumi-source": "./src/mocks/monaco/monaco/common/uri.ts",
+      "types": "./lib/mocks/monaco/monaco/common/uri.d.ts",
+      "default": "./lib/mocks/monaco/monaco/common/uri.js"
+    },
+    "./mocks/monaco/events": {
+      "opensumi-source": "./src/mocks/monaco/monaco/common/util.ts",
+      "types": "./lib/mocks/monaco/monaco/common/util.d.ts",
+      "default": "./lib/mocks/monaco/monaco/common/util.js"
+    },
+    "./mocks/monaco/editor": {
+      "opensumi-source": "./src/mocks/monaco/monaco/editor.ts",
+      "types": "./lib/mocks/monaco/monaco/editor.d.ts",
+      "default": "./lib/mocks/monaco/monaco/editor.js"
+    },
+    "./mocks/monaco/code-editor": {
+      "opensumi-source": "./src/mocks/monaco/monaco/editor/code-editor.ts",
+      "types": "./lib/mocks/monaco/monaco/editor/code-editor.d.ts",
+      "default": "./lib/mocks/monaco/monaco/editor/code-editor.js"
+    },
+    "./mocks/monaco/diff-editor": {
+      "opensumi-source": "./src/mocks/monaco/monaco/editor/diff-editor.ts",
+      "types": "./lib/mocks/monaco/monaco/editor/diff-editor.d.ts",
+      "default": "./lib/mocks/monaco/monaco/editor/diff-editor.js"
+    },
+    "./mocks/monaco/merge-editor": {
+      "opensumi-source": "./src/mocks/monaco/monaco/editor/merge-editor.ts",
+      "types": "./lib/mocks/monaco/monaco/editor/merge-editor.d.ts",
+      "default": "./lib/mocks/monaco/monaco/editor/merge-editor.js"
+    },
+    "./mocks/monaco/model": {
+      "opensumi-source": "./src/mocks/monaco/monaco/editor/model.ts",
+      "types": "./lib/mocks/monaco/monaco/editor/model.d.ts",
+      "default": "./lib/mocks/monaco/monaco/editor/model.js"
+    },
+    "./mocks/monaco/language": {
+      "opensumi-source": "./src/mocks/monaco/monaco/language.ts",
+      "types": "./lib/mocks/monaco/monaco/language.d.ts",
+      "default": "./lib/mocks/monaco/monaco/language.js"
+    },
+    "./mocks/monaco/position": {
+      "opensumi-source": "./src/mocks/monaco/monaco/position.ts",
+      "types": "./lib/mocks/monaco/monaco/position.d.ts",
+      "default": "./lib/mocks/monaco/monaco/position.js"
+    },
+    "./mocks/monaco/range": {
+      "opensumi-source": "./src/mocks/monaco/monaco/range.ts",
+      "types": "./lib/mocks/monaco/monaco/range.d.ts",
+      "default": "./lib/mocks/monaco/monaco/range.js"
+    },
+    "./mocks/monaco/services": {
+      "opensumi-source": "./src/mocks/monaco/monaco/services.ts",
+      "types": "./lib/mocks/monaco/monaco/services.d.ts",
+      "default": "./lib/mocks/monaco/monaco/services.js"
+    },
+    "./mocks/monaco/text-model": {
+      "opensumi-source": "./src/mocks/monaco/monaco/textModel.ts",
+      "types": "./lib/mocks/monaco/monaco/textModel.d.ts",
+      "default": "./lib/mocks/monaco/monaco/textModel.js"
+    },
+    "./template.html": "./lib/index.html",
+    "./cli": "./cli/index.js",
+    "./package.json": "./package.json",
+    "./mocks/extension-rpc": {
+      "opensumi-source": "./src/mocks/extension-rpc.ts",
+      "types": "./lib/mocks/extension-rpc.d.ts",
+      "default": "./lib/mocks/extension-rpc.js"
+    },
+    "./mocks/environment-variable": {
+      "opensumi-source": "./src/mocks/environment-variable.ts",
+      "types": "./lib/mocks/environment-variable.d.ts",
+      "default": "./lib/mocks/environment-variable.js"
+    },
+    "./mocks/terminal": {
+      "opensumi-source": "./src/mocks/terminal/service.ts",
+      "types": "./lib/mocks/terminal/service.d.ts",
+      "default": "./lib/mocks/terminal/service.js"
+    },
+    "./mocks/terminal-proxy": {
+      "opensumi-source": "./src/mocks/terminal/proxy.ts",
+      "types": "./lib/mocks/terminal/proxy.d.ts",
+      "default": "./lib/mocks/terminal/proxy.js"
+    },
+    "./mocks/quick-open": {
+      "opensumi-source": "./src/mocks/quick-open.ts",
+      "types": "./lib/mocks/quick-open.d.ts",
+      "default": "./lib/mocks/quick-open.js"
+    },
+    "./diagnostics/process-tree": {
+      "opensumi-source": "./src/diagnostics/process-tree.ts",
+      "types": "./lib/diagnostics/process-tree.d.ts",
+      "default": "./lib/diagnostics/process-tree.js"
+    },
+    "./diagnostics/runtime-profile-metrics": {
+      "opensumi-source": "./src/diagnostics/runtime-profile-metrics.ts",
+      "types": "./lib/diagnostics/runtime-profile-metrics.d.ts",
+      "default": "./lib/diagnostics/runtime-profile-metrics.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "electron": ">=22",
+    "jest": "^30.4.2"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "jest": {
+      "optional": true
+    }
   }
 }

@@ -10,7 +10,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.main-layout.json"
   },
   "repository": {
@@ -22,9 +22,96 @@
     "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*"
+    "@opensumi/ide-theme": "workspace:*",
+    "@opensumi/di": "^1.8.0",
+    "tslib": "^2.6.2",
+    "classnames": "2.5.1",
+    "lodash": "^4.17.21",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./commands": {
+      "opensumi-source": "./src/browser/command.ts",
+      "types": "./lib/browser/command.d.ts",
+      "default": "./lib/browser/command.js"
+    },
+    "./layout": {
+      "opensumi-source": "./src/browser/layout.service.ts",
+      "types": "./lib/browser/layout.service.d.ts",
+      "default": "./lib/browser/layout.service.js"
+    },
+    "./views": {
+      "opensumi-source": "./src/browser/views-registry.ts",
+      "types": "./lib/browser/views-registry.d.ts",
+      "default": "./lib/browser/views-registry.js"
+    },
+    "./input": {
+      "opensumi-source": "./src/browser/input/index.tsx",
+      "types": "./lib/browser/input/index.d.ts",
+      "default": "./lib/browser/input/index.js"
+    },
+    "./welcome": {
+      "opensumi-source": "./src/browser/welcome.view.tsx",
+      "types": "./lib/browser/welcome.view.d.ts",
+      "default": "./lib/browser/welcome.view.js"
+    },
+    "./defaults": {
+      "opensumi-source": "./src/browser/default-config.ts",
+      "types": "./lib/browser/default-config.d.ts",
+      "default": "./lib/browser/default-config.js"
+    },
+    "./tabbar": {
+      "opensumi-source": "./src/browser/tabbar/tabbar.service.ts",
+      "types": "./lib/browser/tabbar/tabbar.service.d.ts",
+      "default": "./lib/browser/tabbar/tabbar.service.js"
+    },
+    "./tabbar/handler": {
+      "opensumi-source": "./src/browser/tabbar-handler.ts",
+      "types": "./lib/browser/tabbar-handler.d.ts",
+      "default": "./lib/browser/tabbar-handler.js"
+    },
+    "./tabbar/view": {
+      "opensumi-source": "./src/browser/tabbar/bar.view.tsx",
+      "types": "./lib/browser/tabbar/bar.view.d.ts",
+      "default": "./lib/browser/tabbar/bar.view.js"
+    },
+    "./tabbar/panel": {
+      "opensumi-source": "./src/browser/tabbar/panel.view.tsx",
+      "types": "./lib/browser/tabbar/panel.view.d.ts",
+      "default": "./lib/browser/tabbar/panel.view.js"
+    },
+    "./tabbar/renderer": {
+      "opensumi-source": "./src/browser/tabbar/renderer.view.tsx",
+      "types": "./lib/browser/tabbar/renderer.view.d.ts",
+      "default": "./lib/browser/tabbar/renderer.view.js"
+    },
+    "./accordion": {
+      "opensumi-source": "./src/browser/accordion/accordion.view.tsx",
+      "types": "./lib/browser/accordion/accordion.view.d.ts",
+      "default": "./lib/browser/accordion/accordion.view.js"
+    },
+    "./accordion/titlebar": {
+      "opensumi-source": "./src/browser/accordion/titlebar.view.tsx",
+      "types": "./lib/browser/accordion/titlebar.view.d.ts",
+      "default": "./lib/browser/accordion/titlebar.view.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

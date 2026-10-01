@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.file-scheme.json"
   },
   "repository": {
@@ -17,15 +17,49 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
+    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-core-node": "workspace:*",
-    "@opensumi/ide-file-service": "workspace:*"
+    "@opensumi/ide-editor": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
+    "@opensumi/ide-monaco": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@opensumi/ide-editor": "workspace:*",
-    "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./documents": {
+      "opensumi-source": "./src/browser/file-doc.ts",
+      "types": "./lib/browser/file-doc.d.ts",
+      "default": "./lib/browser/file-doc.js"
+    },
+    "./contribution": {
+      "opensumi-source": "./src/browser/file-scheme.contribution.ts",
+      "types": "./lib/browser/file-scheme.contribution.d.ts",
+      "default": "./lib/browser/file-scheme.contribution.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

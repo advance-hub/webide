@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
-    "module": "commonjs",
+    "module": "NodeNext",
     "target": "es2017",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "strictPropertyInitialization": false,
     "declaration": false,
@@ -15,7 +14,6 @@
     "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "downlevelIteration": true,
     "noEmitOnError": false,
     "noImplicitAny": false,
     "skipLibCheck": true,

@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.terminal-next.json"
   },
   "repository": {
@@ -17,32 +17,128 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
+    "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-connection": "workspace:*",
+    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-core-node": "workspace:*",
-    "@opensumi/ide-file-service": "workspace:*",
-    "@opensumi/ide-utils": "workspace:*",
-    "@xterm/addon-canvas": "0.7.0",
-    "@xterm/addon-fit": "0.10.0",
-    "@xterm/addon-search": "0.15.0",
-    "@xterm/addon-webgl": "0.18.0",
-    "@xterm/xterm": "5.5.0",
-    "node-pty": "1.0.0",
-    "os-locale": "^4.0.0"
-  },
-  "devDependencies": {
-    "@opensumi/ide-components": "workspace:*",
-    "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/ide-status-bar": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
+    "@opensumi/ide-utils": "workspace:*",
     "@opensumi/ide-variable": "workspace:*",
     "@opensumi/ide-workspace": "workspace:*",
+    "@xterm/addon-canvas": "0.7.0",
+    "@xterm/addon-fit": "0.10.0",
+    "@xterm/addon-search": "0.15.0",
+    "@xterm/addon-webgl": "0.18.0",
+    "@xterm/xterm": "5.5.0",
+    "node-pty": "1.1.0",
+    "os-locale": "^4.0.0",
+    "tslib": "^2.6.2",
+    "lodash": "^4.17.21",
+    "@opensumi/di": "^1.8.0",
+    "fs-extra": "^11.2.0",
+    "classnames": "2.5.1"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*",
     "@types/http-proxy": "^1.17.2",
     "http-proxy": "^1.18.0"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./colors": {
+      "opensumi-source": "./src/browser/terminal.color.ts",
+      "types": "./lib/browser/terminal.color.d.ts",
+      "default": "./lib/browser/terminal.color.js"
+    },
+    "./environment-variables": {
+      "opensumi-source": "./src/common/environmentVariable.ts",
+      "types": "./lib/common/environmentVariable.d.ts",
+      "default": "./lib/common/environmentVariable.js"
+    },
+    "./preferences": {
+      "opensumi-source": "./src/common/preference.ts",
+      "types": "./lib/common/preference.d.ts",
+      "default": "./lib/common/preference.js"
+    },
+    "./node/pty-manager": {
+      "opensumi-source": "./src/node/pty.manager.ts",
+      "types": "./lib/node/pty.manager.d.ts",
+      "default": "./lib/node/pty.manager.js"
+    },
+    "./node/remote-pty-manager": {
+      "opensumi-source": "./src/node/pty.manager.remote.ts",
+      "types": "./lib/node/pty.manager.remote.d.ts",
+      "default": "./lib/node/pty.manager.remote.js"
+    },
+    "./browser/controller": {
+      "opensumi-source": "./src/browser/terminal.controller.ts",
+      "types": "./lib/browser/terminal.controller.d.ts",
+      "default": "./lib/browser/terminal.controller.js"
+    },
+    "./browser/internal": {
+      "opensumi-source": "./src/browser/terminal.internal.service.ts",
+      "types": "./lib/browser/terminal.internal.service.d.ts",
+      "default": "./lib/browser/terminal.internal.service.js"
+    },
+    "./browser/service": {
+      "opensumi-source": "./src/browser/terminal.service.ts",
+      "types": "./lib/browser/terminal.service.d.ts",
+      "default": "./lib/browser/terminal.service.js"
+    },
+    "./browser/client": {
+      "opensumi-source": "./src/browser/terminal.client.ts",
+      "types": "./lib/browser/terminal.client.d.ts",
+      "default": "./lib/browser/terminal.client.js"
+    },
+    "./browser/environment": {
+      "opensumi-source": "./src/browser/terminal.environment.service.ts",
+      "types": "./lib/browser/terminal.environment.service.d.ts",
+      "default": "./lib/browser/terminal.environment.service.js"
+    },
+    "./browser/preferences": {
+      "opensumi-source": "./src/browser/terminal.preference.ts",
+      "types": "./lib/browser/terminal.preference.d.ts",
+      "default": "./lib/browser/terminal.preference.js"
+    },
+    "./browser/profile": {
+      "opensumi-source": "./src/browser/terminal.profile.ts",
+      "types": "./lib/browser/terminal.profile.d.ts",
+      "default": "./lib/browser/terminal.profile.js"
+    },
+    "./browser/view": {
+      "opensumi-source": "./src/browser/terminal.view.ts",
+      "types": "./lib/browser/terminal.view.d.ts",
+      "default": "./lib/browser/terminal.view.js"
+    },
+    "./package.json": "./package.json",
+    "./hover": {
+      "opensumi-source": "./src/common/hover.ts",
+      "types": "./lib/common/hover.d.ts",
+      "default": "./lib/common/hover.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

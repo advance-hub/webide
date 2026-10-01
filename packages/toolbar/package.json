@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.toolbar.json"
   },
   "repository": {
@@ -17,10 +17,45 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
+    "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "tslib": "^2.6.2",
+    "classnames": "2.5.1",
+    "lodash": "^4.17.21",
+    "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/browser/types.ts",
+      "types": "./lib/browser/types.d.ts",
+      "default": "./lib/browser/types.js"
+    },
+    "./view": {
+      "opensumi-source": "./src/browser/toolbar.view.tsx",
+      "types": "./lib/browser/toolbar.view.d.ts",
+      "default": "./lib/browser/toolbar.view.js"
+    },
+    "./service": {
+      "opensumi-source": "./src/browser/toolbar.view.service.tsx",
+      "types": "./lib/browser/toolbar.view.service.d.ts",
+      "default": "./lib/browser/toolbar.view.service.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

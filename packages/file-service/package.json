@@ -3,13 +3,14 @@
   "version": "3.9.0",
   "files": [
     "lib",
-    "src"
+    "src",
+    "proto"
   ],
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.file-service.json",
     "build:watcher-host": "tsc -p ../../configs/ts/references/tsconfig.file-service.json"
   },
@@ -19,20 +20,90 @@
   },
   "dependencies": {
     "@furyjs/fury": "0.5.9-beta",
+    "@grpc/grpc-js": "1.14.4",
+    "@grpc/proto-loader": "0.8.1",
     "@opensumi/ide-connection": "workspace:*",
+    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-core-node": "workspace:*",
     "@opensumi/ide-logs": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
-    "@parcel/watcher": "2.5.1",
-    "file-type": "16.5.4",
-    "nsfw": "2.2.5",
+    "@parcel/watcher": "2.6.0",
+    "file-type": "21.3.2",
+    "nsfw": "2.3.1",
     "trash": "^5.2.0",
     "vscode-languageserver-types": "^3.16.0",
-    "write-file-atomic": "^5.0.1"
+    "write-file-atomic": "^5.0.1",
+    "@opensumi/di": "^1.8.0",
+    "fs-extra": "^11.2.0",
+    "lodash": "^4.17.21",
+    "tslib": "^2.6.2",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./protocols": {
+      "opensumi-source": "./src/common/protocols/disk-file-service.ts",
+      "types": "./lib/common/protocols/disk-file-service.d.ts",
+      "default": "./lib/common/protocols/disk-file-service.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./browser/client": {
+      "opensumi-source": "./src/browser/file-service-client.ts",
+      "types": "./lib/browser/file-service-client.d.ts",
+      "default": "./lib/browser/file-service-client.js"
+    },
+    "./browser/contribution": {
+      "opensumi-source": "./src/browser/file-service-contribution.ts",
+      "types": "./lib/browser/file-service-contribution.d.ts",
+      "default": "./lib/browser/file-service-contribution.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./node/files": {
+      "opensumi-source": "./src/node/file-service.ts",
+      "types": "./lib/node/file-service.d.ts",
+      "default": "./lib/node/file-service.js"
+    },
+    "./node/disk-provider": {
+      "opensumi-source": "./src/node/disk-file-system.provider.ts",
+      "types": "./lib/node/disk-file-system.provider.d.ts",
+      "default": "./lib/node/disk-file-system.provider.js"
+    },
+    "./node/watchers": {
+      "opensumi-source": "./src/node/watcher-process-manager.ts",
+      "types": "./lib/node/watcher-process-manager.d.ts",
+      "default": "./lib/node/watcher-process-manager.js"
+    },
+    "./node/workspace-agent": {
+      "opensumi-source": "./src/node/workspace-agent.ts",
+      "types": "./lib/node/workspace-agent.d.ts",
+      "default": "./lib/node/workspace-agent.js"
+    },
+    "./proto/workspace-agent.proto": "./proto/opensumi/workspace/v1/workspace_agent.proto",
+    "./package.json": "./package.json",
+    "./node/file-type": {
+      "opensumi-source": "./src/node/hosted/shared/file-type.ts",
+      "types": "./lib/node/hosted/shared/file-type.d.ts",
+      "default": "./lib/node/hosted/shared/file-type.js"
+    },
+    "./node/watcher-process": {
+      "types": "./lib/node/hosted/watcher.process.d.ts",
+      "default": "./lib/node/hosted/watcher.process.js"
+    }
   }
 }

@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.i18n.json"
   },
   "repository": {
@@ -17,10 +17,34 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
+    "@opensumi/ide-core-common": "workspace:*",
+    "tslib": "^2.6.2"
   },
   "devDependencies": {
     "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./languages/en-US": {
+      "opensumi-source": "./src/common/en-US.lang.ts",
+      "types": "./lib/common/en-US.lang.d.ts",
+      "default": "./lib/common/en-US.lang.js"
+    },
+    "./languages/zh-CN": {
+      "opensumi-source": "./src/common/zh-CN.lang.ts",
+      "types": "./lib/common/zh-CN.lang.d.ts",
+      "default": "./lib/common/zh-CN.lang.js"
+    },
+    "./package.json": "./package.json"
   }
 }

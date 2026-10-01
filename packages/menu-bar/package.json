@@ -10,7 +10,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.menu-bar.json"
   },
   "repository": {
@@ -18,13 +18,43 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
-    "@opensumi/ide-monaco": "workspace:*"
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-monaco": "workspace:*",
+    "@opensumi/ide-theme": "workspace:*",
+    "tslib": "^2.6.2",
+    "classnames": "2.5.1",
+    "@opensumi/di": "^1.8.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./view": {
+      "opensumi-source": "./src/browser/menu-bar.view.tsx",
+      "types": "./lib/browser/menu-bar.view.d.ts",
+      "default": "./lib/browser/menu-bar.view.js"
+    },
+    "./store": {
+      "opensumi-source": "./src/browser/menu-bar.store.ts",
+      "types": "./lib/browser/menu-bar.store.d.ts",
+      "default": "./lib/browser/menu-bar.store.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

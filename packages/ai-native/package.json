@@ -11,7 +11,7 @@
     "access": "public"
   },
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.ai-native.json"
   },
   "repository": {
@@ -28,6 +28,7 @@
     "@opensumi/ide-addons": "workspace:*",
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-connection": "workspace:*",
+    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-core-node": "workspace:*",
     "@opensumi/ide-debug": "workspace:*",
@@ -49,21 +50,141 @@
     "@opensumi/ide-workspace": "workspace:*",
     "@xterm/xterm": "5.5.0",
     "ai": "^4.3.16",
-    "ansi-regex": "^2.0.0",
+    "ajv": "^8.17.1",
     "ansi_up": "^5.1.0",
-    "diff": "^7.0.0",
+    "ansi-regex": "^2.0.0",
+    "diff": "^8.0.3",
     "dom-align": "^1.7.0",
     "eventsource": "^3.0.5",
-    "node-pty": "1.0.0",
+    "node-pty": "1.1.0",
     "rc-collapse": "^4.0.0",
     "react-chat-elements": "^12.0.10",
     "react-highlight": "^0.15.0",
     "tiktoken": "1.0.12",
     "web-tree-sitter": "0.22.6",
-    "zod": "^3.25.0 || ^4.0.0",
-    "zod-to-json-schema": "^3.25.0"
+    "zod": "^3.25.0",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "lodash": "^4.17.21",
+    "highlight.js": "10.7.3",
+    "@ai-sdk/provider": "1.0.8",
+    "marked": "15.0.11"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*"
+    "@opensumi/ide-i18n": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/browser/types.ts",
+      "types": "./lib/browser/types.d.ts",
+      "default": "./lib/browser/types.js"
+    },
+    "./layout": {
+      "opensumi-source": "./src/browser/layout/ai-layout.tsx",
+      "types": "./lib/browser/layout/ai-layout.d.ts",
+      "default": "./lib/browser/layout/ai-layout.js"
+    },
+    "./chat/internal": {
+      "opensumi-source": "./src/browser/chat/chat.internal.service.ts",
+      "types": "./lib/browser/chat/chat.internal.service.d.ts",
+      "default": "./lib/browser/chat/chat.internal.service.js"
+    },
+    "./chat/service": {
+      "opensumi-source": "./src/browser/chat/chat.api.service.ts",
+      "types": "./lib/browser/chat/chat.api.service.d.ts",
+      "default": "./lib/browser/chat/chat.api.service.js"
+    },
+    "./inline-chat": {
+      "opensumi-source": "./src/browser/widget/inline-chat/inline-chat-controller.ts",
+      "types": "./lib/browser/widget/inline-chat/inline-chat-controller.d.ts",
+      "default": "./lib/browser/widget/inline-chat/inline-chat-controller.js"
+    },
+    "./node/acp-thread": {
+      "opensumi-source": "./src/node/acp/acp-thread.ts",
+      "types": "./lib/node/acp/acp-thread.d.ts",
+      "default": "./lib/node/acp/acp-thread.js"
+    },
+    "./node/anthropic": {
+      "opensumi-source": "./src/node/anthropic/anthropic-language-model.ts",
+      "types": "./lib/node/anthropic/anthropic-language-model.d.ts",
+      "default": "./lib/node/anthropic/anthropic-language-model.js"
+    },
+    "./node/deepseek": {
+      "opensumi-source": "./src/node/deepseek/deepseek-language-model.ts",
+      "types": "./lib/node/deepseek/deepseek-language-model.d.ts",
+      "default": "./lib/node/deepseek/deepseek-language-model.js"
+    },
+    "./node/openai": {
+      "opensumi-source": "./src/node/openai/openai-language-model.ts",
+      "types": "./lib/node/openai/openai-language-model.d.ts",
+      "default": "./lib/node/openai/openai-language-model.js"
+    },
+    "./node/openai-compatible": {
+      "opensumi-source": "./src/node/openai-compatible/openai-compatible-language-model.ts",
+      "types": "./lib/node/openai-compatible/openai-compatible-language-model.d.ts",
+      "default": "./lib/node/openai-compatible/openai-compatible-language-model.js"
+    },
+    "./acp/mention-input": {
+      "opensumi-source": "./src/browser/acp/components/AcpChatMentionInput.tsx",
+      "types": "./lib/browser/acp/components/AcpChatMentionInput.d.ts",
+      "default": "./lib/browser/acp/components/AcpChatMentionInput.js"
+    },
+    "./acp/header": {
+      "opensumi-source": "./src/browser/acp/components/AcpChatViewHeader.tsx",
+      "types": "./lib/browser/acp/components/AcpChatViewHeader.d.ts",
+      "default": "./lib/browser/acp/components/AcpChatViewHeader.js"
+    },
+    "./terminal/matcher": {
+      "opensumi-source": "./src/browser/contrib/terminal/matcher/index.ts",
+      "types": "./lib/browser/contrib/terminal/matcher/index.d.ts",
+      "default": "./lib/browser/contrib/terminal/matcher/index.js"
+    },
+    "./terminal/ansi-parser": {
+      "opensumi-source": "./src/browser/contrib/terminal/utils/ansi-parser.ts",
+      "types": "./lib/browser/contrib/terminal/utils/ansi-parser.d.ts",
+      "default": "./lib/browser/contrib/terminal/utils/ansi-parser.js"
+    },
+    "./prompts/context": {
+      "opensumi-source": "./src/common/prompts/context-prompt-provider.ts",
+      "types": "./lib/common/prompts/context-prompt-provider.d.ts",
+      "default": "./lib/common/prompts/context-prompt-provider.js"
+    },
+    "./prompts/merge-conflict": {
+      "opensumi-source": "./src/common/prompts/merge-conflict-prompt.ts",
+      "types": "./lib/common/prompts/merge-conflict-prompt.d.ts",
+      "default": "./lib/common/prompts/merge-conflict-prompt.js"
+    },
+    "./prompts/rename": {
+      "opensumi-source": "./src/common/prompts/rename-prompt.ts",
+      "types": "./lib/common/prompts/rename-prompt.d.ts",
+      "default": "./lib/common/prompts/rename-prompt.js"
+    },
+    "./prompts/terminal": {
+      "opensumi-source": "./src/common/prompts/terminal-detection-prompt.ts",
+      "types": "./lib/common/prompts/terminal-detection-prompt.d.ts",
+      "default": "./lib/common/prompts/terminal-detection-prompt.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

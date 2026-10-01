@@ -6,15 +6,14 @@
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
-    "src",
-    "worker"
+    "src"
   ],
   "scripts": {
     "build": "tsc --build ../../configs/ts/references/tsconfig.notebook.json",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@ant-design/icons": "^4.6.4",
+    "@ant-design/icons": "^5.6.1",
     "@difizen/libro-code-editor": "0.2.45",
     "@difizen/libro-common": "0.2.45",
     "@difizen/libro-core": "0.2.45",
@@ -36,10 +35,27 @@
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
     "antd": "^5.21.4",
-    "diff": "^7.0.0",
-    "resize-observer-polyfill": "1.5.1"
+    "diff": "^8.0.3",
+    "resize-observer-polyfill": "1.5.1",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "@difizen/mana-common": "0.1.27",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
-  "devDependencies": {
-    "@types/diff": "^7.0.0"
+  "peerDependencies": {
+    "react": "^18.3.1"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./package.json": "./package.json"
   }
 }

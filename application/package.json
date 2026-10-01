@@ -1,0 +1,43 @@
+{
+  "name": "@opensumi/application",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server/main.ts",
+    "dev:client": "rspack dev --config rspack.config.ts",
+    "build": "tsc --noEmit && rspack build --config rspack.config.ts",
+    "start": "tsx server/main.ts",
+    "test": "tsx --test server/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@alibaba-group/opensandbox": "1.1.0",
+    "@arco-design/web-react": "2.66.16",
+    "@koa/router": "^15.7.0",
+    "koa": "3.2.1",
+    "koa-static": "^5.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@rspack/cli": "2.2.8",
+    "@rspack/core": "2.2.8",
+    "@rspack/dev-server": "2.2.1",
+    "@types/koa": "^2.14.0",
+    "@types/koa-static": "^4.0.4",
+    "@types/node": "^24.0.0",
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "@types/ws": "^8.5.10",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "css-loader": "^7.1.4",
+    "style-loader": "^4.0.0",
+    "tsx": "^4.23.12",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25"
+  }
+}

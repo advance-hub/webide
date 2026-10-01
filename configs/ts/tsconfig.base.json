@@ -1,5 +1,4 @@
 {
-  "baseUrl": "./",
   "compilerOptions": {
     "module": "NodeNext",
     "target": "ES2018",
@@ -15,7 +14,6 @@
     "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "downlevelIteration": true,
     "noEmitOnError": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
@@ -25,6 +23,7 @@
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "lib": ["dom", "esnext", "webworker", "WebWorker.ImportScripts"],
-    "typeRoots": ["../../node_modules/@types", "../../typings"]
+    "typeRoots": ["../../node_modules/@types", "../../typings"],
+    "types": ["node", "react", "react-dom", "jest", "style", "sumi", "vscode"]
   }
 }

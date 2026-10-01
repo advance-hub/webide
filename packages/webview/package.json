@@ -9,25 +9,76 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.webview.json",
-    "bundle-webview": "node ./scripts/bundle-webview.mjs"
+    "bundle-webview": "tsx ./scripts/bundle-webview.ts"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
+    "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-core-electron-main": "workspace:*",
+    "@opensumi/ide-editor": "workspace:*",
+    "@opensumi/ide-theme": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-core-electron-main": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@opensumi/ide-editor": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*"
+    "debug": "^4.3.2",
+    "esbuild": "^0.28.2"
   },
   "peerDependencies": {
-    "electron": "*"
+    "electron": "*",
+    "react": "^18.3.1"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/browser/types.ts",
+      "types": "./lib/browser/types.d.ts",
+      "default": "./lib/browser/types.js"
+    },
+    "./common": {
+      "opensumi-source": "./src/common/index.ts",
+      "types": "./lib/common/index.d.ts",
+      "default": "./lib/common/index.js"
+    },
+    "./electron-main": {
+      "opensumi-source": "./src/electron-main/index.ts",
+      "types": "./lib/electron-main/index.d.ts",
+      "default": "./lib/electron-main/index.js"
+    },
+    "./editor": {
+      "opensumi-source": "./src/browser/editor-webview.tsx",
+      "types": "./lib/browser/editor-webview.d.ts",
+      "default": "./lib/browser/editor-webview.js"
+    },
+    "./host/preload": {
+      "opensumi-source": "./src/webview-host/web-preload.ts",
+      "types": "./lib/webview-host/web-preload.d.ts",
+      "default": "./lib/webview-host/web-preload.js"
+    },
+    "./host/template.html": "./lib/webview-host/webview.html",
+    "./electron/host-preload.js": "./lib/electron-webview/host-preload.js",
+    "./electron/plain-preload.js": "./lib/electron-webview/plain-preload.js",
+    "./package.json": "./package.json"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    }
   }
 }

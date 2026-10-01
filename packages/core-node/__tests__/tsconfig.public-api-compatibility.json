@@ -1,0 +1,14 @@
+{
+  "extends": "../../../configs/ts/tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "noImplicitAny": true,
+    "sourceMap": false,
+    "strict": true,
+    "strictFunctionTypes": true,
+    "types": ["node"]
+  },
+  "include": ["./public-api-compatibility.typecheck.ts"]
+}

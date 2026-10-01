@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.decoration.json"
   },
   "repository": {
@@ -17,11 +17,30 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
+    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-core-node": "workspace:*"
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./service": {
+      "opensumi-source": "./src/browser/decorationsService.ts",
+      "types": "./lib/browser/decorationsService.d.ts",
+      "default": "./lib/browser/decorationsService.js"
+    },
+    "./package.json": "./package.json"
   }
 }

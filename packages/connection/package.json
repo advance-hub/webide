@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.connection.json"
   },
   "repository": {
@@ -24,11 +24,66 @@
     "@opensumi/reconnecting-websocket": "^4.4.0",
     "@opensumi/vscode-jsonrpc": "^8.0.0-next.2",
     "path-to-regexp": "^6.2.1",
-    "ws": "^8.16.0"
+    "ws": "^8.21.3",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-dev-tool": "workspace:*",
     "@opensumi/mock-socket": "^9.3.1"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./electron": {
+      "opensumi-source": "./src/electron/index.ts",
+      "types": "./lib/electron/index.d.ts",
+      "default": "./lib/electron/index.js"
+    },
+    "./drivers": {
+      "opensumi-source": "./src/public/drivers.ts",
+      "types": "./lib/public/drivers.d.ts",
+      "default": "./lib/public/drivers.js"
+    },
+    "./rpc-contracts": {
+      "opensumi-source": "./src/common/rpc-contracts.ts",
+      "types": "./lib/common/rpc-contracts.d.ts",
+      "default": "./lib/common/rpc-contracts.js"
+    },
+    "./rpc": {
+      "opensumi-source": "./src/public/rpc.ts",
+      "types": "./lib/public/rpc.d.ts",
+      "default": "./lib/public/rpc.js"
+    },
+    "./protocols": {
+      "opensumi-source": "./src/public/protocols.ts",
+      "types": "./lib/public/protocols.d.ts",
+      "default": "./lib/public/protocols.js"
+    },
+    "./server": {
+      "opensumi-source": "./src/common/server-handler.ts",
+      "types": "./lib/common/server-handler.d.ts",
+      "default": "./lib/common/server-handler.js"
+    },
+    "./serialization": {
+      "opensumi-source": "./src/public/serialization.ts",
+      "types": "./lib/public/serialization.d.ts",
+      "default": "./lib/public/serialization.js"
+    },
+    "./package.json": "./package.json"
   }
 }

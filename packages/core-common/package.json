@@ -9,23 +9,199 @@
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser-fs": {
+      "opensumi-source": "./src/browser-fs/index.ts",
+      "types": "./lib/browser-fs/index.d.ts",
+      "default": "./lib/browser-fs/index.js"
+    },
+    "./commands/git": {
+      "opensumi-source": "./src/commands/git.ts",
+      "types": "./lib/commands/git.d.ts",
+      "default": "./lib/commands/git.js"
+    },
+    "./const": {
+      "opensumi-source": "./src/const/index.ts",
+      "types": "./lib/const/index.d.ts",
+      "default": "./lib/const/index.js"
+    },
+    "./devtools": {
+      "opensumi-source": "./src/devtools/index.ts",
+      "types": "./lib/devtools/index.d.ts",
+      "default": "./lib/devtools/index.js"
+    },
+    "./electron": {
+      "opensumi-source": "./src/electron-api.ts",
+      "types": "./lib/electron-api.d.ts",
+      "default": "./lib/electron-api.js"
+    },
+    "./file-watch": {
+      "opensumi-source": "./src/types/file-watch.ts",
+      "types": "./lib/types/file-watch.d.ts",
+      "default": "./lib/types/file-watch.js"
+    },
+    "./file-watch/preferences": {
+      "opensumi-source": "./src/preferences/file-watch.ts",
+      "types": "./lib/preferences/file-watch.d.ts",
+      "default": "./lib/preferences/file-watch.js"
+    },
+    "./hash": {
+      "opensumi-source": "./src/hash-calculate/hash-calculate.ts",
+      "types": "./lib/hash-calculate/hash-calculate.d.ts",
+      "default": "./lib/hash-calculate/hash-calculate.js"
+    },
+    "./icons": {
+      "opensumi-source": "./src/codicons.ts",
+      "types": "./lib/codicons.d.ts",
+      "default": "./lib/codicons.js"
+    },
+    "./ids": {
+      "opensumi-source": "./src/id-generator.ts",
+      "types": "./lib/id-generator.d.ts",
+      "default": "./lib/id-generator.js"
+    },
+    "./log": {
+      "opensumi-source": "./src/log.ts",
+      "types": "./lib/log.d.ts",
+      "default": "./lib/log.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./node/cli": {
+      "opensumi-source": "./src/node/cli.ts",
+      "types": "./lib/node/cli.d.ts",
+      "default": "./lib/node/cli.js"
+    },
+    "./node/ipc": {
+      "opensumi-source": "./src/utils/ipc.ts",
+      "types": "./lib/utils/ipc.d.ts",
+      "default": "./lib/utils/ipc.js"
+    },
+    "./node/ports": {
+      "opensumi-source": "./src/node/port.ts",
+      "types": "./lib/node/port.d.ts",
+      "default": "./lib/node/port.js"
+    },
+    "./rpc": {
+      "opensumi-source": "./src/types/rpc.ts",
+      "types": "./lib/types/rpc.d.ts",
+      "default": "./lib/types/rpc.js"
+    },
+    "./package.json": "./package.json",
+    "./contextkeys": {
+      "opensumi-source": "./src/contextkeys.ts",
+      "types": "./lib/contextkeys.d.ts",
+      "default": "./lib/contextkeys.js"
+    },
+    "./workbench": {
+      "opensumi-source": "./src/workbench-identifiers.ts",
+      "types": "./lib/workbench-identifiers.d.ts",
+      "default": "./lib/workbench-identifiers.js"
+    },
+    "./storage": {
+      "opensumi-source": "./src/storage.ts",
+      "types": "./lib/storage.d.ts",
+      "default": "./lib/storage.js"
+    },
+    "./preferences": {
+      "opensumi-source": "./src/preferences/index.ts",
+      "types": "./lib/preferences/index.d.ts",
+      "default": "./lib/preferences/index.js"
+    },
+    "./keybindings": {
+      "opensumi-source": "./src/keybindings.ts",
+      "types": "./lib/keybindings.d.ts",
+      "default": "./lib/keybindings.js"
+    },
+    "./menus": {
+      "opensumi-source": "./src/menu.ts",
+      "types": "./lib/menu.d.ts",
+      "default": "./lib/menu.js"
+    },
+    "./quick-open": {
+      "opensumi-source": "./src/quick-open.ts",
+      "types": "./lib/quick-open.d.ts",
+      "default": "./lib/quick-open.js"
+    },
+    "./validation": {
+      "opensumi-source": "./src/validation.ts",
+      "types": "./lib/validation.d.ts",
+      "default": "./lib/validation.js"
+    },
+    "./recent-files": {
+      "opensumi-source": "./src/recent-files.ts",
+      "types": "./lib/recent-files.d.ts",
+      "default": "./lib/recent-files.js"
+    },
+    "./file-events": {
+      "opensumi-source": "./src/file-events.ts",
+      "types": "./lib/file-events.d.ts",
+      "default": "./lib/file-events.js"
+    },
+    "./icon-names": {
+      "opensumi-source": "./src/icon-names.ts",
+      "types": "./lib/icon-names.d.ts",
+      "default": "./lib/icon-names.js"
+    },
+    "./actions": {
+      "opensumi-source": "./src/action-types.ts",
+      "types": "./lib/action-types.d.ts",
+      "default": "./lib/action-types.js"
+    },
+    "./status-bar": {
+      "opensumi-source": "./src/status-bar.ts",
+      "types": "./lib/status-bar.d.ts",
+      "default": "./lib/status-bar.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:opensumi/core.git"
   },
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.core-common.json"
   },
   "dependencies": {
-    "@agentclientprotocol/sdk": "^0.16.1",
+    "@noble/hashes": "1.4.0",
     "@opensumi/di": "^1.8.0",
     "@opensumi/events": "^1.0.0",
     "@opensumi/ide-utils": "workspace:*",
-    "ai": "^4.3.16",
-    "electron": "^22.3.21"
+    "fs-extra": "^11.2.0",
+    "lodash": "^4.17.21",
+    "tslib": "^2.6.2",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "@types/react": "^18.3.28",
+    "mri": "^1.2.0"
   },
   "devDependencies": {
-    "@opensumi/ide-dev-tool": "workspace:*"
+    "@agentclientprotocol/sdk": "^0.16.1",
+    "@opensumi/ide-dev-tool": "workspace:*",
+    "ai": "^4.3.16",
+    "electron": "^22.3.25"
+  },
+  "peerDependencies": {
+    "@agentclientprotocol/sdk": "^0.16.1",
+    "ai": "^4.3.16",
+    "electron": ">=22"
+  },
+  "peerDependenciesMeta": {
+    "@agentclientprotocol/sdk": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "electron": {
+      "optional": true
+    }
   }
 }

@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.quick-open.json"
   },
   "repository": {
@@ -17,15 +17,67 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
-    "@opensumi/ide-workspace": "workspace:*"
+    "@opensumi/ide-workspace": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "react-window": "^1.8.5"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./input-service": {
+      "opensumi-source": "./src/browser/quick-input-service.ts",
+      "types": "./lib/browser/quick-input-service.d.ts",
+      "default": "./lib/browser/quick-input-service.js"
+    },
+    "./prefix-service": {
+      "opensumi-source": "./src/browser/prefix-quick-open.service.ts",
+      "types": "./lib/browser/prefix-quick-open.service.d.ts",
+      "default": "./lib/browser/prefix-quick-open.service.js"
+    },
+    "./item-service": {
+      "opensumi-source": "./src/browser/quick-open-item.service.ts",
+      "types": "./lib/browser/quick-open-item.service.d.ts",
+      "default": "./lib/browser/quick-open-item.service.js"
+    },
+    "./title-bar": {
+      "opensumi-source": "./src/browser/quick-title-bar.ts",
+      "types": "./lib/browser/quick-title-bar.d.ts",
+      "default": "./lib/browser/quick-title-bar.js"
+    },
+    "./input-box": {
+      "opensumi-source": "./src/browser/quickInput.inputBox.ts",
+      "types": "./lib/browser/quickInput.inputBox.d.ts",
+      "default": "./lib/browser/quickInput.inputBox.js"
+    },
+    "./keybinding": {
+      "opensumi-source": "./src/browser/components/keybinding/index.tsx",
+      "types": "./lib/browser/components/keybinding/index.d.ts",
+      "default": "./lib/browser/components/keybinding/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

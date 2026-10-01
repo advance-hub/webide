@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.editor.json"
   },
   "repository": {
@@ -17,20 +17,118 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-core-node": "workspace:*",
-    "@opensumi/ide-file-service": "workspace:*",
-    "@opensumi/ide-monaco": "workspace:*",
-    "@opensumi/ide-utils": "workspace:*",
-    "vscode-oniguruma": "1.5.1"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
+    "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/ide-quick-open": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
-    "@opensumi/ide-workspace": "workspace:*"
+    "@opensumi/ide-utils": "workspace:*",
+    "@opensumi/ide-workspace": "workspace:*",
+    "vscode-oniguruma": "1.6.1",
+    "tslib": "^2.6.2",
+    "lodash": "^4.17.21",
+    "@opensumi/di": "^1.8.0",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "classnames": "2.5.1",
+    "vscode-textmate": "7.0.1",
+    "vscode-languageserver-types": "^3.16.0"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/browser/types.ts",
+      "types": "./lib/browser/types.d.ts",
+      "default": "./lib/browser/types.js"
+    },
+    "./document-types": {
+      "opensumi-source": "./src/browser/doc-model/types.ts",
+      "types": "./lib/browser/doc-model/types.d.ts",
+      "default": "./lib/browser/doc-model/types.js"
+    },
+    "./multi-diff": {
+      "opensumi-source": "./src/common/multi-diff.ts",
+      "types": "./lib/common/multi-diff.d.ts",
+      "default": "./lib/common/multi-diff.js"
+    },
+    "./notebook": {
+      "opensumi-source": "./src/common/notebook.ts",
+      "types": "./lib/common/notebook.d.ts",
+      "default": "./lib/common/notebook.js"
+    },
+    "./documents": {
+      "opensumi-source": "./src/browser/doc-model/main.ts",
+      "types": "./lib/browser/doc-model/main.d.ts",
+      "default": "./lib/browser/doc-model/main.js"
+    },
+    "./document-symbols": {
+      "opensumi-source": "./src/browser/breadcrumb/document-symbol.ts",
+      "types": "./lib/browser/breadcrumb/document-symbol.d.ts",
+      "default": "./lib/browser/breadcrumb/document-symbol.js"
+    },
+    "./commands": {
+      "opensumi-source": "./src/browser/monaco-contrib/command/command.service.ts",
+      "types": "./lib/browser/monaco-contrib/command/command.service.d.ts",
+      "default": "./lib/browser/monaco-contrib/command/command.service.js"
+    },
+    "./workbench": {
+      "opensumi-source": "./src/browser/workbench-editor.service.ts",
+      "types": "./lib/browser/workbench-editor.service.d.ts",
+      "default": "./lib/browser/workbench-editor.service.js"
+    },
+    "./wrappers": {
+      "opensumi-source": "./src/browser/base-editor-wrapper.ts",
+      "types": "./lib/browser/base-editor-wrapper.d.ts",
+      "default": "./lib/browser/base-editor-wrapper.js"
+    },
+    "./merge-conflict": {
+      "opensumi-source": "./src/browser/merge-conflict/index.ts",
+      "types": "./lib/browser/merge-conflict/index.d.ts",
+      "default": "./lib/browser/merge-conflict/index.js"
+    },
+    "./cache": {
+      "opensumi-source": "./src/browser/doc-cache/index.ts",
+      "types": "./lib/browser/doc-cache/index.d.ts",
+      "default": "./lib/browser/doc-cache/index.js"
+    },
+    "./resources": {
+      "opensumi-source": "./src/public/resources.ts",
+      "types": "./lib/public/resources.d.ts",
+      "default": "./lib/public/resources.js"
+    },
+    "./runtime": {
+      "opensumi-source": "./src/public/runtime.ts",
+      "types": "./lib/public/runtime.d.ts",
+      "default": "./lib/public/runtime.js"
+    },
+    "./preferences": {
+      "opensumi-source": "./src/browser/preference/schema.ts",
+      "types": "./lib/browser/preference/schema.d.ts",
+      "default": "./lib/browser/preference/schema.js"
+    },
+    "./react": {
+      "opensumi-source": "./src/browser/view/editor.react.tsx",
+      "types": "./lib/browser/view/editor.react.d.ts",
+      "default": "./lib/browser/view/editor.react.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

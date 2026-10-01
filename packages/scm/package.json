@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.scm.json"
   },
   "repository": {
@@ -17,19 +17,39 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-decoration": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-monaco-enhance": "workspace:*",
     "@opensumi/ide-status-bar": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
-    "@opensumi/ide-workspace": "workspace:*"
+    "@opensumi/ide-workspace": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "rootDir": "../../../tools/dev-tool/src",
+    "outDir": "../../../tools/dev-tool/lib"
+  },
+  "include": ["../../../tools/dev-tool/src"]
+}

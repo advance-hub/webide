@@ -3,13 +3,14 @@
   "version": "3.9.0",
   "files": [
     "lib",
+    "src",
     "browser-preload"
   ],
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.core-electron-main.json"
   },
   "repository": {
@@ -18,12 +19,40 @@
   },
   "dependencies": {
     "@opensumi/ide-core-common": "workspace:*",
-    "tree-kill": "^1.2.2"
+    "tree-kill": "^1.2.2",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "fs-extra": "^11.2.0",
+    "vscode-oniguruma": "1.6.1"
   },
   "peerDependencies": {
     "electron": "*"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./module": {
+      "opensumi-source": "./src/electron-main-module.ts",
+      "types": "./lib/electron-main-module.d.ts",
+      "default": "./lib/electron-main-module.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/bootstrap/types.ts",
+      "types": "./lib/bootstrap/types.d.ts",
+      "default": "./lib/bootstrap/types.js"
+    },
+    "./protocol": {
+      "opensumi-source": "./src/bootstrap/services/protocol.ts",
+      "types": "./lib/bootstrap/services/protocol.d.ts",
+      "default": "./lib/bootstrap/services/protocol.js"
+    },
+    "./browser-preload.js": "./browser-preload/index.js",
+    "./package.json": "./package.json"
   }
 }

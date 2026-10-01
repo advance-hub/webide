@@ -10,22 +10,147 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn build",
-    "build": "tsc --build ../../configs/ts/references/tsconfig.monaco.json && yarn build:worker",
-    "build:worker": "../../node_modules/.bin/webpack --config webpack.config.js"
+    "prepublishOnly": "pnpm run build",
+    "build": "tsc --build ../../configs/ts/references/tsconfig.monaco.json && pnpm run build:worker",
+    "build:worker": "rspack build --config rspack.config.js"
   },
   "dependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
-    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
+    "@opensumi/ide-workspace": "workspace:*",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "tslib": "^2.6.2",
+    "lodash": "^4.17.21",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1",
+    "jsonc-parser": "^2.1.0"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@opensumi/ide-file-service": "workspace:*",
-    "@opensumi/ide-workspace": "workspace:*"
+    "@rspack/core": "2.2.8",
+    "@rspack/cli": "2.2.8"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/common/types.ts",
+      "types": "./lib/common/types.d.ts",
+      "default": "./lib/common/types.js"
+    },
+    "./observable": {
+      "opensumi-source": "./src/common/observable.ts",
+      "types": "./lib/common/observable.d.ts",
+      "default": "./lib/common/observable.js"
+    },
+    "./language-types": {
+      "opensumi-source": "./src/common/common.ts",
+      "types": "./lib/common/common.d.ts",
+      "default": "./lib/common/common.js"
+    },
+    "./api": {
+      "opensumi-source": "./src/browser/monaco-api/index.ts",
+      "types": "./lib/browser/monaco-api/index.d.ts",
+      "default": "./lib/browser/monaco-api/index.js"
+    },
+    "./api/editor": {
+      "opensumi-source": "./src/browser/monaco-api/editor.ts",
+      "types": "./lib/browser/monaco-api/editor.d.ts",
+      "default": "./lib/browser/monaco-api/editor.js"
+    },
+    "./api/languages": {
+      "opensumi-source": "./src/browser/monaco-api/languages.ts",
+      "types": "./lib/browser/monaco-api/languages.d.ts",
+      "default": "./lib/browser/monaco-api/languages.js"
+    },
+    "./api/services": {
+      "opensumi-source": "./src/browser/monaco-api/services.ts",
+      "types": "./lib/browser/monaco-api/services.d.ts",
+      "default": "./lib/browser/monaco-api/services.js"
+    },
+    "./editor-browser": {
+      "opensumi-source": "./src/browser/monaco-exports/editor.ts",
+      "types": "./lib/browser/monaco-exports/editor.d.ts",
+      "default": "./lib/browser/monaco-exports/editor.js"
+    },
+    "./commands": {
+      "opensumi-source": "./src/browser/contrib/command.ts",
+      "types": "./lib/browser/contrib/command.d.ts",
+      "default": "./lib/browser/contrib/command.js"
+    },
+    "./hierarchy": {
+      "opensumi-source": "./src/browser/contrib/index.ts",
+      "types": "./lib/browser/contrib/index.d.ts",
+      "default": "./lib/browser/contrib/index.js"
+    },
+    "./tokenizer": {
+      "opensumi-source": "./src/browser/contrib/tokenizer.ts",
+      "types": "./lib/browser/contrib/tokenizer.d.ts",
+      "default": "./lib/browser/contrib/tokenizer.js"
+    },
+    "./code-actions": {
+      "opensumi-source": "./src/browser/contrib/codeAction.ts",
+      "types": "./lib/browser/contrib/codeAction.d.ts",
+      "default": "./lib/browser/contrib/codeAction.js"
+    },
+    "./ai/widgets": {
+      "opensumi-source": "./src/browser/ai-native/BaseInlineContentWidget.tsx",
+      "types": "./lib/browser/ai-native/BaseInlineContentWidget.d.ts",
+      "default": "./lib/browser/ai-native/BaseInlineContentWidget.js"
+    },
+    "./merge-editor": {
+      "opensumi-source": "./src/public/merge-editor.ts",
+      "types": "./lib/public/merge-editor.d.ts",
+      "default": "./lib/public/merge-editor.js"
+    },
+    "./merge-editor/widgets": {
+      "opensumi-source": "./src/public/merge-editor-widgets.ts",
+      "types": "./lib/public/merge-editor-widgets.d.ts",
+      "default": "./lib/public/merge-editor-widgets.js"
+    },
+    "./contextkeys": {
+      "opensumi-source": "./src/browser/monaco.context-key.service.ts",
+      "types": "./lib/browser/monaco.context-key.service.d.ts",
+      "default": "./lib/browser/monaco.context-key.service.js"
+    },
+    "./keycodes": {
+      "opensumi-source": "./src/browser/monaco.keycode-map.ts",
+      "types": "./lib/browser/monaco.keycode-map.d.ts",
+      "default": "./lib/browser/monaco.keycode-map.js"
+    },
+    "./localization": {
+      "opensumi-source": "./src/browser/monaco-localize.ts",
+      "types": "./lib/browser/monaco-localize.d.ts",
+      "default": "./lib/browser/monaco-localize.js"
+    },
+    "./runtime": {
+      "opensumi-source": "./src/public/runtime.ts",
+      "types": "./lib/public/runtime.d.ts",
+      "default": "./lib/public/runtime.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./styles/merge-editor.module.less": {
+      "opensumi-source": "./src/browser/contrib/merge-editor/view/merge-editor.module.less",
+      "default": "./lib/browser/contrib/merge-editor/view/merge-editor.module.less"
+    },
+    "./package.json": "./package.json",
+    "./worker/editor.worker.js": "./worker/editor.worker.bundle.js",
+    "./worker/manifest.json": "./worker/manifest.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

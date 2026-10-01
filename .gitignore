@@ -1,11 +1,3 @@
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
 .DS_Store
 
 .package-temp-dir
@@ -15,8 +7,7 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
 
 # Runtime data
 pids
@@ -64,9 +55,6 @@ jspm_packages/
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
-
 dist
 dist-node
 lib
@@ -82,6 +70,8 @@ packages/extension/hosted
 
 # webpack cache-loader dir
 .cache
+/builtin-extensions.manifest.json
+/builtin-extensions.manifest.json.d/
 
 # vscode extension dir
 tools/extensions
@@ -101,6 +91,10 @@ tools/workspace
 
 *.tsbuildinfo
 .env
+.env.*
+!.env.example
+/application/.data/
+/tools/.opensumi-retired-*/
 
 # Claude Code
 .claude/
@@ -110,3 +104,14 @@ tools/workspace
 .worktrees/
 
 .understand-anything/
+
+# Local Go Workspace Agent build output
+go/workspace-agent/bin/
+
+# Local browser and runtime profiling evidence
+.playwright-cli/
+output/playwright/
+output/runtime-profiles/
+output/workspace-agent/
+output/extension-host/
+output/pty-git/

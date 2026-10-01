@@ -2,6 +2,8 @@ import path from 'path';
 
 import fse from 'fs-extra';
 
+import { packageSourceExports } from './fn/package-source-exports';
+
 const packagesPath = path.join(__dirname, '../packages');
 const referenceDirPath = path.join(__dirname, '../configs/ts/references');
 const configJsonPath = path.join(__dirname, '../configs/ts/tsconfig.resolve.json');
@@ -9,9 +11,21 @@ const buildJsonPath = path.join(__dirname, '../configs/ts/tsconfig.build.json');
 
 async function generateResolve(sorted: Map<string, string>) {
   const paths = {};
-  // "@opensumi/ide-core-common": ["../packages/core-common/src/index.ts"],
-  // "@opensumi/ide-core-common/lib/*": ["../packages/core-common/src/*"],
   for (const [dir, pkgName] of sorted.entries()) {
+    const packageDirectory = path.join(packagesPath, dir);
+    const manifest = await fse.readJson(path.join(packageDirectory, 'package.json'));
+    const sourceExports = packageSourceExports(packageDirectory, manifest);
+    if (sourceExports) {
+      for (const [specifier, file] of Object.entries(sourceExports)) {
+        paths[specifier] = [
+          path
+            .relative(path.resolve(path.dirname(configJsonPath), '..'), file)
+            .split(path.sep)
+            .join('/'),
+        ];
+      }
+      continue;
+    }
     paths[pkgName] = ['../packages/' + dir + '/src/index.ts'];
     paths[pkgName + '/lib/*'] = ['../packages/' + dir + '/src/*'];
   }

@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc -p ../../configs/ts/references/tsconfig.comments.json"
   },
   "repository": {
@@ -17,18 +17,50 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "react-mentions": "^4.4.10"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-monaco-enhance": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
-    "@types/react-mentions": "^4.1.13"
+    "react-mentions": "^4.4.10",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "lodash": "^4.17.21",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
+    "classnames": "2.5.1"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*",
+    "@types/react-mentions": "^4.4.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./service": {
+      "opensumi-source": "./src/browser/comments.service.ts",
+      "types": "./lib/browser/comments.service.d.ts",
+      "default": "./lib/browser/comments.service.js"
+    },
+    "./features": {
+      "opensumi-source": "./src/browser/comments-feature.registry.ts",
+      "types": "./lib/browser/comments-feature.registry.d.ts",
+      "default": "./lib/browser/comments-feature.registry.js"
+    },
+    "./package.json": "./package.json"
   }
 }

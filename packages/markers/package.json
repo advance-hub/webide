@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.markers.json"
   },
   "repository": {
@@ -17,14 +17,49 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*"
+    "@opensumi/ide-theme": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "classnames": "2.5.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "opensumi-source": "./src/common/types.ts",
+      "types": "./lib/common/types.d.ts",
+      "default": "./lib/common/types.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./service": {
+      "opensumi-source": "./src/browser/markers-service.ts",
+      "types": "./lib/browser/markers-service.d.ts",
+      "default": "./lib/browser/markers-service.js"
+    },
+    "./matches": {
+      "opensumi-source": "./src/common/match.ts",
+      "types": "./lib/common/match.d.ts",
+      "default": "./lib/common/match.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

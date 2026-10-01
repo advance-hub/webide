@@ -6,23 +6,27 @@
   "main": "lib/index.js",
   "files": [
     "lib",
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
-    "prepublishOnly": "yarn run build && yarn run build:dist",
+    "prepublishOnly": "pnpm run build && pnpm run build:dist",
     "build": "tsc --build ../../configs/ts/references/tsconfig.components.json",
-    "build:dist": "webpack --config ./webpack.config.js --color",
+    "build:dist": "rspack build --config ./rspack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@ant-design/icons": "^4.6.4",
+    "@ant-design/icons": "^5.6.1",
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-utils": "workspace:*",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2",
     "@opensumi/react-custom-scrollbars-2": "^4.3.4",
     "@rc-component/mini-decimal": "^1.0.1",
+    "classnames": "2.5.1",
     "fuzzy": "^0.1.3",
     "lodash": "^4.17.21",
     "marked": "15.0.11",
+    "prop-types": "^15.8.1",
     "raf": "^3.4.1",
     "rc-dialog": "^9.6.0",
     "rc-dropdown": "~2.4.1",
@@ -32,15 +36,184 @@
     "rc-notification": "~3.3.1",
     "rc-tooltip": "^6.3.2",
     "rc-util": "^5.44.3",
-    "react-ctxmenu-trigger": "^1.0.0",
     "react-lifecycles-compat": "^3.0.4",
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-virtuoso": "^3.1.5",
-    "react-window": "^1.8.5"
+    "react-window": "^1.8.5",
+    "tslib": "^2.6.2"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
     "@types/react-window": "^1.8.5",
-    "prop-types": "^15.8.1"
-  }
+    "@rspack/core": "2.2.8",
+    "@rspack/cli": "2.2.8",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "path-browserify": "^1.0.1",
+    "util": "^0.12.5"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./badge": {
+      "opensumi-source": "./src/badge/index.tsx",
+      "types": "./lib/badge/index.d.ts",
+      "default": "./lib/badge/index.js"
+    },
+    "./button": {
+      "opensumi-source": "./src/button/index.tsx",
+      "types": "./lib/button/index.d.ts",
+      "default": "./lib/button/index.js"
+    },
+    "./checkbox": {
+      "opensumi-source": "./src/checkbox/index.tsx",
+      "types": "./lib/checkbox/index.d.ts",
+      "default": "./lib/checkbox/index.js"
+    },
+    "./click-outside": {
+      "opensumi-source": "./src/click-outside/index.tsx",
+      "types": "./lib/click-outside/index.d.ts",
+      "default": "./lib/click-outside/index.js"
+    },
+    "./dialog": {
+      "opensumi-source": "./src/dialog/index.tsx",
+      "types": "./lib/dialog/index.d.ts",
+      "default": "./lib/dialog/index.js"
+    },
+    "./dropdown": {
+      "opensumi-source": "./src/dropdown/index.tsx",
+      "types": "./lib/dropdown/index.d.ts",
+      "default": "./lib/dropdown/index.js"
+    },
+    "./icon": {
+      "opensumi-source": "./src/public/icon.ts",
+      "types": "./lib/public/icon.d.ts",
+      "default": "./lib/public/icon.js"
+    },
+    "./image": {
+      "opensumi-source": "./src/image/index.tsx",
+      "types": "./lib/image/index.d.ts",
+      "default": "./lib/image/index.js"
+    },
+    "./input": {
+      "opensumi-source": "./src/public/input.ts",
+      "types": "./lib/public/input.d.ts",
+      "default": "./lib/public/input.js"
+    },
+    "./markdown": {
+      "opensumi-source": "./src/public/markdown.ts",
+      "types": "./lib/public/markdown.d.ts",
+      "default": "./lib/public/markdown.js"
+    },
+    "./markdown-react": {
+      "opensumi-source": "./src/markdown-react/index.ts",
+      "types": "./lib/markdown-react/index.d.ts",
+      "default": "./lib/markdown-react/index.js"
+    },
+    "./menu": {
+      "opensumi-source": "./src/menu/index.tsx",
+      "types": "./lib/menu/index.d.ts",
+      "default": "./lib/menu/index.js"
+    },
+    "./message": {
+      "opensumi-source": "./src/message/index.ts",
+      "types": "./lib/message/index.d.ts",
+      "default": "./lib/message/index.js"
+    },
+    "./modal": {
+      "opensumi-source": "./src/modal/index.tsx",
+      "types": "./lib/modal/index.d.ts",
+      "default": "./lib/modal/index.js"
+    },
+    "./notification": {
+      "opensumi-source": "./src/notification/index.tsx",
+      "types": "./lib/notification/index.d.ts",
+      "default": "./lib/notification/index.js"
+    },
+    "./overlay": {
+      "opensumi-source": "./src/overlay/index.tsx",
+      "types": "./lib/overlay/index.d.ts",
+      "default": "./lib/overlay/index.js"
+    },
+    "./popover": {
+      "opensumi-source": "./src/popover/index.tsx",
+      "types": "./lib/popover/index.d.ts",
+      "default": "./lib/popover/index.js"
+    },
+    "./recycle-list": {
+      "opensumi-source": "./src/recycle-list/index.ts",
+      "types": "./lib/recycle-list/index.d.ts",
+      "default": "./lib/recycle-list/index.js"
+    },
+    "./tree": {
+      "opensumi-source": "./src/public/tree.ts",
+      "types": "./lib/public/tree.d.ts",
+      "default": "./lib/public/tree.js"
+    },
+    "./scrollbars": {
+      "opensumi-source": "./src/scrollbars/index.tsx",
+      "types": "./lib/scrollbars/index.d.ts",
+      "default": "./lib/scrollbars/index.js"
+    },
+    "./select": {
+      "opensumi-source": "./src/select/index.tsx",
+      "types": "./lib/select/index.d.ts",
+      "default": "./lib/select/index.js"
+    },
+    "./tabs": {
+      "opensumi-source": "./src/tabs/index.tsx",
+      "types": "./lib/tabs/index.d.ts",
+      "default": "./lib/tabs/index.js"
+    },
+    "./tooltip": {
+      "opensumi-source": "./src/tooltip/index.tsx",
+      "types": "./lib/tooltip/index.d.ts",
+      "default": "./lib/tooltip/index.js"
+    },
+    "./utils": {
+      "opensumi-source": "./src/utils/index.ts",
+      "types": "./lib/utils/index.d.ts",
+      "default": "./lib/utils/index.js"
+    },
+    "./virtual-list": {
+      "opensumi-source": "./src/public/virtual-list.ts",
+      "types": "./lib/public/virtual-list.d.ts",
+      "default": "./lib/public/virtual-list.js"
+    },
+    "./styles/base.less": {
+      "opensumi-source": "./src/style/base.less",
+      "default": "./lib/style/base.less"
+    },
+    "./styles/index.less": {
+      "opensumi-source": "./src/style/index.less",
+      "default": "./lib/style/index.less"
+    },
+    "./styles/mixins.less": {
+      "opensumi-source": "./src/style/mixins.less",
+      "default": "./lib/style/mixins.less"
+    },
+    "./styles/iconfont.css": {
+      "opensumi-source": "./src/icon/iconfont/iconfont.css",
+      "default": "./lib/icon/iconfont/iconfont.css"
+    },
+    "./package.json": "./package.json",
+    "./icon-font-data": {
+      "opensumi-source": "./src/icon/iconfont/iconMap.ts",
+      "types": "./lib/icon/iconfont/iconMap.d.ts",
+      "default": "./lib/icon/iconfont/iconMap.js"
+    },
+    "./icon-utils": {
+      "opensumi-source": "./src/icon/util.ts",
+      "types": "./lib/icon/util.d.ts",
+      "default": "./lib/icon/util.js"
+    }
+  },
+  "typings": "lib/index.d.ts"
 }

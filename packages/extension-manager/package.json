@@ -8,26 +8,50 @@
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.extension-manager.json"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-core-node": "workspace:*",
-    "@opensumi/ide-extension": "workspace:*",
-    "compressing": "^1.10.0",
-    "fs-extra": "^11.2.0",
-    "node-fetch": "^2.6.7"
-  },
-  "devDependencies": {
     "@opensumi/ide-components": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-core-node": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
+    "@opensumi/ide-extension": "workspace:*",
     "@opensumi/ide-main-layout": "workspace:*",
     "@opensumi/ide-markdown": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
-    "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
+    "compressing": "^1.10.0",
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^2.6.7",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@opensumi/ide-overlay": "workspace:*",
     "@types/node-fetch": "^2.6.1"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

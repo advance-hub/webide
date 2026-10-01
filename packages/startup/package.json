@@ -3,30 +3,32 @@
   "version": "3.9.0",
   "files": [
     "lib",
-    "src"
+    "src",
+    "bootstrap"
   ],
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
-    "start:lite": "webpack-dev-server --config ./webpack.lite.config.js",
+    "prepublishOnly": "pnpm run build",
+    "start:lite": "rspack dev --config ./rspack.lite.config.js",
     "start": "run-p start:client:open start:server",
-    "start:e2e": "run-p start:client:e2e start:server",
-    "start:client": "webpack-dev-server --config ./webpack.config.js",
+    "start:e2e": "run-p start:client:e2e start:server:e2e",
+    "start:client": "rspack dev --config ./rspack.config.js",
     "start:server": "cross-env IS_DEV=1 NODE_ENV=development EXT_MODE=js KTLOG_SHOW_DEBUG=1 nodemon --inspect=9999 ./entry/web/server.ts",
-    "start:no-inspect:client": "yarn start:client",
+    "start:server:e2e": "cross-env IS_DEV=1 NODE_ENV=development EXT_MODE=js KTLOG_SHOW_DEBUG=1 EXTENSION_HOST_IDLE_TIMEOUT=1000 nodemon --inspect=9999 ./entry/web/server.ts",
+    "start:no-inspect:client": "pnpm run start:client",
     "start:no-inspect:server": "cross-env EXT_MODE=js KTLOG_SHOW_DEBUG=1 nodemon ./entry/web/server.ts",
-    "start:client:open": "cross-env SUMI_DEV_OPEN_BROWSER=1 yarn start:client",
-    "start:client:e2e": "cross-env SKIP_TS_CHECKER=1 webpack-dev-server --config ./webpack.e2e.config.js",
+    "start:client:open": "cross-env SUMI_DEV_OPEN_BROWSER=1 pnpm run start:client",
+    "start:client:e2e": "cross-env NODE_OPTIONS=--max-old-space-size=1024 OPENSUMI_E2E_MODE=1 OPENSUMI_E2E_COMMANDS=true SUPPORT_LOAD_WORKSPACE_BY_HASH=true KTLOG_SHOW_DEBUG=1 node ../../node_modules/@rspack/cli/bin/rspack.js dev --config ../../client/rspack.config.ts",
     "start:server:extjs": "cross-env EXT_MODE=js NODE_ENV=development KTLOG_SHOW_DEBUG=1 NODE_OPTIONS='--import tsx' node --inspect=9999 ./entry/web/server.ts",
     "build": "tsc --build ../../configs/ts/references/tsconfig.startup.json",
-    "bundle:standard": "cross-env NODE_ENV=production webpack --config webpack.standard.config.js",
-    "bundle:standard:analysis": "cross-env analysis=1 yarn run bundle:standard",
-    "bundle:lite": "cross-env NODE_ENV=production webpack --config webpack.lite.config.js",
-    "bundle:lite:stats": "cross-env NODE_ENV=production webpack --profile --config webpack.lite.config.js --json > stats.json",
-    "bundle:lite:analysis": "cross-env analysis=1 yarn run bundle:lite",
-    "bundle:preview": "webpack --config webpack.preview.config.js"
+    "bundle:standard": "cross-env NODE_ENV=production rspack build --config rspack.standard.config.js",
+    "bundle:standard:analysis": "cross-env analysis=1 pnpm run bundle:standard",
+    "bundle:lite": "cross-env NODE_ENV=production rspack build --config rspack.lite.config.js",
+    "bundle:lite:stats": "cross-env NODE_ENV=production RSPACK_PROFILE=1 rspack build --config rspack.lite.config.js --json stats.json",
+    "bundle:lite:analysis": "cross-env analysis=1 pnpm run bundle:lite",
+    "bundle:preview": "rspack build --config rspack.preview.config.js"
   },
   "repository": {
     "type": "git",
@@ -72,6 +74,7 @@
     "@opensumi/ide-debug": "workspace:*",
     "@opensumi/ide-decoration": "workspace:*",
     "@opensumi/ide-design": "workspace:*",
+    "@opensumi/ide-dev-tool": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
     "@opensumi/ide-explorer": "workspace:*",
     "@opensumi/ide-express-file-server": "workspace:*",
@@ -109,31 +112,115 @@
     "@opensumi/ide-testing": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-toolbar": "workspace:*",
-    "@opensumi/ide-utils": "workspace:*",
     "@opensumi/ide-variable": "workspace:*",
     "@opensumi/ide-webview": "workspace:*",
     "@opensumi/ide-workspace": "workspace:*",
     "@opensumi/ide-workspace-edit": "workspace:*",
-    "@opensumi/textmate-languages": "^2.6.1"
+    "@opensumi/textmate-languages": "^2.6.1",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
   "devDependencies": {
-    "@opensumi/ide-dev-tool": "workspace:*",
     "browserfs": "^1.4.3",
     "cross-env": "^7.0.3",
-    "css-loader": "^6.9.1",
-    "electron": "^22.3.21",
-    "less-loader": "^12.1.0",
+    "css-loader": "^7.1.4",
+    "less-loader": "^13.0.0",
     "nodemon": "^2.0.15",
     "npm-run": "^5.0.1",
     "npm-run-all": "^4.1.5",
-    "react-dom": "^18.2.0",
-    "style-loader": "^3.3.4",
-    "ts-loader": "^9.5.1",
+    "react-dom": "^18.3.1",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.6.2",
     "tsconfig-paths": "^4.2.0",
-    "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "tsx": "^4.7.1",
-    "webpack": "^5.90.0",
+    "tsx": "^4.23.12",
     "webpack-bundle-analyzer": "^4.10.1",
-    "webpack-dev-server": "^5.0.4"
+    "@rspack/core": "2.2.8",
+    "@rspack/cli": "2.2.8"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./browser/modules": {
+      "opensumi-source": "./src/browser/common-modules.ts",
+      "types": "./lib/browser/common-modules.d.ts",
+      "default": "./lib/browser/common-modules.js"
+    },
+    "./browser/ai": {
+      "opensumi-source": "./src/browser/ai-modules.ts",
+      "types": "./lib/browser/ai-modules.d.ts",
+      "default": "./lib/browser/ai-modules.js"
+    },
+    "./browser/notebook": {
+      "opensumi-source": "./src/browser/notebook-modules.ts",
+      "types": "./lib/browser/notebook-modules.d.ts",
+      "default": "./lib/browser/notebook-modules.js"
+    },
+    "./browser/collaboration": {
+      "opensumi-source": "./src/browser/collaboration-modules.ts",
+      "types": "./lib/browser/collaboration-modules.d.ts",
+      "default": "./lib/browser/collaboration-modules.js"
+    },
+    "./browser/menu-help": {
+      "opensumi-source": "./src/browser/menu-bar-help-icon.tsx",
+      "types": "./lib/browser/menu-bar-help-icon.d.ts",
+      "default": "./lib/browser/menu-bar-help-icon.js"
+    },
+    "./node/modules": {
+      "opensumi-source": "./src/node/common-modules.ts",
+      "types": "./lib/node/common-modules.d.ts",
+      "default": "./lib/node/common-modules.js"
+    },
+    "./node/ai": {
+      "opensumi-source": "./src/node/ai-modules.ts",
+      "types": "./lib/node/ai-modules.d.ts",
+      "default": "./lib/node/ai-modules.js"
+    },
+    "./node/collaboration": {
+      "opensumi-source": "./src/node/collaboration-modules.ts",
+      "types": "./lib/node/collaboration-modules.d.ts",
+      "default": "./lib/node/collaboration-modules.js"
+    },
+    "./runtime-mode": {
+      "types": "./bootstrap/runtime-mode.d.cts",
+      "default": "./bootstrap/runtime-mode.cjs"
+    },
+    "./package.json": "./package.json",
+    "./browser/render": {
+      "opensumi-source": "./src/browser/renderer/index.tsx",
+      "types": "./lib/browser/renderer/index.d.ts",
+      "default": "./lib/browser/renderer/index.js"
+    },
+    "./browser/cloud-dev": {
+      "opensumi-source": "./src/browser/cloud-dev.module.ts",
+      "types": "./lib/browser/cloud-dev.module.d.ts",
+      "default": "./lib/browser/cloud-dev.module.js"
+    },
+    "./examples": {
+      "opensumi-source": "./src/browser/examples/index.ts",
+      "types": "./lib/browser/examples/index.d.ts",
+      "default": "./lib/browser/examples/index.js"
+    },
+    "./examples/base": {
+      "opensumi-source": "./src/browser/examples/base.ts",
+      "types": "./lib/browser/examples/base.d.ts",
+      "default": "./lib/browser/examples/base.js"
+    },
+    "./examples/ai": {
+      "opensumi-source": "./src/browser/examples/ai-module.ts",
+      "types": "./lib/browser/examples/ai-module.d.ts",
+      "default": "./lib/browser/examples/ai-module.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
   }
 }

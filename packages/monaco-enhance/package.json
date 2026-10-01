@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.monaco-enhance.json"
   },
   "repository": {
@@ -17,12 +17,44 @@
     "url": "git@github.com:opensumi/core.git"
   },
   "dependencies": {
-    "@opensumi/ide-core-common": "workspace:*"
+    "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
+    "@opensumi/ide-monaco": "workspace:*",
+    "@opensumi/ide-theme": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0",
+    "lodash": "^4.17.21",
+    "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
   "devDependencies": {
-    "@opensumi/ide-core-browser": "workspace:*",
-    "@opensumi/ide-dev-tool": "workspace:*",
-    "@opensumi/ide-monaco": "workspace:*",
-    "@opensumi/ide-theme": "workspace:*"
+    "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./browser": {
+      "opensumi-source": "./src/browser/index.ts",
+      "types": "./lib/browser/index.d.ts",
+      "default": "./lib/browser/index.js"
+    },
+    "./module": {
+      "opensumi-source": "./src/browser/module.ts",
+      "types": "./lib/browser/module.d.ts",
+      "default": "./lib/browser/module.js"
+    },
+    "./peek-view": {
+      "opensumi-source": "./src/browser/peek-view.ts",
+      "types": "./lib/browser/peek-view.d.ts",
+      "default": "./lib/browser/peek-view.js"
+    },
+    "./folded-code": {
+      "opensumi-source": "./src/browser/folded-code-widget.ts",
+      "types": "./lib/browser/folded-code-widget.d.ts",
+      "default": "./lib/browser/folded-code-widget.js"
+    },
+    "./package.json": "./package.json"
   }
 }

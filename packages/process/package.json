@@ -9,7 +9,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "prepublishOnly": "yarn run build",
+    "prepublishOnly": "pnpm run build",
     "build": "tsc --build ../../configs/ts/references/tsconfig.process.json"
   },
   "repository": {
@@ -18,9 +18,24 @@
   },
   "dependencies": {
     "@opensumi/ide-core-common": "workspace:*",
-    "@opensumi/ide-core-node": "workspace:*"
+    "@opensumi/ide-core-node": "workspace:*",
+    "tslib": "^2.6.2",
+    "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "opensumi-source": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./node": {
+      "opensumi-source": "./src/node/index.ts",
+      "types": "./lib/node/index.d.ts",
+      "default": "./lib/node/index.js"
+    },
+    "./package.json": "./package.json"
   }
 }

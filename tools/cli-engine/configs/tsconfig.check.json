@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["es2021", "dom"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "react", "react-dom", "sumi", "vscode", "style"],
+    "typeRoots": ["../../../node_modules/@types", "../../../typings"]
+  }
+}
