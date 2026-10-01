@@ -1,9 +1,12 @@
 // Opt-in real Docker/OpenSandbox acceptance. No fixture transport replaces SDK calls.
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+
+import WebSocket from 'ws';
 
 import { Workbench } from './app';
 import { loadConfig } from './config';
@@ -154,6 +157,54 @@ try {
       }
       return current.job?.status === 'done';
     }, 'Machine maintenance');
+  await step('actual-ide-http-and-websocket-proxy', async () => {
+    const entry = await request('alice', `/api/workspaces/${alice.id}/enter`, {});
+    const host = `${alice.id}.localhost:${config.port}`;
+    const ide = (route: string, cookie = '') =>
+      new Promise<{ status: number; cookie: string; body: string }>((resolve, reject) => {
+        const req = http.get(
+          config.publicURL + route,
+          { headers: { Host: host, Cookie: cookie, 'X-Workspace-Id': 'spoofed' }, timeout: 30000 },
+          (res) => {
+            let body = '';
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => (body += chunk));
+            res.once('error', reject);
+            res.once('end', () =>
+              resolve({ status: res.statusCode!, cookie: res.headers['set-cookie']?.[0]?.split(';')[0] || '', body }),
+            );
+          },
+        );
+        req.once('error', reject);
+        req.once('timeout', () => req.destroy(new Error('IDE HTTP proxy timed out')));
+      });
+    const ticket = new URL(entry.url);
+    const exchange = await ide(ticket.pathname + ticket.search);
+    assert(exchange.cookie, 'One-time entry must issue an IDE session');
+    const page = await ide('/', exchange.cookie);
+    assert.equal(page.status, 200);
+    assert.match(page.body, /<!doctype html>/i);
+    const socket = new WebSocket(`ws://127.0.0.1:${config.port}/service`, {
+      headers: { Host: host, Cookie: exchange.cookie, Origin: `http://${host}` },
+      handshakeTimeout: 30000,
+    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        socket.once('open', resolve);
+        socket.once('error', reject);
+      });
+      const closed = new Promise<void>((resolve) => socket.once('close', () => resolve()));
+      socket.close();
+      await Promise.race([
+        closed,
+        delay(5000).then(() => {
+          throw new Error('IDE WebSocket did not close');
+        }),
+      ]);
+    } finally {
+      socket.terminate();
+    }
+  });
   await step('real-encrypted-backup-and-dirty-file-restore', async () => {
     await request('alice', '/api/machine/backups', { action: 'backup', name: 'Docker fixture' });
     await waitJob();
