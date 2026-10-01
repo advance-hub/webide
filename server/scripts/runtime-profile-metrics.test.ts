@@ -19,7 +19,7 @@ function sample(totalRssBytes: number, watcherRssBytes: number, agentRssBytes = 
     byRole: {
       server: { count: 1, rssBytes: totalRssBytes - watcherRssBytes - agentRssBytes },
       ...(watcherRssBytes > 0 ? { 'watcher-host': { count: 1, rssBytes: watcherRssBytes } } : {}),
-      ...(agentRssBytes > 0 ? { 'workspace-agent': { count: 1, rssBytes: agentRssBytes } } : {}),
+      ...(agentRssBytes > 0 ? { 'extension-host': { count: 1, rssBytes: agentRssBytes } } : {}),
     },
     processes: [],
   };
@@ -38,7 +38,7 @@ describe('runtime profile metrics', () => {
     assert.equal(metrics.p50TreeRssBytes, 110);
     assert.equal(metrics.p95TreeRssBytes, 120);
     assert.equal(metrics.p50RoleRssBytes['watcher-host'], 30);
-    assert.equal(metrics.p95RoleRssBytes['workspace-agent'], 10);
+    assert.equal(metrics.p95RoleRssBytes['extension-host'], 10);
   });
 
   it('compares medians across equal repeated runs and applies the 25 percent gate', () => {

@@ -1,5 +1,4 @@
-export type FeatureRuntime =
-  'browser' | 'node' | 'electron-main' | 'browser-worker' | 'extension-host' | 'workspace-agent';
+export type FeatureRuntime = 'browser' | 'node' | 'electron-main' | 'browser-worker' | 'extension-host';
 
 export type RuntimeScope =
   'application' | 'workspace' | 'window' | 'session' | 'connection' | 'extension-host' | 'lease' | 'request';
@@ -161,7 +160,6 @@ const runtimeOrder: readonly FeatureRuntime[] = [
   'electron-main',
   'browser-worker',
   'extension-host',
-  'workspace-agent',
 ];
 const featureRuntimes = new Set<FeatureRuntime>(runtimeOrder);
 const runtimeScopes = new Set<RuntimeScope>([

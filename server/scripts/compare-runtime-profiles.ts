@@ -278,7 +278,7 @@ async function main(): Promise<void> {
       };
   const result = {
     schemaVersion: 3,
-    type: 'workspace-agent-runtime-comparison',
+    type: 'node-runtime-comparison',
     generatedAt: new Date().toISOString(),
     sessions: options.sessions,
     minimumRuns: options.minimumRuns,

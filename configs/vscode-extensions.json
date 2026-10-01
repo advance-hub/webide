@@ -151,10 +151,6 @@
         "version": "1.88.1"
       },
       {
-        "name": "go",
-        "version": "1.88.1"
-      },
-      {
         "name": "docker",
         "version": "1.88.1"
       },
@@ -310,16 +306,6 @@
         "displayName": "Project Manager for Java",
         "category": "Java",
         "purpose": "Java 工程、依赖和源目录管理",
-        "curated": true
-      }
-    ],
-    "golang": [
-      {
-        "name": "go",
-        "version": "0.44.0",
-        "displayName": "Go",
-        "category": "Go",
-        "purpose": "Go 语言服务、运行和调试",
         "curated": true
       }
     ],

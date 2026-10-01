@@ -257,7 +257,7 @@ describe('FeatureGraph', () => {
     expect(
       compileRuntimePlan(profile, facets, {
         runtime: 'node',
-        boundaryRequirements: [{ providerRuntime: 'workspace-agent', port: consumedPort }],
+        boundaryRequirements: [{ providerRuntime: 'extension-host', port: consumedPort }],
       }).entries,
     ).toHaveLength(1);
     expect(() =>
@@ -265,7 +265,7 @@ describe('FeatureGraph', () => {
         runtime: 'node',
         boundaryRequirements: [
           {
-            providerRuntime: 'workspace-agent',
+            providerRuntime: 'extension-host',
             port: defineRuntimePort({
               id: consumedPort.id,
               version: 1,
@@ -529,7 +529,7 @@ describe('FeatureGraph', () => {
           ...browserContract,
           boundaryRequirements: browserContract.boundaryRequirements.map((requirement) => ({
             ...requirement,
-            providerRuntime: 'workspace-agent' as const,
+            providerRuntime: 'extension-host' as const,
           })),
         },
         nodeContract,

@@ -20,11 +20,6 @@ import {
   SharedNodeWatcherPoolToken,
 } from './shared-node-watcher';
 import { WatcherProcessManagerImpl, WatcherProcessManagerToken } from './watcher-process-manager';
-import {
-  WorkspaceAgentClient,
-  WorkspaceAgentClientToken,
-  WorkspaceAgentLifecycleContribution,
-} from './workspace-agent';
 
 export * from './file-service';
 
@@ -82,8 +77,6 @@ export class FileServiceModule extends NodeModule {
   providers = [
     { token: IFileService, useFactory: (injector: Injector) => getSafeFileservice(injector) },
     { token: IDiskFileProvider, useFactory: (injector: Injector) => getFileservice(injector, DiskFileSystemProvider) },
-    { token: WorkspaceAgentClientToken, useClass: WorkspaceAgentClient },
-    WorkspaceAgentLifecycleContribution,
     { token: SharedNodeWatcherPoolToken, useClass: ServerSharedNodeWatcherPool },
     SharedNodeWatcherLifecycleContribution,
     { token: WatcherProcessManagerToken, useClass: WatcherProcessManagerImpl },

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
@@ -15,14 +16,6 @@ import {
   ServerRuntimeStopReport,
 } from '@opensumi/ide-core-node';
 import {
-  WorkspaceAgentClient,
-  WorkspaceAgentClientToken,
-  WorkspaceAgentMode,
-  WorkspaceAgentRuntimeStatus,
-  parseWorkspaceAgentMode,
-  workspaceAgentAllowsNodeFallback,
-} from '@opensumi/ide-file-service/node/workspace-agent';
-import {
   IExternalFileArgs,
   IExternalUrlArgs,
   IRemoteOpenerClient,
@@ -34,10 +27,7 @@ import { RemoteOpenerServiceImpl } from '@opensumi/ide-remote-opener/node';
 import { resolveMarketplaceExtensionDirectory } from './extension-directory';
 import { resolveProductRuntimeMode } from './runtime-mode';
 import { RuntimePlanHealthSummary } from './runtime-plan-summary';
-import { configureWorkspaceAgentDefaultModes, hasRunnableWorkspaceAgentPackage } from './workspace-agent-defaults';
 import { createWorkspaceAIConfigMiddleware } from './workspace-ai-config';
-import { WsGatewayChannelMode, WsGatewayHealthStatus, WsGatewayRuntime, disabledWsGatewayStatus } from './ws-gateway';
-import { hasRunnableWsGatewayPackage, resolveWsGatewayMode } from './ws-gateway-defaults';
 
 import type { RuntimeTopologyServerHandshake } from '@opensumi/ide-startup';
 
@@ -110,6 +100,7 @@ export interface StartServerOptions {
   mountStaticPath?: string;
   runtimePlanSummary?: RuntimePlanHealthSummary;
   runtimeTopologyHandshake?: RuntimeTopologyServerHandshake;
+  exitAfterShutdown?: boolean;
 }
 
 interface MemoryStatus {
@@ -119,26 +110,6 @@ interface MemoryStatus {
     rssBytes: number;
   };
   memory: NodeJS.MemoryUsage;
-}
-
-type WorkspaceAgentHealthState = WorkspaceAgentRuntimeStatus['state'] | 'disabled' | 'diagnostic-unavailable';
-
-interface WorkspaceAgentHealthStatus {
-  configured: {
-    watch: WorkspaceAgentMode;
-    search: WorkspaceAgentMode;
-    fileSearch: WorkspaceAgentMode;
-  };
-  state: WorkspaceAgentHealthState;
-  degraded: boolean;
-  affectsReadiness: boolean;
-  pid?: number;
-  protocol?: WorkspaceAgentRuntimeStatus['protocol'];
-  services?: string[];
-  buildRevision?: string;
-  activeStreams?: number;
-  sharedWatches?: number;
-  restart?: WorkspaceAgentRuntimeStatus['restart'];
 }
 
 function readPositiveInteger(name: string, fallback: number): number {
@@ -157,41 +128,6 @@ function getMemoryStatus(): MemoryStatus {
     limits,
     memory,
   };
-}
-
-function getWorkspaceAgentHealthStatus(injector: Injector): WorkspaceAgentHealthStatus {
-  const configured = {
-    watch: parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE),
-    search: parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_SEARCH_MODE),
-    fileSearch: parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE),
-  };
-  const affectsReadiness = Object.values(configured).includes('enabled') && !workspaceAgentAllowsNodeFallback();
-  if (configured.watch === 'off' && configured.search === 'off' && configured.fileSearch === 'off') {
-    return {
-      configured,
-      state: 'disabled',
-      degraded: false,
-      affectsReadiness,
-    };
-  }
-
-  try {
-    const runtime = (injector.get(WorkspaceAgentClientToken) as WorkspaceAgentClient).getStatus();
-    return {
-      configured,
-      ...runtime,
-      degraded: ['restart-backoff', 'restart-ready', 'exhausted', 'disposed'].includes(runtime.state),
-      affectsReadiness,
-    };
-  } catch {
-    // Required Agent diagnostics fail readiness; an explicit Node fallback remains non-gating.
-    return {
-      configured,
-      state: 'diagnostic-unavailable',
-      degraded: true,
-      affectsReadiness,
-    };
-  }
 }
 
 function listenHTTPServer(server: http.Server, options: number | { host: string; port: number }): Promise<void> {
@@ -251,9 +187,8 @@ function observeHTTPServerLifecycle(server: http.Server): HTTPServerLifecycle {
 }
 
 function closeHTTPServer(server: http.Server, lifecycle = observeHTTPServerLifecycle(server)): Promise<void> {
-  // A Node HTTP server can be listened, closed, and listened again. The
-  // fallback from a failed private Gateway backend to direct mode does exactly
-  // that, so a completed lifecycle cannot be reused for the next listen epoch.
+  // A Node HTTP server can be listened, closed, and listened again, so a
+  // completed lifecycle cannot be reused for the next listen epoch.
   if (lifecycle.closed && server.listening) {
     lifecycle = observeHTTPServerLifecycle(server);
   }
@@ -309,19 +244,11 @@ export interface RuntimeShutdownServerApp {
   stop(options: ServerRuntimeStopOptions): Promise<ServerRuntimeStopReport>;
 }
 
-export interface RuntimeShutdownGateway {
-  beginDrain(): void;
-  stop(): Promise<void>;
-}
-
-export type RuntimeShutdownOwner = 'gateway-drain' | 'http-server' | 'gateway-stop';
+export type RuntimeShutdownOwner = 'http-server';
 
 export interface RuntimeShutdownCoordinatorOptions {
   serverApp: RuntimeShutdownServerApp;
   httpServer: http.Server;
-  wsGatewayRuntime?: RuntimeShutdownGateway;
-  /** Resolve a Gateway that may be created after process signal ownership is installed. */
-  getWsGatewayRuntime?: () => RuntimeShutdownGateway | undefined;
   deadlineMs: number;
   now?: () => number;
   onOwnerError?: (owner: RuntimeShutdownOwner, error: unknown) => void;
@@ -336,96 +263,52 @@ export interface RuntimeShutdownCoordinatorOptions {
 export function createRuntimeShutdownCoordinator({
   serverApp,
   httpServer,
-  wsGatewayRuntime,
-  getWsGatewayRuntime,
   deadlineMs,
   now = Date.now,
   onOwnerError,
 }: RuntimeShutdownCoordinatorOptions): (reason: string) => Promise<ServerRuntimeStopReport> {
   let shutdownPromise: Promise<ServerRuntimeStopReport> | undefined;
-  const httpServerLifecycle = observeHTTPServerLifecycle(httpServer);
-
-  const reportOwnerError = (owner: RuntimeShutdownOwner, error: unknown) => {
-    try {
-      onOwnerError?.(owner, error);
-    } catch {
-      // Diagnostics must not prevent the remaining owners from being stopped.
-    }
-  };
-
-  return (reason: string): Promise<ServerRuntimeStopReport> => {
+  const httpLifecycle = observeHTTPServerLifecycle(httpServer);
+  return (reason) => {
     if (shutdownPromise) {
       return shutdownPromise;
     }
-
-    let resolveShutdown!: (report: ServerRuntimeStopReport) => void;
-    let rejectShutdown!: (error: unknown) => void;
-    shutdownPromise = new Promise<ServerRuntimeStopReport>((resolve, reject) => {
-      resolveShutdown = resolve;
-      rejectShutdown = reject;
+    let resolve!: (report: ServerRuntimeStopReport) => void;
+    let reject!: (error: unknown) => void;
+    // Publish the promise before calling owners, including synchronous callbacks.
+    shutdownPromise = new Promise((done, fail) => {
+      resolve = done;
+      reject = fail;
     });
-
     const startedAt = now();
-    const shutdownGateway = getWsGatewayRuntime?.() ?? wsGatewayRuntime;
-    if (shutdownGateway) {
-      try {
-        // This changes /readyz admission before any asynchronous wait. The Go
-        // public listener remains alive so already-upgraded connections can
-        // finish; ServerApp is the fallback barrier for its 100ms probe cache.
-        shutdownGateway.beginDrain();
-      } catch (error) {
-        reportOwnerError('gateway-drain', error);
-      }
-    }
-
-    let serverDrain: Promise<void>;
+    let drain: Promise<void>;
     try {
-      serverDrain = serverApp.drain();
+      drain = serverApp.drain();
     } catch (error) {
-      serverDrain = Promise.reject(error);
+      drain = Promise.reject(error);
     }
-    // ServerApp.stop awaits the same idempotent drain. This handler only keeps
-    // a custom/failing implementation from leaking an unhandled rejection.
-    void serverDrain.catch(() => undefined);
-
-    // In gateway mode the HTTP server is a separate private backend, not the
-    // listener owned by ServerApp. Initiate close now to fence new requests.
-    // ServerApp awaits this exact idle barrier in its connection-owner phase,
-    // before contributions and the root injector are disposed.
-    const httpServerClose = shutdownGateway ? closeHTTPServer(httpServer, httpServerLifecycle) : undefined;
-    const privateHTTPBarrier = httpServerClose?.catch((error) => {
-      reportOwnerError('http-server', error);
+    void drain.catch(() => undefined);
+    // Fence new HTTP requests immediately; upgraded sockets retire in ServerApp.
+    const ingressClosed = closeHTTPServer(httpServer, httpLifecycle).catch((error) => {
+      try {
+        onOwnerError?.('http-server', error);
+      } catch {
+        /* diagnostics only */
+      }
+      throw error;
     });
-
-    const elapsedMs = now() - startedAt;
-    let serverStop: Promise<ServerRuntimeStopReport>;
+    void ingressClosed.catch(() => undefined);
     try {
-      serverStop = serverApp.stop({
-        deadlineMs: Math.max(0, deadlineMs - elapsedMs),
-        reason,
-        beforeSharedOwners: privateHTTPBarrier ? () => privateHTTPBarrier : undefined,
-      });
+      void serverApp
+        .stop({
+          deadlineMs: Math.max(0, deadlineMs - (now() - startedAt)),
+          reason,
+          beforeSharedOwners: () => ingressClosed,
+        })
+        .then(resolve, reject);
     } catch (error) {
-      serverStop = Promise.reject(error);
+      reject(error);
     }
-
-    void (async () => {
-      const report = await serverStop;
-      if (report.timedOut || !shutdownGateway) {
-        // A timed-out phase is still running and Promise.race cannot cancel it.
-        // Do not overlap final transport destruction with that owner; the
-        // product hard deadline remains armed and owns forced termination.
-        return report;
-      }
-
-      try {
-        await shutdownGateway.stop();
-      } catch (error) {
-        reportOwnerError('gateway-stop', error);
-      }
-      return report;
-    })().then(resolveShutdown, rejectShutdown);
-
     return shutdownPromise;
   };
 }
@@ -439,7 +322,7 @@ interface RuntimeSignalController {
 function installRuntimeSignalHandlers(
   serverApp: ServerApp,
   httpServer: http.Server,
-  getWsGatewayRuntime: () => WsGatewayRuntime | undefined,
+  exitAfterShutdown = false,
 ): RuntimeSignalController {
   let shutdownPromise: Promise<ServerRuntimeStopReport> | undefined;
   let forceExitTimer: NodeJS.Timeout | undefined;
@@ -451,7 +334,6 @@ function installRuntimeSignalHandlers(
   const stopRuntimeOwners = createRuntimeShutdownCoordinator({
     serverApp,
     httpServer,
-    getWsGatewayRuntime,
     deadlineMs,
     onOwnerError: (owner, error) => {
       ownerCleanupFailed = true;
@@ -505,6 +387,11 @@ function installRuntimeSignalHandlers(
           clearTimeout(forceExitTimer);
         }
         removeSignalHandlers();
+        if (exitAfterShutdown && shutdownReport && shouldClearRuntimeHardDeadline(shutdownReport, ownerCleanupFailed)) {
+          // Native PTY descriptors may survive completed owner cleanup. The
+          // executable owns its process lifetime after all phases acknowledge.
+          process.stdout.write('', () => setImmediate(() => process.exit(process.exitCode || 0)));
+        }
       });
     return shutdownPromise;
   };
@@ -517,9 +404,7 @@ function installRuntimeSignalHandlers(
   return {
     requestShutdown: shutdown,
     armServerClose: () => {
-      // Gateway fallback deliberately closes a temporary private listener. Do
-      // not interpret that startup cleanup as product termination. Once the
-      // final ingress mode is selected, an unexpected close owns shutdown.
+      // An unexpected close after startup owns runtime shutdown.
       if (serverCloseArmed || shutdownPromise) {
         return;
       }
@@ -539,6 +424,7 @@ export async function startServer({
   mountStaticPath,
   runtimePlanSummary,
   runtimeTopologyHandshake,
+  exitAfterShutdown,
 }: StartServerOptions): Promise<http.Server> {
   const app = new Koa();
   const router = new KoaRouter();
@@ -549,18 +435,6 @@ export async function startServer({
     __dirname,
     path.extname(__filename) === '.ts' ? 'mock-log-service.ts' : 'mock-log-service.js',
   );
-  configureWorkspaceAgentDefaultModes(process.env, hasRunnableWorkspaceAgentPackage(rootDirectory));
-  workspaceAgentAllowsNodeFallback();
-  const wsGatewayMode = resolveWsGatewayMode(process.env, hasRunnableWsGatewayPackage(rootDirectory));
-  const wsGatewayEnabled = wsGatewayMode.mode === 'gateway';
-  const wsGatewayChannelMode = process.env.OPENSUMI_WS_GATEWAY_CHANNEL_MODE || 'multiplex-v1';
-  if (wsGatewayChannelMode !== 'direct' && wsGatewayChannelMode !== 'multiplex-v1') {
-    throw new Error(`OPENSUMI_WS_GATEWAY_CHANNEL_MODE must be direct or multiplex-v1, got ${wsGatewayChannelMode}`);
-  }
-  const wsGatewayFileRPCMode = process.env.OPENSUMI_WS_GATEWAY_FILE_RPC_MODE || 'enabled';
-  if (wsGatewayFileRPCMode !== 'off' && wsGatewayFileRPCMode !== 'enabled') {
-    throw new Error(`OPENSUMI_WS_GATEWAY_FILE_RPC_MODE must be off or enabled, got ${wsGatewayFileRPCMode}`);
-  }
   const extensionHostConfig = {
     activationDiagnosticsEnabled: ['1', 'enabled'].includes(process.env.EXTENSION_HOST_ACTIVATION_DIAGNOSTICS || ''),
     idleTimeoutMs: readPositiveInteger('EXTENSION_HOST_IDLE_TIMEOUT', 60_000),
@@ -598,15 +472,43 @@ export async function startServer({
       startupTimeouts: 0,
     },
   };
-  let wsGatewayRuntime: WsGatewayRuntime | undefined;
   let serverApp: ServerApp;
-  // The callback is wired while Gateway startup is in flight; the coordinator
-  // is installed immediately after ServerApp construction below.
-  // eslint-disable-next-line prefer-const
-  let requestRuntimeShutdown: ((reason: string) => Promise<ServerRuntimeStopReport>) | undefined;
-  const wsGatewayStaticStatus: WsGatewayHealthStatus = disabledWsGatewayStatus();
-  const getWsGatewayHealthStatus = () => wsGatewayRuntime?.getStatus() ?? wsGatewayStaticStatus;
-
+  let stopProduct: ((reason: string) => Promise<ServerRuntimeStopReport>) | undefined;
+  const identity = () => ({
+    workspace: resolveServedWorkspace(),
+    pid: process.pid,
+    fingerprint: process.env.OPENSUMI_RUNTIME_FINGERPRINT || '',
+    node: process.version,
+    architecture: process.arch,
+  });
+  const runtimeAuthorized = (context: Koa.Context) => {
+    const expected = process.env.OPENSUMI_RUNTIME_TOKEN || '';
+    const supplied = context.get('Authorization').replace(/^Bearer /, '');
+    return (
+      /^[a-f0-9]{64}$/.test(expected) &&
+      supplied.length === expected.length &&
+      timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
+    );
+  };
+  router.get('/runtime/identity', (context) => {
+    context.set('Cache-Control', 'no-store');
+    if (!runtimeAuthorized(context)) {
+      context.status = 401;
+      context.body = { error: 'runtime-authorization-required' };
+      return;
+    }
+    context.body = identity();
+  });
+  router.post('/runtime/shutdown', (context) => {
+    if (!runtimeAuthorized(context) || !stopProduct) {
+      context.status = 401;
+      context.body = { error: 'runtime-authorization-required' };
+      return;
+    }
+    context.status = 202;
+    context.body = { stopping: true };
+    context.res.once('finish', () => void stopProduct!('control-plane'));
+  });
   // A fresh clone has no downloaded extensions yet. Keep the directory
   // present so the extension scanner starts quietly before the first install.
   await mkdir(extensionDirectory, { recursive: true });
@@ -638,15 +540,12 @@ export async function startServer({
   });
 
   router.get(['/health', '/healthz'], (context) => {
-    const wsGateway = getWsGatewayHealthStatus();
-    const workspaceAgent = getWorkspaceAgentHealthStatus(injector);
     context.body = {
-      status: wsGateway.degraded || workspaceAgent.degraded ? 'degraded' : 'ok',
+      status: 'ok',
       uptimeSeconds: process.uptime(),
       ...getMemoryStatus(),
-      workspaceAgent,
       runtimeMode: resolveProductRuntimeMode(process.env),
-      agentFailurePolicy: workspaceAgentAllowsNodeFallback() ? 'node' : 'error',
+      runtime: identity(),
       extensionHost: {
         ...extensionHostStatus,
         configured: extensionHostConfig,
@@ -654,31 +553,19 @@ export async function startServer({
       },
       runtimePlan: runtimePlanSummary,
       runtimeTopology: runtimeTopologyHandshake?.getStatus(),
-      wsGateway,
     };
   });
 
   router.get('/readyz', (context) => {
     const status = getMemoryStatus();
-    const wsGateway = getWsGatewayHealthStatus();
-    const workspaceAgent = getWorkspaceAgentHealthStatus(injector);
-    const agentReady = !workspaceAgent.affectsReadiness || workspaceAgent.state === 'running';
-    const gatewayReady = !wsGateway.affectsReadiness || wsGateway.state === 'running';
-    const ready = status.ready && gatewayReady && agentReady;
+    const ready = status.ready;
     context.status = ready ? 200 : 503;
     context.body = {
-      status: ready
-        ? 'ready'
-        : !status.ready
-          ? 'memory-pressure'
-          : !gatewayReady
-            ? 'gateway-unavailable'
-            : 'agent-unavailable',
+      status: ready ? 'ready' : 'memory-pressure',
       ...status,
       ready,
-      workspaceAgent,
       runtimeMode: resolveProductRuntimeMode(process.env),
-      agentFailurePolicy: workspaceAgentAllowsNodeFallback() ? 'node' : 'error',
+      runtime: identity(),
       extensionHost: {
         ...extensionHostStatus,
         configured: extensionHostConfig,
@@ -686,7 +573,6 @@ export async function startServer({
       },
       runtimePlan: runtimePlanSummary,
       runtimeTopology: runtimeTopologyHandshake?.getStatus(),
-      wsGateway,
     };
   });
 
@@ -713,7 +599,7 @@ export async function startServer({
   app.use(createClientStaticMiddleware(clientDirectory));
   app.use(router.routes());
 
-  const buildServerAppOptions = (netChannelMode: WsGatewayChannelMode) => ({
+  const buildServerAppOptions = () => ({
     injector,
     modules,
     processSignalHandling: 'external' as const,
@@ -741,7 +627,7 @@ export async function startServer({
     wsMaxBufferedAmount: readPositiveInteger('WS_MAX_BUFFERED_AMOUNT', 16 * 1024 * 1024),
     wsShouldAcceptConnection: () => getMemoryStatus().ready,
     runtimeTopologyHandshake,
-    netChannelMode,
+    netChannelMode: 'direct' as const,
     wsServerOptions: {
       maxPayload: readPositiveInteger('WS_MAX_PAYLOAD', 32 * 1024 * 1024),
       perMessageDeflate: false,
@@ -798,73 +684,8 @@ export async function startServer({
   server.maxRequestsPerSocket = readPositiveInteger('HTTP_MAX_REQUESTS_PER_SOCKET', 1_000);
   const port = Number(process.env.PORT || process.env.IDE_SERVER_PORT || 4317);
 
-  // Gateway launch stays encapsulated so a default-enabled deployment can
-  // fall back to direct sockets. The shared ServerApp owner is constructed
-  // before this helper may start either the private or public listener.
-  const launchWsGateway = async (): Promise<void> => {
-    const runtime = await WsGatewayRuntime.create();
-    wsGatewayRuntime = runtime;
-    const assertGatewayStartupActive = () => {
-      if (serverApp.state !== 'created') {
-        throw createRuntimeStartupCancelledError(serverApp.state);
-      }
-    };
-    try {
-      assertGatewayStartupActive();
-      await listenHTTPServer(server, { host: '127.0.0.1', port: 0 });
-      assertGatewayStartupActive();
-      const privateAddress = server.address();
-      if (!privateAddress || typeof privateAddress === 'string' || privateAddress.address !== '127.0.0.1') {
-        throw new Error(`Node HTTP backend announced an invalid private address: ${String(privateAddress)}`);
-      }
-      const nodeHTTPURL = `http://127.0.0.1:${privateAddress.port}`;
-      await runtime.launch({
-        publicListenAddress: process.env.WS_GATEWAY_LISTEN_ADDRESS || `:${port}`,
-        nodeHTTPURL,
-        channelMode: wsGatewayChannelMode,
-        servicePath: '/service',
-        maxPayloadBytes: readPositiveInteger('WS_MAX_PAYLOAD', 32 * 1024 * 1024),
-        maxBufferedBytes: readPositiveInteger('WS_MAX_BUFFERED_AMOUNT', 16 * 1024 * 1024),
-        maxConnections: readPositiveInteger('WS_MAX_CONNECTIONS', 512),
-        heartbeatIntervalMs: readPositiveInteger('WS_HEARTBEAT_INTERVAL', 30_000),
-        writeTimeoutMs: readPositiveInteger('WS_GATEWAY_WRITE_TIMEOUT', 10_000),
-        dialTimeoutMs: readPositiveInteger('WS_GATEWAY_DIAL_TIMEOUT', 5_000),
-        directFileRPC: wsGatewayFileRPCMode === 'enabled',
-        directFileReadMaxBytes: readPositiveInteger('WS_GATEWAY_FILE_RPC_MAX_BYTES', 8 * 1024 * 1024),
-        directFileMetadataMaxBytes: readPositiveInteger('WS_GATEWAY_FILE_RPC_METADATA_MAX_BYTES', 1024 * 1024),
-        directFileRPCMaxConcurrent: readPositiveInteger('WS_GATEWAY_FILE_RPC_MAX_CONCURRENT', 16),
-        onUnexpectedExit: (error) => {
-          // eslint-disable-next-line no-console
-          console.error(error.message);
-          process.exitCode = 1;
-          if (requestRuntimeShutdown) {
-            void requestRuntimeShutdown('ws-gateway-unexpected-exit');
-            return;
-          }
-          server.close();
-          void runtime.stop().finally(() => process.exit(1));
-        },
-      });
-      assertGatewayStartupActive();
-      if (!server.listening) {
-        throw new Error('Node HTTP backend closed while the WS Gateway was starting');
-      }
-    } catch (error) {
-      if (server.listening) {
-        await new Promise<void>((resolve) => server.close(() => resolve()));
-      }
-      await runtime.stop();
-      if (wsGatewayRuntime === runtime) {
-        wsGatewayRuntime = undefined;
-      }
-      throw error;
-    }
-  };
-
-  // Construct the shared owner before any Gateway/private listener is started.
-  const serverAppChannelMode: WsGatewayChannelMode = wsGatewayEnabled ? wsGatewayChannelMode : 'direct';
   try {
-    serverApp = new ServerApp(buildServerAppOptions(serverAppChannelMode));
+    serverApp = new ServerApp(buildServerAppOptions());
   } catch (constructionError) {
     try {
       await injector.disposeAll();
@@ -876,42 +697,12 @@ export async function startServer({
     throw constructionError;
   }
 
-  // ServerApp uses external signal ownership in this product. Install the
-  // coordinated owner immediately after construction, before a Gateway,
-  // private HTTP listener, or direct listener can begin asynchronous startup.
-  const runtimeSignalController = installRuntimeSignalHandlers(serverApp, server, () => wsGatewayRuntime);
-  requestRuntimeShutdown = runtimeSignalController.requestShutdown;
-
-  if (wsGatewayEnabled) {
-    try {
-      await launchWsGateway();
-    } catch (error) {
-      try {
-        await requestRuntimeShutdown('ws-gateway-launch-failure');
-      } catch (cleanupError) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to clean up OpenSumi after WS Gateway launch failure', cleanupError);
-      }
-      throw error;
-    }
-  }
+  const runtimeSignalController = installRuntimeSignalHandlers(serverApp, server, exitAfterShutdown);
+  const requestRuntimeShutdown = runtimeSignalController.requestShutdown;
+  stopProduct = requestRuntimeShutdown;
 
   runtimeSignalController.armServerClose();
   try {
-    if (wsGatewayRuntime) {
-      await serverApp.start(wsGatewayRuntime.channelServer);
-      if (serverApp.state !== 'running') {
-        throw createRuntimeStartupCancelledError(serverApp.state);
-      }
-      // The gateway dialed the private channel before the multiplex handler
-      // existed; replay the held connections now that its listener is wired.
-      wsGatewayRuntime.adoptHeldChannelConnections();
-      // eslint-disable-next-line no-console
-      console.log(
-        `server listen through Go WS Gateway on http://localhost:${port} (Node HTTP ${wsGatewayRuntime.getStatus().nodeHTTPURL})`,
-      );
-      return server;
-    }
     await serverApp.start(server);
     if (serverApp.state !== 'running') {
       throw createRuntimeStartupCancelledError(serverApp.state);
@@ -921,13 +712,7 @@ export async function startServer({
     console.log(`server listen on http://localhost:${port}`);
     return server;
   } catch (startupError) {
-    // Startup can fail after the private HTTP listener or gateway already owns
-    // resources. Reuse the exact product shutdown path so a rejected start does
-    // not leave a live listener, child scope, or root injector behind.
-    // A gateway transport held before the multiplex handler was adopted is not
-    // a ServerApp-owned connection scope; release it so channelServer.close can
-    // settle without destroying any admitted RPC.
-    wsGatewayRuntime?.discardUnadoptedChannelConnections();
+    // Startup failures use the same owned teardown as process signals.
     try {
       await requestRuntimeShutdown('startup-failure');
     } catch (shutdownError) {

@@ -70,7 +70,7 @@ describe('process tree diagnostics', () => {
     const processes = parsePosixProcessList(`
       100     1  100 00:10 node server/dist/main.js
       101   100  200 00:09 node ext.process.js
-      102   101  300 00:08 gopls serve
+      102   101  300 00:08 typescript-language-server --stdio
       200     1  400 00:07 unrelated
     `);
 
@@ -87,15 +87,15 @@ describe('process tree diagnostics', () => {
       101   100  200 00:09 node ext.process.js
       102   100  300 00:08 node watcher.process.js
       103   100  400 00:07 node pty.proxy.remote.exec.js
-      104   101  500 00:06 /usr/local/bin/gopls serve
+      104   101  500 00:06 /usr/local/bin/typescript-language-server --stdio
       105   100  600 00:05 /usr/bin/node custom-worker.js
       106   100  700 00:04 /bin/zsh --login
       107   100  800 00:03 /bin/zsh -ilc echo environment
-      108   100  900 00:02 /opt/opensumi/workspace-agent --socket /tmp/agent.sock
+      108   100  900 00:02 /opt/custom-worker --socket /tmp/worker.sock
       109   101 1000 00:01 /usr/bin/git log --max-count=1200
-      110   108 1100 00:01 /usr/bin/rg --json workspace-agent /workspace
-      111   100 1200 00:01 /usr/bin/rg --json workspace-agent /workspace
-      112   100 1300 00:01 /opt/opensumi/ws-gateway --listen :8000
+      110   108 1100 00:01 /usr/bin/rg --json source /workspace
+      111   100 1200 00:01 /usr/bin/rg --json source /workspace
+      112   100 1300 00:01 /opt/custom-proxy --listen :8000
     `);
 
     assert.equal(classifyProcessRole(processes[1], 100), 'extension-host');
@@ -105,10 +105,10 @@ describe('process tree diagnostics', () => {
     assert.equal(classifyProcessRole(processes[5], 100), 'node-child');
     assert.equal(classifyProcessRole(processes[6], 100), 'terminal-shell');
     assert.equal(classifyProcessRole(processes[7], 100), 'other');
-    assert.equal(classifyProcessRole(processes[8], 100), 'workspace-agent');
+    assert.equal(classifyProcessRole(processes[8], 100), 'other');
     assert.equal(classifyProcessRole(processes[10], 100), 'other');
 
-    assert.equal(classifyProcessRole(processes[12], 100), 'ws-gateway');
+    assert.equal(classifyProcessRole(processes[12], 100), 'other');
 
     const summary = summarizeProcessTree(processes, 100);
     assert.equal(summary.processCount, 13);
@@ -117,22 +117,19 @@ describe('process tree diagnostics', () => {
     assert.deepEqual(summary.byRole['extension-child'], { count: 1, rssBytes: 1000 * 1024 });
     assert.deepEqual(summary.byRole['language-server'], { count: 1, rssBytes: 500 * 1024 });
     assert.deepEqual(summary.byRole['terminal-shell'], { count: 1, rssBytes: 700 * 1024 });
-    assert.deepEqual(summary.byRole['workspace-agent'], { count: 1, rssBytes: 900 * 1024 });
-    assert.deepEqual(summary.byRole['workspace-agent-child'], { count: 1, rssBytes: 1100 * 1024 });
-    assert.deepEqual(summary.byRole['ws-gateway'], { count: 1, rssBytes: 1300 * 1024 });
-    assert.deepEqual(summary.byRole.other, { count: 2, rssBytes: 2000 * 1024 });
+    assert.deepEqual(summary.byRole.other, { count: 5, rssBytes: 5300 * 1024 });
   });
 
-  it('recognizes a quoted Windows Agent executable without matching its arguments', () => {
+  it('recognizes a quoted Windows Node executable without matching its arguments', () => {
     const agent = parseWindowsProcessList(
       JSON.stringify({
         ProcessId: 201,
         ParentProcessId: 100,
         WorkingSetSize: 4096,
-        CommandLine: '"C:\\Program Files\\OpenSumi\\workspace-agent.exe" --tcp 127.0.0.1:0',
+        CommandLine: '"C:\\Program Files\\OpenSumi\\node.exe" --tcp 127.0.0.1:0',
       }),
     )[0];
 
-    assert.equal(classifyProcessRole(agent, 100), 'workspace-agent');
+    assert.equal(classifyProcessRole(agent, 100), 'node-child');
   });
 });

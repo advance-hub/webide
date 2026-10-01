@@ -22,7 +22,7 @@ interface BrowserProfileOptions {
   expectedResult: string;
   fileSearchQuery: string;
   expectedFileSearchResult: string;
-  variant: 'node' | 'agent';
+  variant: 'node' | 'shared-node';
   run: number;
   durationMs: number;
   intervalMs: number;
@@ -101,7 +101,7 @@ async function revealWorkbenchView(
 
 function usage(): string {
   return [
-    'Usage: pnpm profile:browser-runtime -- --pid <pid> --variant <node|agent> --sessions <count> --run <number> --expected-result <text> --file-search-query <text> --expected-file-search-result <file> [options]',
+    'Usage: pnpm profile:browser-runtime -- --pid <pid> --variant <node|shared-node> --sessions <count> --run <number> --expected-result <text> --file-search-query <text> --expected-file-search-result <file> [options]',
     '',
     'The client and production server must already be running. The profiler opens',
     'real Chromium tabs, verifies workspace Search and Quick Open results, samples the',
@@ -168,8 +168,8 @@ function parseOptions(argv: string[]): BrowserProfileOptions | undefined {
     throw new Error(`Unknown options: ${unknownOptions.join(', ')}`);
   }
   const variant = values.get('--variant');
-  if (variant !== 'node' && variant !== 'agent') {
-    throw new Error('--variant must be node or agent');
+  if (variant !== 'node' && variant !== 'shared-node') {
+    throw new Error('--variant must be node or shared-node');
   }
   const sessions = positiveInteger('--sessions', values.get('--sessions'));
   const run = positiveInteger('--run', values.get('--run'));
@@ -271,38 +271,17 @@ async function fileSearchAndVerify(page: Page, options: BrowserProfileOptions): 
   return latencyMs;
 }
 
-function isCleanupSettled(snapshot: ProcessTreeMemorySnapshot, variant: BrowserProfileOptions['variant']): boolean {
-  // Server-side residents (the server itself, the packaged WS Gateway and the
-  // Workspace Agent on the agent variant) survive a browser close by design;
-  // everything else must be reclaimed.
-  return snapshot.processes.every(
-    (process) =>
-      process.role === 'server' ||
-      process.role === 'ws-gateway' ||
-      (variant === 'agent' && (process.role === 'workspace-agent' || process.role === 'workspace-agent-child')),
-  );
+function isCleanupSettled(snapshot: ProcessTreeMemorySnapshot, _variant: BrowserProfileOptions['variant']): boolean {
+  return snapshot.processes.every((process) => process.role === 'server');
 }
 
 function assertRuntimeTopology(snapshot: ProcessTreeMemorySnapshot, variant: BrowserProfileOptions['variant']): void {
-  const agentCount = snapshot.byRole['workspace-agent']?.count || 0;
-  const gatewayCount = snapshot.byRole['ws-gateway']?.count || 0;
-  const watcherCount = snapshot.byRole['watcher-host']?.count || 0;
-  // The gateway is the packaged product default since 10.17: the node
-  // comparison baseline must stay on direct sockets, while the agent variant
-  // carries exactly one gateway alongside its Workspace Agent.
-  if (variant === 'node' && gatewayCount !== 0) {
-    throw new Error(`Node capacity profile unexpectedly started ${gatewayCount} WS Gateway process(es)`);
+  const count = snapshot.byRole['watcher-host']?.count || 0;
+  if (variant === 'shared-node' && count !== 1) {
+    throw new Error(`Shared Node profile requires one watcher: ${count}`);
   }
-  if (variant === 'agent' && gatewayCount > 1) {
-    throw new Error(`Agent capacity profile started ${gatewayCount} WS Gateway process(es)`);
-  }
-  if (variant === 'agent' && (agentCount !== 1 || watcherCount !== 0)) {
-    throw new Error(
-      `Agent profile requires exactly one Workspace Agent and no Node watcher: ${JSON.stringify(snapshot.byRole)}`,
-    );
-  }
-  if (variant === 'node' && agentCount !== 0) {
-    throw new Error(`Node profile unexpectedly started ${agentCount} Workspace Agent process(es)`);
+  if (variant === 'node' && count < 1) {
+    throw new Error('Node profile did not start a watcher');
   }
 }
 

@@ -178,7 +178,7 @@ test('late-listener cleanup resets when the same HTTP server starts a second lis
   }
 });
 
-test('gateway shutdown requests readiness drain, fences private Node ingress, and stops the gateway last', async () => {
+test('Node shutdown drains readiness and fences ingress while admitted RPC completes', async () => {
   const events: string[] = [];
   const httpServer = http.createServer();
   await new Promise<void>((resolve) => httpServer.listen(0, '127.0.0.1', resolve));
@@ -207,39 +207,17 @@ test('gateway shutdown requests readiness drain, fences private Node ingress, an
       return report;
     },
   };
-  let gatewayReadinessAccepting = true;
-  let gatewayStopCalls = 0;
-  let gateway:
-    | {
-        beginDrain(): void;
-        stop(): Promise<void>;
-      }
-    | undefined;
   const shutdown = createRuntimeShutdownCoordinator({
     serverApp,
     httpServer,
-    getWsGatewayRuntime: () => gateway,
     deadlineMs: 1_000,
     now: () => 100,
   });
-  gateway = {
-    beginDrain: () => {
-      events.push('gateway-drain');
-      gatewayReadinessAccepting = false;
-    },
-    stop: async () => {
-      gatewayStopCalls += 1;
-      events.push('gateway-stop');
-    },
-  };
 
   const firstShutdown = shutdown('SIGTERM');
-  gateway = undefined;
   assert.equal(shutdown('ignored-repeat'), firstShutdown);
-  assert.equal(gatewayReadinessAccepting, false, 'gateway readiness drain must be requested synchronously');
   assert.equal(nodeAccepting, false, 'Node connection admission must close synchronously');
   assert.equal(httpServer.listening, false, 'the private Node HTTP listener must be fenced synchronously');
-  assert.equal(gatewayStopCalls, 0, 'gateway transport must survive while an admitted RPC is active');
 
   await new Promise<void>((resolve, reject) => {
     const lateIngress = net.connect(address.port, '127.0.0.1');
@@ -249,23 +227,14 @@ test('gateway shutdown requests readiness drain, fences private Node ingress, an
     });
     lateIngress.once('error', () => resolve());
   });
-  assert.equal(gatewayStopCalls, 0);
 
   finishActiveRPC();
   assert.equal(await firstShutdown, report);
   assert.equal(await shutdown('another-repeat'), report);
-  assert.equal(gatewayStopCalls, 1);
-  assert.deepEqual(events, [
-    'gateway-drain',
-    'server-app-drain',
-    'server-app-stop:SIGTERM',
-    'http-closed',
-    'active-rpc-finished',
-    'gateway-stop',
-  ]);
+  assert.deepEqual(events, ['server-app-drain', 'server-app-stop:SIGTERM', 'http-closed', 'active-rpc-finished']);
 });
 
-test('gateway waits for an already-closing active private HTTP request before disposing shared owners', async () => {
+test('Node shutdown waits for an already-closing active HTTP request before disposing shared owners', async () => {
   const events: string[] = [];
   let finishRequest!: () => void;
   const requestRelease = new Promise<void>((resolve) => {
@@ -311,12 +280,6 @@ test('gateway waits for an already-closing active private HTTP request before di
       },
     },
     httpServer,
-    wsGatewayRuntime: {
-      beginDrain: () => events.push('gateway-drain'),
-      stop: async () => {
-        events.push('gateway-stop');
-      },
-    },
     deadlineMs: 1_000,
   });
 
@@ -332,10 +295,9 @@ test('gateway waits for an already-closing active private HTTP request before di
   assert.equal(await shutdownResult, report);
   assert.ok(events.indexOf('private-request-finished') < events.indexOf('http-closed'));
   assert.ok(events.indexOf('http-closed') < events.indexOf('shared-owners-disposed'));
-  assert.ok(events.indexOf('shared-owners-disposed') < events.indexOf('gateway-stop'));
 });
 
-test('timed-out ServerApp work keeps the final gateway transport alive for the product hard deadline', async () => {
+test('timed-out Node owner preserves the failed report for the product hard deadline', async () => {
   const httpServer = http.createServer();
   await new Promise<void>((resolve) => httpServer.listen(0, '127.0.0.1', resolve));
   const timestamp = Date.now();
@@ -357,23 +319,15 @@ test('timed-out ServerApp work keeps the final gateway transport alive for the p
       },
     ],
   };
-  let gatewayStopCalls = 0;
   const shutdown = createRuntimeShutdownCoordinator({
     serverApp: {
       drain: () => Promise.resolve(),
       stop: async () => timedOutReport,
     },
     httpServer,
-    wsGatewayRuntime: {
-      beginDrain: () => undefined,
-      stop: async () => {
-        gatewayStopCalls += 1;
-      },
-    },
     deadlineMs: 0,
   });
 
   assert.equal(await shutdown('startup-failure'), timedOutReport);
-  assert.equal(gatewayStopCalls, 0, 'an un-cancellable timed-out owner must not overlap gateway destruction');
   assert.equal(httpServer.listening, false);
 });

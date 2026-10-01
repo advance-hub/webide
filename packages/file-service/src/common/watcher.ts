@@ -83,11 +83,13 @@ export interface IWatcherProcessManager {
 
   createProcess(clientId: string, backend?: RecursiveWatcherBackend): Promise<number | undefined>;
   setClient(client: FileSystemWatcherClient): void;
+  /** Server-owned shared hosts report unexpected exits for subscription recovery. */
+  setUnexpectedExitHandler?(handler: () => void): void;
   dispose(): Promise<void>;
 
   watch(
     uri: UriComponents,
-    options?: { excludes?: string[]; recursive?: boolean; pollingWatch?: boolean },
+    options?: { excludes?: string[]; recursive?: boolean; pollingWatch?: boolean; sharedWatchId?: number },
   ): Promise<number>;
   unWatch(watcherId: number): Promise<void>;
   setWatcherFileExcludes(excludes: string[]): Promise<void>;

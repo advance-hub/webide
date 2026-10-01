@@ -11,7 +11,6 @@ const serverRequire = createRequire(path.resolve(__dirname, '../server/dist/main
 const { resolveProductRuntimeMode } = serverRequire('@opensumi/ide-startup/runtime-mode');
 assert.equal(resolveProductRuntimeMode({}), 'node');
 const runtimeMode = resolveProductRuntimeMode(process.env);
-fs.accessSync(serverRequire.resolve('@opensumi/ide-file-service/proto/workspace-agent.proto'), fs.constants.R_OK);
 serverRequire('@opensumi/ide-startup');
 serverRequire('@opensumi/ide-startup/node/modules');
 serverRequire('./start-server.js');
@@ -24,12 +23,6 @@ const requiredResources = [
   'packages/monaco/worker/manifest.json',
   'packages/monaco/worker/editor.worker.bundle.js',
   'packages/webview/lib/browser/iframe/prebuilt.js',
-  ...(runtimeMode === 'hybrid'
-    ? [
-        'server/dist/workspace-agent/workspace-agent' + (process.platform === 'win32' ? '.exe' : ''),
-        'server/dist/workspace-agent/ws-gateway' + (process.platform === 'win32' ? '.exe' : ''),
-      ]
-    : []),
 ];
 for (const resource of requiredResources) {
   assert.ok(fs.statSync(path.join(root, resource)).size > 0, `Missing runtime resource: ${resource}`);

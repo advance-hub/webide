@@ -34,8 +34,8 @@ const repoRoot = path.resolve(import.meta.dirname, '..');
 const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 async function main() {
   const [projectFile, variant, runText, sessionsText, outputDirectory] = process.argv.slice(2);
-  if (!projectFile || !['node', 'hybrid'].includes(variant) || !outputDirectory) {
-    throw new Error('Expected <project.json> <node|hybrid> <run> <sessions> <output-directory>');
+  if (!projectFile || !['node', 'shared-node'].includes(variant) || !outputDirectory) {
+    throw new Error('Expected <project.json> <node|shared-node> <run> <sessions> <output-directory>');
   }
   const run = Number(runText);
   const sessions = Number(sessionsText);
@@ -372,7 +372,8 @@ async function main() {
       NODE_ENV: 'production',
       NODE_OPTIONS: '--max-old-space-size=512',
       PORT: String(port),
-      OPENSUMI_RUNTIME_MODE: variant,
+      OPENSUMI_RUNTIME_MODE: 'node',
+      OPENSUMI_NODE_WATCHER_MODE: variant === 'shared-node' ? 'shared' : 'per-client',
       WORKSPACE_DIR: project.workspace,
       EXTENSION_DIR: project.extensionDirectory,
       MARKETPLACE_EXTENSION_DIR: project.extensionDirectory,

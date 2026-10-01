@@ -73,7 +73,6 @@ interface ExtensionHostProfileEvidence {
   startedAt: string;
   durationMs: number;
   options: ProfileOptions;
-  workspaceAgentPackaged: boolean;
   baselineReclaimedWithinMs: number;
   baseline: {
     extHostCount: number;
@@ -369,14 +368,6 @@ async function runProfile(options: ProfileOptions): Promise<void> {
   const serverEntry = path.join(repoRoot, 'server/dist/main.js');
   const clientEntry = path.join(repoRoot, 'client/dist/index.html');
   await Promise.all([serverEntry, clientEntry].map((filePath) => access(filePath)));
-  const agentBinary = path.join(
-    repoRoot,
-    'server/dist/workspace-agent',
-    process.platform === 'win32' ? 'workspace-agent.exe' : 'workspace-agent',
-  );
-  const workspaceAgentPackaged = await access(agentBinary)
-    .then(() => true)
-    .catch(() => false);
 
   const evidenceDir = await mkdtemp(path.join(os.tmpdir(), 'opensumi-ext-host-profile-'));
   const workspacePath = await mkdtemp(path.join(os.tmpdir(), 'opensumi-ext-host-workspace-'));
@@ -583,7 +574,6 @@ async function runProfile(options: ProfileOptions): Promise<void> {
       startedAt: new Date(startedAt).toISOString(),
       durationMs: Date.now() - startedAt,
       options,
-      workspaceAgentPackaged,
       baselineReclaimedWithinMs,
       baseline,
       idle,

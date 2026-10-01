@@ -67,6 +67,7 @@ async function main() {
   });
 
   await startServer({
+    exitAfterShutdown: true,
     modules,
     injector,
     runtimePlanSummary: summarizeRuntimePlan(runtimePlan, {

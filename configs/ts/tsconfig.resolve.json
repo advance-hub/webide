@@ -165,7 +165,6 @@
         "../../packages/file-service/src/node/disk-file-system.provider.ts"
       ],
       "@opensumi/ide-file-service/node/watchers": ["../../packages/file-service/src/node/watcher-process-manager.ts"],
-      "@opensumi/ide-file-service/node/workspace-agent": ["../../packages/file-service/src/node/workspace-agent.ts"],
       "@opensumi/ide-theme": ["../../packages/theme/src/index.ts"],
       "@opensumi/ide-theme/types": ["../../packages/theme/src/common/theme.service.ts"],
       "@opensumi/ide-theme/colors": ["../../packages/theme/src/common/color.ts"],

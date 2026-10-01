@@ -14,8 +14,8 @@ import {
 } from '@opensumi/ide-core-common/file-watch';
 import { ILogServiceManager, SupportLogNamespace } from '@opensumi/ide-core-common/log';
 import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/node/ipc';
-import { AppConfig, Deferred, FileUri, ILogService, UriComponents } from '@opensumi/ide-core-node';
-import { URI, process as processUtil } from '@opensumi/ide-utils';
+import { AppConfig, Deferred, ILogService, UriComponents } from '@opensumi/ide-core-node';
+import { process as processUtil } from '@opensumi/ide-utils';
 
 import {
   IWatcherHostService,
@@ -27,32 +27,10 @@ import {
 } from '../common/watcher';
 
 import { SharedNodeWatcherLease, SharedNodeWatcherPool, SharedNodeWatcherPoolToken } from './shared-node-watcher';
-import {
-  WorkspaceAgentClient,
-  WorkspaceAgentClientToken,
-  WorkspaceAgentStreamHandle,
-  isCancelledServiceError,
-  parseWorkspaceAgentMode,
-  workspaceAgentAllowsNodeFallback,
-} from './workspace-agent';
 
 import type { ForkOptions } from 'child_process';
 
 export const WatcherProcessManagerToken = Symbol('WatcherProcessManager');
-
-const WORKSPACE_AGENT_RECONNECT_GRACE_MS = 5_000;
-
-export function normalizeWorkspaceAgentChangeUri(uri: string): string {
-  return new URI(uri).toString();
-}
-
-interface WorkspaceAgentWatchState {
-  uri: UriComponents;
-  options?: { excludes?: string[]; recursive?: boolean; pollingWatch?: boolean };
-  handle?: WorkspaceAgentStreamHandle;
-  nodeWatchId?: number;
-  generation: number;
-}
 
 @Injectable({ multiple: true })
 export class WatcherProcessManagerImpl implements IWatcherProcessManager {
@@ -82,31 +60,18 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
   @Autowired(AppConfig)
   private readonly appConfig: AppConfig;
 
-  @Autowired(WorkspaceAgentClientToken)
-  private readonly workspaceAgent: WorkspaceAgentClient;
-
   private watcherClient: FileSystemWatcherClient;
-
-  private watcherRuntime: 'node' | 'agent' | 'agent-fallback' = 'node';
-
-  private workspaceAgentClientId = '';
-
-  private workspaceAgentBackend?: RecursiveWatcherBackend;
-
-  private workspaceAgentWatcherSequence = 1;
-
-  private workspaceAgentDefaultExcludes: string[] = [];
-
-  private workspaceAgentFallback?: Promise<void>;
-  private workspaceAgentWatcherFailure?: Error;
-
-  private workspaceAgentWatches = new Map<number, WorkspaceAgentWatchState>();
 
   private disposing = false;
 
   private disposePromise?: Promise<void>;
 
   private lifecycleGeneration = 0;
+  private unexpectedExitHandler?: () => void;
+
+  setUnexpectedExitHandler(handler: () => void): void {
+    this.unexpectedExitHandler = handler;
+  }
 
   constructor() {
     this.logger = this.loggerManager.getLogger(SupportLogNamespace.Node);
@@ -419,6 +384,9 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
       this.logger.warn('watcher process exit: ', code, signal);
       if (this.watcherProcess === watcherProcess) {
         this.watcherProcess = undefined;
+        if (!this.disposing) {
+          this.unexpectedExitHandler?.();
+        }
       }
     });
 
@@ -434,31 +402,6 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     await this.stopWatcherProcess();
     this.assertCurrentGeneration(generation);
     this._whenReadyDeferred = new Deferred();
-    this.workspaceAgentClientId = clientId;
-    this.workspaceAgentBackend = backend;
-    this.workspaceAgentFallback = undefined;
-    this.workspaceAgentWatches.clear();
-
-    const configuredMode = parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE);
-    if (!this.sharedNodeHost && configuredMode === 'enabled') {
-      try {
-        const pid = await this.workspaceAgent.ensureStarted('workspace.watch.v1');
-        this.assertCurrentGeneration(generation);
-        this.watcherRuntime = 'agent';
-        this._whenReadyDeferred.resolve();
-        this.logger.log(`Use Workspace Agent watcher for client ${clientId}`);
-        return pid;
-      } catch (error) {
-        if (this.disposing || generation !== this.lifecycleGeneration || !workspaceAgentAllowsNodeFallback()) {
-          throw error;
-        }
-        this.logger.error('Workspace Agent watcher startup failed; falling back to Node watcher', error);
-      }
-    } else if (configuredMode === 'shadow-read') {
-      this.logger.warn('shadow-read is not valid for event streams; Workspace Agent watcher remains off');
-    }
-
-    this.watcherRuntime = 'node';
     try {
       if (!this.sharedNodeHost && process.env.OPENSUMI_NODE_WATCHER_MODE === 'shared') {
         const lease = await this.sharedNodeWatcherPool.acquire(
@@ -507,12 +450,6 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
       this.sharedNodeLease = undefined;
       return;
     }
-    this.logger.debug(`Dispose ${this.workspaceAgentWatches.size} Workspace Agent watcher subscriptions`);
-    for (const state of this.workspaceAgentWatches.values()) {
-      state.generation += 1;
-      state.handle?.dispose({ gracePeriodMs: WORKSPACE_AGENT_RECONNECT_GRACE_MS });
-    }
-    this.workspaceAgentWatches.clear();
     try {
       if (this.protocol) {
         let timeout: NodeJS.Timeout | undefined;
@@ -554,25 +491,6 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
         throw error;
       }
     }
-    if (this.watcherRuntime === 'agent') {
-      const watcherId = this.workspaceAgentWatcherSequence++;
-      const state: WorkspaceAgentWatchState = { uri, options, generation: 0 };
-      this.workspaceAgentWatches.set(watcherId, state);
-      await this.openWorkspaceAgentWatch(watcherId, state);
-      this.assertCurrentGeneration(generation);
-      return watcherId;
-    }
-    if (this.watcherRuntime === 'agent-fallback') {
-      await this.workspaceAgentFallback;
-      this.assertCurrentGeneration(generation);
-      const watcherId = this.workspaceAgentWatcherSequence++;
-      const state: WorkspaceAgentWatchState = { uri, options, generation: 0 };
-      const nodeWatchId = await this.getProxy().$watch(uri, options);
-      this.assertOwnedNodeWatch(generation, nodeWatchId);
-      state.nodeWatchId = nodeWatchId;
-      this.workspaceAgentWatches.set(watcherId, state);
-      return watcherId;
-    }
     const nodeWatchId = await this.getProxy().$watch(uri, options);
     this.assertOwnedNodeWatch(generation, nodeWatchId);
     return nodeWatchId;
@@ -589,19 +507,6 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     if (this.sharedNodeLease) {
       return this.sharedNodeLease.unWatch(watcheId);
     }
-    if (this.watcherRuntime === 'agent' || this.watcherRuntime === 'agent-fallback') {
-      const state = this.workspaceAgentWatches.get(watcheId);
-      if (!state) {
-        return;
-      }
-      state.generation += 1;
-      state.handle?.dispose({ gracePeriodMs: WORKSPACE_AGENT_RECONNECT_GRACE_MS });
-      if (state.nodeWatchId !== undefined) {
-        await this.getProxy().$unwatch(state.nodeWatchId);
-      }
-      this.workspaceAgentWatches.delete(watcheId);
-      return;
-    }
     return this.getProxy().$unwatch(watcheId);
   }
 
@@ -612,152 +517,12 @@ export class WatcherProcessManagerImpl implements IWatcherProcessManager {
     if (this.sharedNodeLease) {
       return this.sharedNodeLease.setExcludes(excludes);
     }
-    if (this.watcherRuntime === 'agent') {
-      this.workspaceAgentDefaultExcludes = excludes;
-      await Promise.all(
-        Array.from(this.workspaceAgentWatches.entries()).map(async ([watcherId, state]) => {
-          state.generation += 1;
-          state.handle?.dispose();
-          await this.openWorkspaceAgentWatch(watcherId, state);
-        }),
-      );
-      return;
-    }
     return this.getProxy().$setWatcherFileExcludes(excludes);
-  }
-
-  private async openWorkspaceAgentWatch(watcherId: number, state: WorkspaceAgentWatchState): Promise<void> {
-    const generation = ++state.generation;
-    const excludes = Array.from(new Set([...(state.options?.excludes || []), ...this.workspaceAgentDefaultExcludes]));
-    const handle = await this.workspaceAgent.watch(
-      {
-        workspaceId: this.workspaceAgentClientId,
-        rootPath: FileUri.fsPath(URI.revive(state.uri).toString()),
-        recursive: state.options?.recursive ?? true,
-        excludes,
-      },
-      {
-        onEvent: (event) => {
-          if (state.generation !== generation || this.watcherRuntime !== 'agent') {
-            return;
-          }
-          if (event.changes?.length) {
-            this.$onDidFilesChanged({
-              changes: event.changes.map((change) => ({
-                ...change,
-                uri: normalizeWorkspaceAgentChangeUri(change.uri),
-              })),
-            });
-          }
-          if (event.overflow) {
-            this.$onWatcherOverflow({
-              resolvedUri: event.overflow.resolvedUri,
-              eventCount: event.overflow.eventCount,
-              limit: event.overflow.limit,
-              timestamp: event.overflow.timestampMs,
-            });
-          }
-          if (event.failure) {
-            this.$onWatcherFailed({
-              resolvedUri: event.failure.resolvedUri,
-              message: event.failure.message,
-              attempts: event.failure.attempts,
-              timestamp: event.failure.timestampMs,
-            });
-          }
-        },
-        onError: (error) => {
-          if (state.generation !== generation || isCancelledServiceError(error)) {
-            return;
-          }
-          void this.fallbackWorkspaceAgentWatcher(
-            `stream ${watcherId} (${FileUri.fsPath(URI.revive(state.uri).toString())}) failed with gRPC code ${
-              error.code
-            }: ${error.details || 'no details'}`,
-          ).catch(() => undefined);
-        },
-        onEnd: () => {
-          if (state.generation === generation && this.watcherRuntime === 'agent') {
-            void this.fallbackWorkspaceAgentWatcher(`stream ${watcherId} ended unexpectedly`).catch(() => undefined);
-          }
-        },
-      },
-    );
-    if (state.generation !== generation || this.watcherRuntime !== 'agent') {
-      handle.dispose();
-      return;
-    }
-    state.handle = handle;
-  }
-
-  private fallbackWorkspaceAgentWatcher(reason: string): Promise<void> {
-    this.workspaceAgentFallback ||= (async () => {
-      if (this.watcherRuntime !== 'agent' || this.disposing) {
-        return;
-      }
-      if (!workspaceAgentAllowsNodeFallback()) {
-        this.workspaceAgentWatcherFailure = new Error(
-          `Workspace Agent watcher ${reason}; Node fallback is disabled by runtime policy`,
-        );
-        for (const state of this.workspaceAgentWatches.values()) {
-          state.generation += 1;
-          state.handle?.dispose();
-          state.handle = undefined;
-        }
-        this.$onWatcherFailed({
-          message: this.workspaceAgentWatcherFailure.message,
-          attempts: 1,
-          timestamp: Date.now(),
-        });
-        return;
-      }
-      this.watcherRuntime = 'agent-fallback';
-      this.logger.error(`Workspace Agent watcher ${reason}; switching this connection to Node watcher`);
-      for (const state of this.workspaceAgentWatches.values()) {
-        state.generation += 1;
-        state.handle?.dispose();
-        state.handle = undefined;
-      }
-      this._whenReadyDeferred = new Deferred();
-      await this.startNodeWatcherProcess(this.workspaceAgentClientId, this.workspaceAgentBackend);
-      await this._whenReadyDeferred.promise;
-      this.assertAcceptingWork();
-      // Apply the global excludes before restoring subscriptions. Updating them
-      // afterwards forces the watcher host to tear down and rebuild the watches
-      // that were just opened, which can lose the first filesystem event on
-      // slower platforms such as Windows.
-      await this.getProxy().$setWatcherFileExcludes(this.workspaceAgentDefaultExcludes);
-      await Promise.all(
-        Array.from(this.workspaceAgentWatches.values()).map(async (state) => {
-          state.nodeWatchId = await this.getProxy().$watch(state.uri, state.options);
-        }),
-      );
-      this.$onWatcherFailed({
-        message: 'Workspace Agent watcher failed and the connection was moved to the Node watcher',
-        attempts: 1,
-        timestamp: Date.now(),
-      });
-    })().catch((error) => {
-      if (this.disposing) {
-        return;
-      }
-      this.logger.error('Node watcher fallback failed', error);
-      this.$onWatcherFailed({
-        message: 'Workspace Agent watcher and Node fallback are unavailable',
-        attempts: 1,
-        timestamp: Date.now(),
-      });
-      throw error;
-    });
-    return this.workspaceAgentFallback;
   }
 
   private assertAcceptingWork(): void {
     if (this.disposing) {
       throw new Error('WatcherProcessManager is disposing and cannot accept new work');
-    }
-    if (this.workspaceAgentWatcherFailure) {
-      throw this.workspaceAgentWatcherFailure;
     }
   }
 

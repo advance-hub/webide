@@ -63,7 +63,6 @@ export function runtimeRecipes(root: string, mode: ProductRuntimeMode): Artifact
       'server/dist',
       generatedPreload,
     ],
-    excludeOutputs: ['server/dist/workspace-agent'],
     requiredOutputs: [
       ...packages.flatMap((directory) => {
         const manifest = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8')) as {

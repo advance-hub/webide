@@ -230,14 +230,7 @@ async function main(): Promise<void> {
       byRole: lateSnapshot.byRole,
     });
 
-    const rolesOfInterest = [
-      'pty-host',
-      'terminal-shell',
-      'extension-child',
-      'extension-host',
-      'server',
-      'workspace-agent',
-    ];
+    const rolesOfInterest = ['pty-host', 'terminal-shell', 'extension-child', 'extension-host', 'server'];
     const rolePeaks: RoleShare[] = rolesOfInterest
       .map((role) => {
         let peakRssBytes = 0;

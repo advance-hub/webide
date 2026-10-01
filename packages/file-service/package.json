@@ -3,8 +3,7 @@
   "version": "3.9.0",
   "files": [
     "lib",
-    "src",
-    "proto"
+    "src"
   ],
   "license": "MIT",
   "main": "lib/index.js",
@@ -20,8 +19,6 @@
   },
   "dependencies": {
     "@furyjs/fury": "0.5.9-beta",
-    "@grpc/grpc-js": "1.14.4",
-    "@grpc/proto-loader": "0.8.1",
     "@opensumi/ide-connection": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
     "@opensumi/ide-core-common": "workspace:*",
@@ -89,12 +86,6 @@
       "types": "./lib/node/watcher-process-manager.d.ts",
       "default": "./lib/node/watcher-process-manager.js"
     },
-    "./node/workspace-agent": {
-      "opensumi-source": "./src/node/workspace-agent.ts",
-      "types": "./lib/node/workspace-agent.d.ts",
-      "default": "./lib/node/workspace-agent.js"
-    },
-    "./proto/workspace-agent.proto": "./proto/opensumi/workspace/v1/workspace_agent.proto",
     "./package.json": "./package.json",
     "./node/file-type": {
       "opensumi-source": "./src/node/hosted/shared/file-type.ts",

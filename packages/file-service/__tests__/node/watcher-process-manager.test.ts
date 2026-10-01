@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { WatcherProcessManagerImpl, normalizeWorkspaceAgentChangeUri } from '../../src/node/watcher-process-manager';
+import { WatcherProcessManagerImpl } from '../../src/node/watcher-process-manager';
 
 const createManager = (watcherHost?: string, watcherHostForkOptions?: Record<string, unknown>) => {
   const manager = Object.create(WatcherProcessManagerImpl.prototype) as WatcherProcessManagerImpl;
@@ -13,22 +13,18 @@ const createManager = (watcherHost?: string, watcherHostForkOptions?: Record<str
 describe('WatcherProcessManagerImpl', () => {
   const originalExtMode = process.env.EXT_MODE;
   const originalWatcherStdioDiagnostics = process.env.OPENSUMI_WATCHER_STDIO_DIAGNOSTICS;
-  const originalWorkspaceAgentWatchMode = process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE;
   const originalNodeWatcherMode = process.env.OPENSUMI_NODE_WATCHER_MODE;
-  const originalFallback = process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
   const originalExecArgv = process.execArgv.slice();
 
   const createRuntimeManager = () => {
     const manager = createManager() as any;
     manager.disposing = false;
     manager.lifecycleGeneration = 0;
-    manager.workspaceAgentWatches = new Map();
     manager.logger = { debug: jest.fn(), error: jest.fn(), log: jest.fn(), warn: jest.fn() };
     manager.closeWatcherServers = jest.fn().mockResolvedValue(undefined);
     manager.stopWatcherProcess = jest.fn().mockResolvedValue(undefined);
     manager.startNodeWatcherProcess = jest.fn().mockResolvedValue(1234);
     Object.defineProperty(manager, 'sharedNodeWatcherPool', { value: { acquire: jest.fn() } });
-    process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE = 'off';
     return manager;
   };
 
@@ -37,11 +33,6 @@ describe('WatcherProcessManagerImpl', () => {
       delete process.env.OPENSUMI_NODE_WATCHER_MODE;
     } else {
       process.env.OPENSUMI_NODE_WATCHER_MODE = originalNodeWatcherMode;
-    }
-    if (originalFallback === undefined) {
-      delete process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
-    } else {
-      process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK = originalFallback;
     }
     if (originalExtMode === undefined) {
       delete process.env.EXT_MODE;
@@ -52,11 +43,6 @@ describe('WatcherProcessManagerImpl', () => {
       delete process.env.OPENSUMI_WATCHER_STDIO_DIAGNOSTICS;
     } else {
       process.env.OPENSUMI_WATCHER_STDIO_DIAGNOSTICS = originalWatcherStdioDiagnostics;
-    }
-    if (originalWorkspaceAgentWatchMode === undefined) {
-      delete process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE;
-    } else {
-      process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE = originalWorkspaceAgentWatchMode;
     }
     process.execArgv.splice(0, process.execArgv.length, ...originalExecArgv);
   });
@@ -123,13 +109,6 @@ describe('WatcherProcessManagerImpl', () => {
     const manager = createManager(defaultBuiltWatcherHost);
 
     expect(manager.watcherHost).toContain('packages/file-service/src/node/hosted/watcher.process.ts');
-  });
-
-  it('canonicalizes Windows file URIs emitted by the Go watcher', () => {
-    expect.assertions(1);
-    expect(normalizeWorkspaceAgentChangeUri('file:///C:/Users/RUNNER~1/AppData/Local/Temp/watch-proof.txt')).toBe(
-      'file:///c%3A/Users/RUNNER~1/AppData/Local/Temp/watch-proof.txt',
-    );
   });
 
   it('keeps custom configured watcher host in js mode', () => {
@@ -200,28 +179,8 @@ describe('WatcherProcessManagerImpl', () => {
     expect(options.env.KTLOG_SHOW_DEBUG).toBe('1');
   });
 
-  it('releases connection watch streams without stopping the server-scoped agent', async () => {
-    expect.hasAssertions();
-    const manager = createManager() as any;
-    const disposeStream = jest.fn();
-    const disposeAgent = jest.fn();
-    manager.workspaceAgentWatches = new Map([[1, { generation: 0, handle: { dispose: disposeStream } }]]);
-    Object.defineProperty(manager, 'workspaceAgent', { value: { dispose: disposeAgent } });
-    manager.logger = { debug: jest.fn() };
-    manager.watcherRuntime = 'agent';
-    manager.closeWatcherServers = jest.fn().mockResolvedValue(undefined);
-    manager.stopWatcherProcess = jest.fn().mockResolvedValue(undefined);
-
-    await manager.dispose();
-
-    expect(disposeStream).toHaveBeenCalledTimes(1);
-    expect(disposeAgent).not.toHaveBeenCalled();
-    expect(manager.workspaceAgentWatches.size).toBe(0);
-  });
-
   it('fences and reclaims watcher startup that settles after manager disposal', async () => {
     expect.hasAssertions();
-    process.env.OPENSUMI_WORKSPACE_AGENT_WATCH_MODE = 'off';
     let resolveStartup!: (pid: number) => void;
     const startup = new Promise<number>((resolve) => {
       resolveStartup = resolve;
@@ -230,7 +189,6 @@ describe('WatcherProcessManagerImpl', () => {
     manager.disposing = false;
     manager.disposePromise = undefined;
     manager.lifecycleGeneration = 0;
-    manager.workspaceAgentWatches = new Map();
     manager.logger = { debug: jest.fn(), error: jest.fn(), log: jest.fn(), warn: jest.fn() };
     manager.closeWatcherServers = jest.fn().mockResolvedValue(undefined);
     manager.stopWatcherProcess = jest.fn().mockResolvedValue(undefined);
@@ -253,7 +211,7 @@ describe('WatcherProcessManagerImpl', () => {
     await expect(manager.watch({ scheme: 'file', path: '/late' })).rejects.toThrow('cannot accept new work');
   });
 
-  it('does not publish an Agent-fallback watcher that resolves after manager disposal', async () => {
+  it('does not publish an Node watcher that resolves after manager disposal', async () => {
     expect.hasAssertions();
     let resolveNodeWatch!: (watcherId: number) => void;
     const nodeWatch = new Promise<number>((resolve) => {
@@ -264,17 +222,13 @@ describe('WatcherProcessManagerImpl', () => {
     manager.disposing = false;
     manager.disposePromise = undefined;
     manager.lifecycleGeneration = 0;
-    manager.watcherRuntime = 'agent-fallback';
-    manager.workspaceAgentFallback = Promise.resolve();
-    manager.workspaceAgentWatcherSequence = 1;
-    manager.workspaceAgentWatches = new Map();
     manager._whenReadyDeferred = { promise: Promise.resolve() };
     manager.logger = { debug: jest.fn(), error: jest.fn(), log: jest.fn(), warn: jest.fn() };
     manager.closeWatcherServers = jest.fn().mockResolvedValue(undefined);
     manager.stopWatcherProcess = jest.fn().mockResolvedValue(undefined);
     manager.getProxy = () => ({ $unwatch: unwatch, $watch: jest.fn(() => nodeWatch) });
 
-    const registration = manager.watch({ scheme: 'file', path: '/late-fallback-watch' });
+    const registration = manager.watch({ scheme: 'file', path: '/late-watch' });
     await Promise.resolve();
     await Promise.resolve();
     const disposal = manager.dispose();
@@ -284,70 +238,7 @@ describe('WatcherProcessManagerImpl', () => {
     await expect(registration).rejects.toThrow('WatcherProcessManager is disposing');
     await Promise.resolve();
 
-    expect(manager.workspaceAgentWatches.size).toBe(0);
     expect(unwatch).toHaveBeenCalledWith(5510);
     expect(manager.logger.warn).not.toHaveBeenCalled();
-  });
-
-  it('applies watcher excludes before restoring subscriptions during Agent fallback', async () => {
-    expect.assertions(3);
-    process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK = 'node';
-    const manager = createManager() as any;
-    const operations: string[] = [];
-    const disposeStream = jest.fn();
-    manager.logger = { error: jest.fn() };
-    manager.watcherRuntime = 'agent';
-    manager.workspaceAgentFallback = undefined;
-    manager.workspaceAgentClientId = 'fallback-client';
-    manager.workspaceAgentDefaultExcludes = ['**/node_modules/**'];
-    manager.workspaceAgentWatches = new Map([
-      [
-        1,
-        {
-          uri: { scheme: 'file', path: '/workspace' },
-          options: { recursive: true },
-          generation: 0,
-          handle: { dispose: disposeStream },
-        },
-      ],
-    ]);
-    manager.startNodeWatcherProcess = jest.fn(async () => {
-      manager._whenReadyDeferred.resolve();
-    });
-    manager.getProxy = () => ({
-      $setWatcherFileExcludes: async (excludes: string[]) => {
-        operations.push(`excludes:${excludes.join(',')}`);
-      },
-      $watch: async () => {
-        operations.push('watch');
-        return 17;
-      },
-    });
-    manager.$onWatcherFailed = jest.fn();
-
-    await manager.fallbackWorkspaceAgentWatcher('test failure');
-
-    expect(operations).toEqual(['excludes:**/node_modules/**', 'watch']);
-    expect(disposeStream).toHaveBeenCalledTimes(1);
-    expect(manager.workspaceAgentWatches.get(1).nodeWatchId).toBe(17);
-  });
-
-  it('reports a required Agent stream failure, cancels streams and rejects further watches without Node fallback', async () => {
-    expect.hasAssertions();
-    process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK = 'error';
-    const manager = createManager() as any;
-    const disposeStream = jest.fn();
-    manager.watcherRuntime = 'agent';
-    manager.workspaceAgentWatches = new Map([[1, { generation: 0, handle: { dispose: disposeStream } }]]);
-    manager.$onWatcherFailed = jest.fn();
-    manager.startNodeWatcherProcess = jest.fn();
-    await manager.fallbackWorkspaceAgentWatcher('connection lost');
-    expect(disposeStream).toHaveBeenCalledTimes(1);
-    expect(manager.workspaceAgentWatches.get(1).generation).toBe(1);
-    expect(manager.$onWatcherFailed).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('Node fallback is disabled') }),
-    );
-    expect(manager.startNodeWatcherProcess).not.toHaveBeenCalled();
-    await expect(manager.watch({ scheme: 'file', path: '/workspace' })).rejects.toThrow('connection lost');
   });
 });

@@ -74,7 +74,6 @@ const runtimeOrder: readonly FeatureRuntime[] = [
   'electron-main',
   'browser-worker',
   'extension-host',
-  'workspace-agent',
 ];
 const runtimeSet = new Set<FeatureRuntime>(runtimeOrder);
 const scopeSet = new Set<RuntimePortDescriptor['scope']>([

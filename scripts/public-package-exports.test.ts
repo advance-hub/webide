@@ -139,7 +139,7 @@ test('source tooling uses the same explicit entrypoints as package consumers', (
     assert.deepEqual(Object.keys(configured).sort(), Object.keys(sourcePaths).sort());
     for (const [specifier, source] of Object.entries(sourcePaths)) {
       assert.equal(fs.existsSync(source), true, specifier);
-      assert.deepEqual(configured[specifier], [path.relative(path.join(repoRoot, 'configs'), source)]);
+      assert.deepEqual(configured[specifier], [path.relative(path.join(repoRoot, 'configs/ts'), source)]);
     }
   }
   assert.throws(
@@ -769,18 +769,10 @@ test('the published runtime policy works before package compilation or dependenc
       '-e',
       `import assert from 'node:assert/strict';
        import { createRequire } from 'node:module';
-       import { resolveProductRuntimeMode, resolveWsGatewayMode } from '@opensumi/ide-startup/runtime-mode';
+       import { resolveProductRuntimeMode } from '@opensumi/ide-startup/runtime-mode';
        assert.equal(resolveProductRuntimeMode({}), 'node');
        assert.equal(resolveProductRuntimeMode({ OPENSUMI_RUNTIME_MODE: ' NODE ' }), 'node');
-       assert.throws(() => resolveProductRuntimeMode({ OPENSUMI_RUNTIME_MODE: 'auto' }), /must be node or hybrid/);
-       assert.deepEqual(resolveWsGatewayMode({}, true), { mode: 'direct', source: 'default' });
-       assert.deepEqual(resolveWsGatewayMode({}, false), { mode: 'direct', source: 'default' });
-       assert.deepEqual(resolveWsGatewayMode({ OPENSUMI_RUNTIME_MODE: 'hybrid' }, true), { mode: 'gateway', source: 'default' });
-       assert.throws(() => resolveWsGatewayMode({ OPENSUMI_RUNTIME_MODE: 'hybrid' }, false), /native package is missing/);
-       for (const available of [false, true]) {
-         assert.deepEqual(resolveWsGatewayMode({ OPENSUMI_RUNTIME_MODE: 'node' }, available), { mode: 'direct', source: 'default' });
-       }
-       assert.throws(() => resolveWsGatewayMode({ OPENSUMI_RUNTIME_MODE: 'node', OPENSUMI_WS_GATEWAY_MODE: 'enabled' }, true), /conflicts/);
+       assert.throws(() => resolveProductRuntimeMode({ OPENSUMI_RUNTIME_MODE: 'auto' }), /must be node/);
        const require = createRequire(process.cwd() + '/consumer.cjs');
        assert.equal(require('@opensumi/ide-startup/runtime-mode').resolveProductRuntimeMode, resolveProductRuntimeMode);
        assert.equal(Object.keys(require.cache).length, 1);`,
@@ -905,15 +897,7 @@ test('published Node modules resolve their protocols and register services witho
       '-e',
       `const assert = require('node:assert/strict');
        const { createRequire } = require('node:module');
-       const filesRequire = createRequire(require.resolve('@opensumi/ide-file-service/package.json'));
-       const agent = require('@opensumi/ide-file-service/node/workspace-agent');
-       const definition = filesRequire('@grpc/proto-loader').loadSync(
-         require.resolve('@opensumi/ide-file-service/proto/workspace-agent.proto')
-       );
-       for (const service of ['AgentControl', 'WorkspaceWatcher', 'WorkspaceSearch', 'WorkspaceFileSearch']) {
-         assert.ok(definition['opensumi.workspace.v1.' + service], service);
-       }
-       assert.equal(agent.parseWorkspaceAgentMode('enabled'), 'enabled');
+       assert.throws(() => require('@opensumi/ide-file-service/node/workspace-agent'));
        assert.equal(typeof require('@opensumi/ide-file-service/node/disk-provider').DiskFileSystemProvider, 'function');
        assert.equal(typeof require('@opensumi/ide-file-service/node/watchers').WatcherProcessManagerToken, 'symbol');
        const nodeRuntime = require('@opensumi/ide-core-node');
@@ -966,7 +950,6 @@ test('TypeScript NodeNext and Bundler consumers resolve declarations without sou
      import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
      import { EditorGroup } from '@opensumi/ide-editor/workbench';
      import { IFileServiceClient } from '@opensumi/ide-file-service';
-     import { WorkspaceAgentClient } from '@opensumi/ide-file-service/node/workspace-agent';
      import { Color } from '@opensumi/ide-theme/colors';
      import { IThemeService } from '@opensumi/ide-theme/types';
      import { IMainLayoutService, LayoutStateKeyOptions } from '@opensumi/ide-main-layout';
@@ -1013,15 +996,13 @@ test('TypeScript NodeNext and Bundler consumers resolve declarations without sou
      import { ElectronAppConfig } from '@opensumi/ide-core-electron-main/types';
      import { UserInfo, ICollaborationServiceForClient } from '@opensumi/ide-collaboration';
      import { NotebookModule } from '@opensumi/ide-notebook/browser';
-     import { ProductRuntimeMode, resolveProductRuntimeMode, resolveWsGatewayMode } from '@opensumi/ide-startup/runtime-mode';
+     import { ProductRuntimeMode, resolveProductRuntimeMode } from '@opensumi/ide-startup/runtime-mode';
      import { CommonNodeBindings } from '@opensumi/ide-startup/node/modules';
      import { ProcessTreeMemorySnapshot } from '@opensumi/ide-dev-tool/diagnostics/process-tree';
      import { summarizeRuntimeProfile } from '@opensumi/ide-dev-tool/diagnostics/runtime-profile-metrics';
      const productMode: ProductRuntimeMode = resolveProductRuntimeMode({});
      // @ts-expect-error the product policy has no automatic mode
      const invalidMode: ProductRuntimeMode = 'auto';
-     // @ts-expect-error gateway availability remains a boolean
-     resolveWsGatewayMode({}, 'true');
      // @ts-expect-error the catalog exposes readonly bindings
      CommonNodeBindings.push(CommonNodeBindings[0]);
      declare const memorySample: ProcessTreeMemorySnapshot;
@@ -1113,9 +1094,8 @@ test('TypeScript NodeNext and Bundler consumers resolve declarations without sou
      storage.setData('layout', {}); server.drain();
      const stateOptions: LayoutStateKeyOptions = { saveCurrent: true };
      declare const files: IFileServiceClient;
-     declare const agent: WorkspaceAgentClient;
      declare const theme: IThemeService;
-     files.getFileStat('file:///workspace'); agent.getStatus(); theme.getColor('editor.foreground');
+     files.getFileStat('file:///workspace'); theme.getColor('editor.foreground');
      const color: Color = Color.fromHex('#123456');
      declare const model: ITextModel;
      declare const observed: IObservable<number>;

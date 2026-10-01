@@ -15,67 +15,9 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 import { runtimeRecipes } from './build-runtime.ts';
-import {
-  evaluateCapacityQualification,
-  parseOptions as parseCapacityOptions,
-  requiredCapacityArtifacts,
-} from './run-workspace-agent-capacity.ts';
 import { buildArtifacts, inspectArtifacts } from './runtime-artifacts.ts';
 
 import type { ArtifactRecipe } from './runtime-artifacts.ts';
-
-test('default capacity acceptance runs Node 10 by 3 without native artifacts', () => {
-  const options = parseCapacityOptions([
-    '--expected-result',
-    '1 results found in 1 files',
-    '--file-search-query',
-    'fixture.md',
-    '--expected-file-search-result',
-    'fixture.md',
-  ])!;
-  assert.equal(options.variants, 'node');
-  assert.equal(options.sessions, 10);
-  assert.equal(options.runs, 3);
-  assert.deepEqual(requiredCapacityArtifacts(options.variants), ['client/dist/index.html', 'server/dist/main.js']);
-  assert.equal(evaluateCapacityQualification(options, 3).qualified, true);
-});
-
-test('partial, smaller and low-memory Node workloads cannot qualify the release', () => {
-  const options = { variants: 'node' as const, sessions: 10, runs: 3, allowLowMemory: false };
-  assert.equal(evaluateCapacityQualification(options, 2).qualified, false);
-  assert.equal(evaluateCapacityQualification({ ...options, sessions: 3 }, 3).qualified, false);
-  assert.equal(evaluateCapacityQualification({ ...options, runs: 1 }, 1).qualified, false);
-  assert.equal(evaluateCapacityQualification({ ...options, allowLowMemory: true }, 3).qualified, false);
-});
-
-test('hybrid expansion still requires both native packages and the full comparison gates', () => {
-  const options = { variants: 'both' as const, sessions: 50, runs: 3, allowLowMemory: false };
-  const comparison = {
-    meetsTwentyFivePercentMemoryGate: true,
-    search: { meetsLatencyGate: true },
-    fileSearch: { meetsLatencyGate: true },
-    meetsQualificationGates: true,
-  };
-  const nativeArtifacts = requiredCapacityArtifacts('both', 'win32');
-  assert.ok(nativeArtifacts.includes('server/dist/workspace-agent/workspace-agent.exe'));
-  assert.ok(nativeArtifacts.includes('server/dist/workspace-agent/ws-gateway.exe'));
-  assert.ok(nativeArtifacts.includes('server/dist/workspace-agent/ws-gateway.manifest.json'));
-  assert.equal(evaluateCapacityQualification(options, 6, comparison).qualified, true);
-  assert.equal(evaluateCapacityQualification({ ...options, sessions: 10 }, 6, comparison).qualified, false);
-  assert.equal(evaluateCapacityQualification(options, 6).qualified, false);
-  assert.equal(
-    evaluateCapacityQualification(options, 6, { ...comparison, meetsTwentyFivePercentMemoryGate: false }).qualified,
-    false,
-  );
-  assert.equal(
-    evaluateCapacityQualification({ ...options, variants: 'agent', sessions: 10 }, 3, comparison).qualified,
-    true,
-  );
-  assert.equal(
-    evaluateCapacityQualification({ ...options, variants: 'agent', sessions: 3 }, 3, comparison).qualified,
-    false,
-  );
-});
 
 function fixture() {
   const root = mkdtempSync(path.join(tmpdir(), 'opensumi-artifacts-'));

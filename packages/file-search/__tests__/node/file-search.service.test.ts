@@ -3,14 +3,12 @@ import path from 'path';
 import { CancellationTokenSource } from '@opensumi/ide-core-common';
 import { AppConfig, FileUri, INodeLogger, NodeLogger } from '@opensumi/ide-core-node';
 import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
-import { WorkspaceAgentClientToken } from '@opensumi/ide-file-service/node/workspace-agent';
 import { ProcessModule } from '@opensumi/ide-process/node';
 
 import { IFileSearchService } from '../../src';
 import { FileSearchModule } from '../../src/node';
 
 describe('search-service', () => {
-  const workspaceAgent = { fileSearch: jest.fn() };
   const injector = createNodeInjector([FileSearchModule, ProcessModule]);
   injector.addProviders(
     {
@@ -21,23 +19,8 @@ describe('search-service', () => {
       token: INodeLogger,
       useClass: NodeLogger,
     },
-    {
-      token: WorkspaceAgentClientToken,
-      useValue: workspaceAgent,
-    },
   );
   const service = injector.get(IFileSearchService);
-  const originalFallback = process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
-
-  afterEach(() => {
-    if (originalFallback === undefined) {
-      delete process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
-    } else {
-      process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK = originalFallback;
-    }
-    delete process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE;
-    workspaceAgent.fileSearch.mockReset();
-  });
 
   it('shall fuzzy search this spec file', async () => {
     const rootUri = path.resolve(__dirname, './');
@@ -108,56 +91,6 @@ describe('search-service', () => {
     expect(firstMatches).toEqual(secondMatches);
     expect(firstMatches).toHaveLength(1);
     expect(options).toEqual(originalOptions);
-  });
-
-  it('uses the Workspace Agent only when file search is explicitly enabled', async () => {
-    process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE = 'enabled';
-    const rootPath = path.resolve(__dirname, '../test-resources/subdir1');
-    const agentPath = path.join(rootPath, '.sumi');
-    workspaceAgent.fileSearch.mockResolvedValue({ exactPaths: [agentPath], fuzzyPaths: [], limitHit: false });
-
-    const matches = await service.find('.sumi', {
-      rootUris: [FileUri.create(rootPath).toString()],
-      useGitIgnore: true,
-      limit: 200,
-    });
-
-    expect(matches).toEqual([agentPath]);
-    expect(workspaceAgent.fileSearch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        pattern: '.sumi',
-        maxResults: 200,
-        roots: [
-          expect.objectContaining({
-            rootPath,
-            useGitIgnore: true,
-          }),
-        ],
-      }),
-      undefined,
-    );
-  });
-
-  it('falls back to Node when an enabled Workspace Agent file search is unavailable', async () => {
-    process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK = 'node';
-    process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE = 'enabled';
-    workspaceAgent.fileSearch.mockRejectedValue(new Error('agent unavailable'));
-    const rootPath = path.resolve(__dirname, '../test-resources/subdir1');
-
-    const matches = await service.find('.sumi', { rootUris: [rootPath] });
-
-    expect(matches).toEqual([path.join(rootPath, '.sumi')]);
-  });
-
-  it('returns the Agent failure under the default required-service policy', async () => {
-    expect.hasAssertions();
-    delete process.env.OPENSUMI_WORKSPACE_AGENT_FALLBACK;
-    process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE = 'enabled';
-    const failure = new Error('agent unavailable');
-    workspaceAgent.fileSearch.mockRejectedValue(failure);
-    await expect(
-      service.find('.sumi', { rootUris: [path.resolve(__dirname, '../test-resources/subdir1')] }),
-    ).rejects.toBe(failure);
   });
 
   describe('search with glob', () => {

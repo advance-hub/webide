@@ -10,9 +10,6 @@ export type ProcessRole =
   | 'extension-host'
   | 'extension-child'
   | 'watcher-host'
-  | 'workspace-agent'
-  | 'workspace-agent-child'
-  | 'ws-gateway'
   | 'pty-host'
   | 'terminal-shell'
   | 'language-server'
@@ -171,12 +168,6 @@ export function classifyProcessRole(process: ProcessMemoryRecord, rootPid: numbe
   if (command.includes('watcher.process') || command.includes('watcher-host')) {
     return 'watcher-host';
   }
-  if (executable === 'workspace-agent' || executable === 'workspace-agent.exe') {
-    return 'workspace-agent';
-  }
-  if (executable === 'ws-gateway' || executable === 'ws-gateway.exe') {
-    return 'ws-gateway';
-  }
   if (command.includes('pty.proxy') || command.includes('pty-host') || command.includes('pty-service')) {
     return 'pty-host';
   }
@@ -197,7 +188,7 @@ export function classifyProcessRole(process: ProcessMemoryRecord, rootPid: numbe
   ) {
     return 'language-server';
   }
-  if (/(^|[/\\\s])node(?:\.exe)?([\s]|$)/.test(command)) {
+  if (executable === 'node' || executable === 'node.exe') {
     return 'node-child';
   }
   return 'other';
@@ -222,9 +213,6 @@ export function summarizeProcessTree(
       visited.add(parent.pid);
       if (parent.role === 'extension-host' || parent.role === 'extension-child') {
         return { ...process, role: 'extension-child' as const };
-      }
-      if (parent.role === 'workspace-agent' || parent.role === 'workspace-agent-child') {
-        return { ...process, role: 'workspace-agent-child' as const };
       }
       parent = byPid.get(parent.parentPid);
     }

@@ -1,15 +1,8 @@
 import readline from 'readline';
 
-import { Autowired, Injectable, Optional } from '@opensumi/di';
+import { Autowired, Injectable } from '@opensumi/di';
 import { CancellationToken, CancellationTokenSource, URI, path } from '@opensumi/ide-core-common';
 import { FileUri, INodeLogger } from '@opensumi/ide-core-node';
-import {
-  WorkspaceAgentClient,
-  WorkspaceAgentClientToken,
-  WorkspaceAgentFileSearchRoot,
-  parseWorkspaceAgentMode,
-  workspaceAgentAllowsNodeFallback,
-} from '@opensumi/ide-file-service/node/workspace-agent';
 import { IProcessFactory } from '@opensumi/ide-process';
 import { rgPath } from '@opensumi/ripgrep';
 
@@ -24,11 +17,6 @@ export class FileSearchService implements IFileSearchService {
 
   @Autowired(INodeLogger)
   logger: INodeLogger;
-
-  constructor(
-    @Optional(WorkspaceAgentClientToken)
-    private readonly workspaceAgent?: WorkspaceAgentClient,
-  ) {}
 
   private isAbsolutePathPattern(pattern: string): boolean {
     return path.isAbsolute(pattern) || pattern.startsWith('/') || pattern.startsWith('\\');
@@ -55,43 +43,11 @@ export class FileSearchService implements IFileSearchService {
 
     return normalizedPattern.length === 0;
   }
-
-  // 这里应该返回文件的 `fsPath` 而非 `file://` 协议文件路径
-  // 否则在 Windows 下，盘符路径会被隐藏
   async find(
     searchPattern: string,
     options: IFileSearchService.Options,
     clientToken?: CancellationToken,
   ): Promise<string[]> {
-    const mode = parseWorkspaceAgentMode(process.env.OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE);
-    if (mode === 'enabled') {
-      try {
-        return await this.findWithWorkspaceAgent(searchPattern, options, clientToken);
-      } catch (error) {
-        if (!workspaceAgentAllowsNodeFallback()) {
-          throw error;
-        }
-        this.logger.error(`Workspace Agent file search failed; falling back to Node.\n${error}`);
-      }
-    }
-    if (mode === 'shadow-read' && this.workspaceAgent) {
-      const agentOutcome = this.findWithWorkspaceAgent(searchPattern, options, clientToken).then(
-        (paths) => ({ paths }),
-        (error) => ({ error }),
-      );
-      const nodeResult = await this.findWithNode(searchPattern, options, clientToken);
-      void agentOutcome.then((outcome) => {
-        if (clientToken?.isCancellationRequested) {
-          return;
-        }
-        if ('error' in outcome) {
-          this.logger.warn(`Workspace Agent shadow file search failed.\n${outcome.error}`);
-        } else {
-          this.reportAgentParity(searchPattern, nodeResult, outcome.paths, options.limit);
-        }
-      });
-      return nodeResult;
-    }
     return this.findWithNode(searchPattern, options, clientToken);
   }
 
@@ -213,39 +169,6 @@ export class FileSearchService implements IFileSearchService {
     return this.sortMatches(exactMatches, fuzzyMatches);
   }
 
-  private async findWithWorkspaceAgent(
-    searchPattern: string,
-    options: IFileSearchService.Options,
-    clientToken?: CancellationToken,
-  ): Promise<string[]> {
-    if (!this.workspaceAgent) {
-      throw new Error('Workspace Agent is not available');
-    }
-    const { effectivePattern, opts, roots } = this.normalizeRequest(searchPattern, options);
-    const agentRoots: WorkspaceAgentFileSearchRoot[] = Object.entries(roots).map(([root, rootOptions]) => {
-      const rootUri = URI.isUriString(root) ? new URI(root) : undefined;
-      return {
-        rootPath: rootUri?.scheme === 'file' ? FileUri.fsPath(rootUri) : root,
-        include: rootOptions.includePatterns || [],
-        exclude: rootOptions.excludePatterns || [],
-        useGitIgnore: Boolean(rootOptions.useGitIgnore),
-        noIgnoreParent: Boolean(rootOptions.noIgnoreParent),
-        followSymlinks: Boolean(rootOptions.followSymlinks),
-      };
-    });
-    const result = await this.workspaceAgent.fileSearch(
-      {
-        pattern: effectivePattern,
-        roots: agentRoots,
-        fuzzyMatch: Boolean(opts.fuzzyMatch),
-        maxResults: opts.limit,
-        ripgrepPath: replaceAsarInPath(rgPath),
-      },
-      clientToken,
-    );
-    return this.sortMatches(new Set(result.exactPaths), new Set(result.fuzzyPaths));
-  }
-
   private sortMatches(exactMatches: Set<string>, fuzzyMatches: Set<string>): string[] {
     const sortedExactMatches = Array.from(exactMatches).sort((a, b) => {
       const depthA = Path.pathDepth(a);
@@ -260,38 +183,6 @@ export class FileSearchService implements IFileSearchService {
     });
 
     return [...sortedExactMatches, ...fuzzyMatches];
-  }
-
-  private reportAgentParity(
-    searchPattern: string,
-    nodePaths: string[],
-    agentPaths: string[],
-    configuredLimit?: number,
-  ): void {
-    if (
-      configuredLimit !== undefined &&
-      configuredLimit > 0 &&
-      nodePaths.length >= configuredLimit &&
-      agentPaths.length >= configuredLimit
-    ) {
-      // ripgrep traversal order is not stable, including between two Node runs.
-      // Once both sides hit the cap, cardinality is the only valid parity signal.
-      this.logger.debug(
-        `Workspace Agent file search parity reached the shared ${configuredLimit} result cap for ${JSON.stringify(searchPattern)}`,
-      );
-      return;
-    }
-    const node = new Set(nodePaths);
-    const agent = new Set(agentPaths);
-    const nodeOnly = nodePaths.filter((candidate) => !agent.has(candidate));
-    const agentOnly = agentPaths.filter((candidate) => !node.has(candidate));
-    if (nodeOnly.length === 0 && agentOnly.length === 0) {
-      this.logger.debug(`Workspace Agent file search parity matched for ${JSON.stringify(searchPattern)}`);
-      return;
-    }
-    this.logger.warn(
-      `Workspace Agent file search parity mismatch for ${JSON.stringify(searchPattern)}: Node-only ${nodeOnly.length}, Agent-only ${agentOnly.length}`,
-    );
   }
 
   private doFind(
