@@ -90,6 +90,18 @@ test(
               'persist the allocated sandbox before readiness',
             );
           }
+          if (url.pathname.endsWith('/readyz')) {
+            const id = String(request.headers['x-workspace-id']);
+            json({
+              runtime: {
+                workspace: { id, directory: `/workspace/workspaces/${id}/project` },
+                node: 'v24.16.0',
+                fingerprint: 'fixture',
+                architecture: 'x64',
+              },
+            });
+            return;
+          }
           response.end('IDE fixture');
           return;
         }

@@ -15,6 +15,7 @@ export interface Connection {
   url: string;
   token?: string;
   provider?: 'gitlab' | 'gitee' | 'github';
+  account?: string;
 }
 
 export async function command(
@@ -49,6 +50,9 @@ export class Repositories {
 
   private async environment(project: Project): Promise<NodeJS.ProcessEnv> {
     const connection = this.connection(project.owner, project);
+    if (connection.token) {
+      this.credentialTarget(project, connection);
+    }
     const askpass = path.join(import.meta.dirname, 'git-askpass.cjs');
     await chmod(askpass, 0o755);
     return {
@@ -56,7 +60,18 @@ export class Repositories {
       GIT_TERMINAL_PROMPT: '0',
       GIT_ASKPASS: askpass,
       OPENSUMI_GIT_TOKEN: connection.token || '',
+      OPENSUMI_GIT_USERNAME: connection.provider === 'gitee' ? connection.account || 'oauth2' : 'oauth2',
     };
+  }
+
+  credentialTarget(project: Project, connection: Connection): URL {
+    const target = new URL(project.url);
+    const source = new URL(connection.url);
+    const prefix = source.pathname.replace(/\/$/, '');
+    if (target.origin !== source.origin || (prefix && !target.pathname.startsWith(prefix + '/'))) {
+      throw new HTTPError(400, '仓库与代码源凭据的地址不匹配');
+    }
+    return target;
   }
 
   async git(project: Project, args: string[], cwd?: string): Promise<string> {

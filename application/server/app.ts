@@ -11,10 +11,13 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { type Config, HTTPError, requireString } from './config';
 import { DockerEngine } from './docker';
 import { type Connection, type Project, Repositories, type Workspace } from './git';
+import { GitControl } from './git-control';
 import { Jobs } from './jobs';
+import { Machines } from './machines';
 import { mavenKey, mavenRoutes } from './maven';
 import { proxyTarget } from './proxy';
-import { LocalRuntime, type Machine, type RuntimeDriver } from './runtime';
+import { DevelopmentResources } from './resources';
+import { LocalRuntime, type Machine, type RuntimeDriver, startupRecord } from './runtime';
 import { SandboxService } from './sandbox';
 import { sandboxRoutes } from './sandbox-routes';
 import { SandboxRuntime } from './sandbox-runtime';
@@ -41,6 +44,9 @@ export class Workbench {
   readonly app = new Koa();
   readonly store: Store;
   readonly repositories: Repositories;
+  readonly resources: DevelopmentResources;
+  readonly gitControl: GitControl;
+  readonly machines: Machines;
   readonly jobs = new Jobs();
   readonly driver: RuntimeDriver;
   readonly server: http.Server;
@@ -57,6 +63,7 @@ export class Workbench {
   ) {
     this.store = new Store(config.data);
     this.repositories = new Repositories(config, this.store);
+    this.resources = new DevelopmentResources(config, this.store);
     this.sandbox = config.sandboxURL ? new SandboxService(config) : undefined;
     this.driver = driverFactory
       ? driverFactory(this.store)
@@ -67,6 +74,15 @@ export class Workbench {
       this.store.close();
       throw new Error(`Runtime driver ${config.driver} is not configured`);
     }
+    this.gitControl = new GitControl(config, this.store, this.repositories, this.driver, this.jobs);
+    this.machines = new Machines(
+      config,
+      this.store,
+      this.driver,
+      this.jobs,
+      (workspace) => this.resumeWorkspace(workspace),
+      (id) => !!this.sockets.get(id)?.size,
+    );
     // Recover interrupted work as a visible failure, never as a fresh checkout.
     for (const workspace of this.store.list<Workspace>('workspace')) {
       if (workspace.mavenJob && ['queued', 'running', 'cancelling'].includes(workspace.mavenJob.status)) {
@@ -135,6 +151,10 @@ export class Workbench {
       try {
         if (this.closing) {
           throw new HTTPError(503, '服务正在关闭');
+        }
+        if (context.path.startsWith('/git/')) {
+          await this.gitControl.bridge(context);
+          return;
         }
         const workspaceId = this.workspaceHost(context.req);
         if (workspaceId) {
@@ -267,6 +287,8 @@ export class Workbench {
         url: connection.url,
         configured: !!connection.token,
         account: context.state.owner,
+        provider: connection.provider,
+        gitAccount: connection.account,
         inherited: !!project && !this.store.secret(`project:${project.id}`),
         canManage: !!project || this.isAdmin(context.state.owner),
       };
@@ -291,8 +313,27 @@ export class Workbench {
       if (!token) {
         throw new HTTPError(400, '请填写代码源令牌');
       }
-      await this.verifyConnection({ url, token });
-      this.store.secret(project ? `project:${project.id}` : 'connection:global', { url, token });
+      const providerValue = body.provider || (previous.url === url ? previous.provider : undefined);
+      if (
+        providerValue &&
+        (typeof providerValue !== 'string' || !['gitlab', 'github', 'gitee'].includes(providerValue))
+      ) {
+        throw new HTTPError(400, '代码源类型无效');
+      }
+      const provider = providerValue as Connection['provider'];
+      const connection: Connection = {
+        url,
+        token,
+        provider,
+        account:
+          typeof body.account === 'string'
+            ? requireString(body.account, 'Git 账户', 200)
+            : previous.url === url
+              ? previous.account
+              : undefined,
+      };
+      await this.verifyConnection(connection);
+      this.store.secret(project ? `project:${project.id}` : 'connection:global', connection);
       context.body = { ok: true };
     });
 
@@ -471,6 +512,12 @@ export class Workbench {
         ) {
           throw new HTTPError(400, '请确认工作区分支名');
         }
+        if (action === 'update-runtime') {
+          this.machines.enqueue(this.machines.machine(workspace.owner), 'upgrade');
+          context.status = 202;
+          context.body = { ...publicEntity(workspace), status: 'updating' };
+          return;
+        }
         this.lifecycle(workspace, action);
         context.status = 202;
         context.body = publicEntity(workspace);
@@ -478,7 +525,27 @@ export class Workbench {
     }
     router.post('/api/workspaces/:id/git', async (context) => {
       const workspace = this.workspace(String(context.params.id), context.state.owner);
-      context.body = await this.driver.helper(workspace, 'git', context.state.body);
+      this.machines.assertAvailable(this.machines.machine(workspace.owner));
+      context.body = await this.jobs.run([`workspace:${workspace.id}`, `machine:${workspace.machineId}`], () =>
+        this.driver.helper(workspace, 'git', context.state.body),
+      );
+    });
+    router.post('/api/workspaces/:id/publish', async (context) => {
+      const workspace = this.workspace(String(context.params.id), context.state.owner);
+      this.machines.assertAvailable(this.machines.machine(workspace.owner));
+      context.body = await this.gitControl.publish(
+        workspace,
+        this.project(workspace.projectId, workspace.owner),
+        context.state.body,
+      );
+    });
+    router.post('/api/workspaces/:id/editor-connections', async (context) => {
+      const workspace = this.workspace(String(context.params.id), context.state.owner);
+      this.machines.assertAvailable(this.machines.machine(workspace.owner));
+      context.body = await this.jobs.run([`workspace:${workspace.id}`, `machine:${workspace.machineId}`], async () => {
+        await this.resources.sync(workspace, this.driver);
+        return startupRecord(workspace).editorConnections;
+      });
     });
     router.get('/api/workspaces/:id/services', async (context) => {
       context.body = await this.driver.helper(
@@ -488,17 +555,17 @@ export class Workbench {
       );
     });
     router.post('/api/workspaces/:id/services', async (context) => {
-      context.body = await this.driver.helper(
-        this.workspace(String(context.params.id), context.state.owner),
-        'services',
-        context.state.body,
+      const workspace = this.workspace(String(context.params.id), context.state.owner);
+      this.machines.assertAvailable(this.machines.machine(workspace.owner));
+      context.body = await this.jobs.run([`workspace:${workspace.id}`, `machine:${workspace.machineId}`], () =>
+        this.driver.helper(workspace, 'services', context.state.body),
       );
     });
     router.post('/api/workspaces/:id/maven-config', async (context) => {
-      context.body = await this.driver.helper(
-        this.workspace(String(context.params.id), context.state.owner),
-        'maven-config',
-        context.state.body,
+      const workspace = this.workspace(String(context.params.id), context.state.owner);
+      this.machines.assertAvailable(this.machines.machine(workspace.owner));
+      context.body = await this.jobs.run([`workspace:${workspace.id}`, `machine:${workspace.machineId}`], () =>
+        this.driver.helper(workspace, 'maven-config', context.state.body),
       );
     });
 
@@ -510,7 +577,7 @@ export class Workbench {
         limit: this.config.machineLimit,
         workspaces: this.store.list<Workspace>('workspace', context.state.owner).filter((w) => !w.archived).length,
         legacyWorkspaces: 0,
-        policy: { idleMinutes: 120, autoBackupHours: 0 },
+        ...this.machines.view(machine),
       };
     });
     router.post('/api/machine/release', async (context) => {
@@ -519,25 +586,39 @@ export class Workbench {
       }
       const machine = this.store.list<Machine>('machine', context.state.owner)[0];
       if (machine) {
-        await this.driver.release(machine);
-        this.store.delete('machine', machine.id);
+        this.machines.assertAvailable(machine);
+        await this.jobs.run([`machine:${machine.id}`], async () => {
+          await this.driver.release(machine);
+          this.store.delete('machine', machine.id);
+        });
       }
       context.body = { ok: true };
     });
     router.post('/api/machine/tools', async (context) => {
+      const machine = this.machines.machine(context.state.owner);
+      this.machines.assertAvailable(machine);
+      if (context.state.body.action === 'policy-save') {
+        context.body = await this.jobs.run([`machine:${machine.id}`], async () =>
+          this.machines.savePolicy(machine, context.state.body),
+        );
+        return;
+      }
       const workspace = this.store.list<Workspace>('workspace', context.state.owner).find((w) => !w.archived);
       if (!workspace) {
         throw new HTTPError(409, '尚未创建工作区');
       }
       const body = context.state.body;
       const action = String(body.action || 'inspect');
-      context.body = await this.driver.helper(
-        workspace,
-        action.startsWith('preferences-') ? 'preferences' : 'machine',
-        { ...body, action: action.replace('preferences-', '') },
+      context.body = await this.jobs.run([`machine:${machine.id}`], () =>
+        this.driver.helper(workspace, action.startsWith('preferences-') ? 'preferences' : 'machine', {
+          ...body,
+          action: action.replace('preferences-', ''),
+        }),
       );
     });
     sandboxRoutes(router, this.sandbox, this.store, (context) => this.admin(context));
+    this.resources.routes(router);
+    this.machines.routes(router);
     mavenRoutes(router, this.store, this.driver, this.jobs, (id, owner) => this.workspace(id, owner));
     this.app.use(router.routes()).use(router.allowedMethods());
     this.app.use(serve(path.join(this.config.root, 'application/dist')));
@@ -581,6 +662,10 @@ export class Workbench {
   }
 
   private lifecycle(workspace: Workspace, action: string): void {
+    const ownerMachine = this.store.get<Machine>('machine', String(workspace.machineId));
+    if (ownerMachine) {
+      this.machines.assertAvailable(ownerMachine);
+    }
     if (this.jobs.busy(mavenKey(workspace))) {
       throw new HTTPError(409, '开发机有 Maven 任务，请先结束或取消任务');
     }
@@ -590,14 +675,13 @@ export class Workbench {
       restart: 'starting',
       reset: 'resetting',
       delete: 'deleting',
-      'update-runtime': 'updating',
     };
     this.jobs.enqueue(
       `workspace:${workspace.id}`,
       ['stop', 'restart', 'delete'].includes(action) ? 'quick' : 'heavy',
       async () => {
         const project = this.project(workspace.projectId, workspace.owner);
-        if (['stop', 'restart', 'reset', 'delete', 'update-runtime'].includes(action)) {
+        if (['stop', 'restart', 'reset', 'delete'].includes(action)) {
           await this.driver.stop(workspace);
         }
         if (action === 'delete') {
@@ -621,7 +705,18 @@ export class Workbench {
         workspace.envId = machine.envId;
         this.store.put('workspace', workspace);
         await this.driver.prepare(workspace, project, this.repositories, action === 'reset');
+        await this.gitControl.install(workspace, project);
         await this.driver.start(workspace);
+        try {
+          await this.resources.sync(workspace, this.driver);
+        } catch {
+          startupRecord(workspace).editorConnections = {
+            mysql: false,
+            redis: false,
+            additionalDatabases: 0,
+            error: '编辑器资源连接同步失败，请重试',
+          };
+        }
         workspace.status = 'ready';
         workspace.op = undefined;
         workspace.error = undefined;
@@ -635,9 +730,29 @@ export class Workbench {
         workspace.updatedAt = now();
         this.store.put('workspace', workspace);
       },
+      [`machine:${workspace.machineId}`],
     );
     workspace.status = states[action];
     workspace.op = action;
+    workspace.error = undefined;
+    workspace.updatedAt = now();
+    this.store.put('workspace', workspace);
+  }
+
+  private async resumeWorkspace(workspace: Workspace): Promise<void> {
+    const machine = this.store.get<Machine>('machine', String(workspace.machineId));
+    if (!machine) {
+      throw new HTTPError(409, '开发机不存在');
+    }
+    const project = this.project(workspace.projectId, workspace.owner);
+    await this.driver.provision(machine);
+    workspace.envId = machine.envId;
+    await this.driver.prepare(workspace, project, this.repositories);
+    await this.gitControl.install(workspace, project);
+    await this.driver.start(workspace);
+    await this.resources.sync(workspace, this.driver).catch(() => undefined);
+    workspace.status = 'ready';
+    workspace.op = undefined;
     workspace.error = undefined;
     workspace.updatedAt = now();
     this.store.put('workspace', workspace);
@@ -653,9 +768,14 @@ export class Workbench {
     }
     const provider =
       connection.provider || (/gitee/i.test(url.host) ? 'gitee' : url.hostname === 'github.com' ? 'github' : 'gitlab');
+    if (!['gitlab', 'github', 'gitee'].includes(provider)) {
+      throw new HTTPError(400, '代码源类型无效');
+    }
     const endpoint =
       provider === 'github'
-        ? 'https://api.github.com/user'
+        ? url.hostname === 'github.com'
+          ? 'https://api.github.com/user'
+          : `${url.href.replace(/\/$/, '')}/api/v3/user`
         : `${url.href.replace(/\/$/, '')}/api/${provider === 'gitee' ? 'v5' : 'v4'}/user`;
     const headers: Record<string, string> =
       provider === 'gitlab'
@@ -707,6 +827,8 @@ export class Workbench {
     }
     const session = this.ideAuthorization(context.req, id);
     const workspace = this.workspace(id, session.owner);
+    workspace.lastActivityAt = now();
+    this.store.put('workspace', workspace);
     const environment = await this.driver.inspect(workspace);
     if (!environment.ideReady || !environment.endpoint) {
       throw new HTTPError(502, 'IDE 未就绪');
@@ -759,6 +881,8 @@ export class Workbench {
     }
     const session = this.ideAuthorization(request, id);
     const workspace = this.workspace(id, session.owner);
+    workspace.lastActivityAt = now();
+    this.store.put('workspace', workspace);
     const environment = await this.driver.inspect(workspace);
     if (!environment.ideReady || !environment.endpoint) {
       socket.destroy();
@@ -818,12 +942,14 @@ export class Workbench {
       this.server.once('error', reject);
       this.server.listen(this.config.port, this.config.host, resolve);
     });
+    this.machines.start();
   }
   async close(): Promise<void> {
     if (this.closing) {
       return;
     }
     this.closing = true;
+    await this.machines.close();
     for (const connections of this.sockets.values()) {
       for (const socket of connections) {
         socket.close(1001, 'Control plane stopping');

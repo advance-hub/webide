@@ -130,6 +130,7 @@ export function mavenRoutes(
         persist(report.lastStatus === 'cancelled' ? 'cancelled' : 'done');
       },
       (error) => persist('failed', error.message),
+      [`machine:${workspace.machineId}`],
     );
     workspace.mavenHistory = [
       ...(workspace.mavenJob ? [workspace.mavenJob] : []),
