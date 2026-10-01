@@ -1,13 +1,15 @@
 import { URI } from '@opensumi/ide-core-common';
 
 import type { IAutoClosingPair, IAutoClosingPairConditional } from './types';
-export { Position, IPosition } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/position';
-export { ITextModel, EndOfLineSequence } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
+export { Position } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/position';
+export type { IPosition } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/position';
+export { EndOfLineSequence } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
+export type { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 export type { IRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 export type { Event } from '@opensumi/monaco-editor-core/esm/vs/base/common/event';
 export type { ICodeEditor, IDiffEditor } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorBrowser';
 export { Emitter } from '@opensumi/monaco-editor-core/esm/vs/base/common/event';
-export {
+export type {
   LanguageConfiguration,
   FoldingRules,
   IndentationRule,
@@ -16,10 +18,11 @@ export {
   OnEnterRule,
   EnterAction,
 } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages/languageConfiguration';
-export { CodeActionTriggerType, ProviderResult } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
+export { CodeActionTriggerType } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
+export type { ProviderResult } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 
-export {
-  NewSymbolNameTag,
+export { NewSymbolNameTag } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
+export type {
   NewSymbolNamesProvider,
   NewSymbolName,
 } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';

@@ -1,6 +1,8 @@
 import { Injectable } from '@opensumi/di';
 import { IDisposable } from '@opensumi/ide-core-common';
 
+import type { ComponentType, MouseEvent as ReactMouseEvent } from 'react';
+
 @Injectable()
 export abstract class IToolBarViewService {
   abstract registerToolBarElement(element: IToolBarAction | IToolBarComponent): IToolBarElementHandle | undefined;
@@ -40,7 +42,7 @@ export interface IToolBarAction extends IToolBarElement {
 
   title: string;
 
-  click: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => any;
+  click: (event: ReactMouseEvent<HTMLDivElement, MouseEvent>) => any;
 
   description?: string;
 }
@@ -48,7 +50,7 @@ export interface IToolBarAction extends IToolBarElement {
 export interface IToolBarComponent<InitialPropsType = any> extends IToolBarElement {
   type: 'component';
 
-  component: React.ComponentType<InitialPropsType>;
+  component: ComponentType<InitialPropsType>;
 
   initialProps?: InitialPropsType;
 

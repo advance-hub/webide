@@ -2,13 +2,13 @@ import cls from 'classnames';
 import React from 'react';
 
 import { ClickOutside } from '@opensumi/ide-components';
-import { Dropdown } from '@opensumi/ide-components/lib/dropdown';
-import { Deprecated } from '@opensumi/ide-components/lib/utils/deprecated';
+import { Dropdown } from '@opensumi/ide-components/dropdown';
+import { Deprecated } from '@opensumi/ide-components/utils';
 import { ComponentRegistry, SlotRenderer, useAutorun, useInjectable } from '@opensumi/ide-core-browser';
-import { InlineActionBar, MenuActionList } from '@opensumi/ide-core-browser/lib/components/actions';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { AbstractMenuService, IMenubarItem, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IIconService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { InlineActionBar, MenuActionList } from '@opensumi/ide-core-browser/components/actions';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
+import { AbstractMenuService, IMenubarItem, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IIconService } from '@opensumi/ide-theme/types';
 
 import styles from './menu-bar.module.less';
 import { MenubarStore } from './menu-bar.store';

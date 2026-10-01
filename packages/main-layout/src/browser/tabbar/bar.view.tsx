@@ -14,11 +14,11 @@ import {
   useInjectable,
   usePreference,
 } from '@opensumi/ide-core-browser';
-import { InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { Layout } from '@opensumi/ide-core-browser/lib/components/layout/layout';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { observableValue } from '@opensumi/ide-monaco/lib/common/observable';
+import { Layout } from '@opensumi/ide-core-browser/components';
+import { InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
+import { observableValue } from '@opensumi/ide-monaco/observable';
 
 import { IMainLayoutService } from '../../common';
 
@@ -26,7 +26,7 @@ import { TabbarConfig } from './renderer.view';
 import styles from './styles.module.less';
 import { TabbarService, TabbarServiceFactory } from './tabbar.service';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 function splitVisibleTabs(containers: ComponentRegistryInfo[], visibleCount: number) {
   if (visibleCount >= containers.length) {
     return [containers, []];

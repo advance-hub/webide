@@ -4,9 +4,11 @@ import React from 'react';
 import { Dropdown } from '../dropdown';
 import { Placement } from '../dropdown/dropdown';
 import { DefaultIconKeys, Icon, getIcon } from '../icon';
+
+import type { ButtonType } from '@opensumi/ide-core-common/actions';
 import './style.less';
 
-export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link' | 'icon' | 'default';
+export type { ButtonType } from '@opensumi/ide-core-common/actions';
 
 export type ButtonHTMLType = 'submit' | 'button' | 'reset';
 

@@ -2,8 +2,8 @@ import cls from 'classnames';
 import React, { useMemo } from 'react';
 
 import { View, useAutorun, useInjectable } from '@opensumi/ide-core-browser';
-import { EDirection, Layout, SplitPanel } from '@opensumi/ide-core-browser/lib/components';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { EDirection, Layout, SplitPanel } from '@opensumi/ide-core-browser/components';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
 import { replaceLocalizePlaceholder } from '@opensumi/ide-core-common';
 
 import { AccordionService, AccordionServiceFactory, SectionState } from './accordion.service';

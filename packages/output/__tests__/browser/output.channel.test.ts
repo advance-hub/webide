@@ -1,24 +1,18 @@
 import { Injectable } from '@opensumi/di';
-import { PreferenceService } from '@opensumi/ide-core-browser/src/preferences';
+import { PreferenceService } from '@opensumi/ide-core-browser';
 import { EventBusImpl, IEventBus } from '@opensumi/ide-core-common';
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockWalkThroughSnippetSchemeDocumentProvider } from '@opensumi/ide-dev-tool/mocks/file-scheme-document';
 import { IDocPersistentCacheProvider } from '@opensumi/ide-editor';
-import {
-  EditorDocumentModelContentRegistryImpl,
-  EditorDocumentModelServiceImpl,
-} from '@opensumi/ide-editor/lib/browser/doc-model/main';
 import {
   EmptyDocCacheImpl,
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelService,
-} from '@opensumi/ide-editor/src/browser';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common';
+} from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelContentRegistryImpl, EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
-import { MockWalkThroughSnippetSchemeDocumentProvider } from '../../../file-scheme/__mocks__/browser/file-doc';
 import { OutputPreferences } from '../../src/browser/output-preference';
 import { OutputChannel } from '../../src/browser/output.channel';
 import { ContentChangeEvent, ContentChangeType } from '../../src/common';

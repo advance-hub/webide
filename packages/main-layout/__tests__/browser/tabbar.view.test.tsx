@@ -68,28 +68,28 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   usePreference: (_key: string, defaultValue: boolean) => defaultValue,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/actions', () => ({
+jest.mock('@opensumi/ide-core-browser/components/actions', () => ({
   InlineMenuBar: () => <span />,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/layout/layout', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Layout: {
     getFlexDirection: () => 'row',
     getTabbarDirection: () => 'column',
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/layout/view-id', () => ({
+jest.mock('@opensumi/ide-core-browser/layout', () => ({
   VIEW_CONTAINERS: {
     LEFT_TABBAR: 'left-tabbar',
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/progress', () => ({
+jest.mock('@opensumi/ide-core-browser/progress', () => ({
   IProgressService: mockProgressServiceToken,
 }));
 
-jest.mock('@opensumi/ide-monaco/lib/common/observable', () => ({
+jest.mock('@opensumi/ide-monaco/observable', () => ({
   observableValue: () => ({
     get: () => false,
   }),

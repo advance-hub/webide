@@ -1,5 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import {
   AsyncEmitter,
   CancellationToken,

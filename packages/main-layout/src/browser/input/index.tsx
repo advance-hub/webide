@@ -1,7 +1,7 @@
 import React, { PropsWithChildren, useEffect, useRef } from 'react';
 
 import { IInputBaseProps, Input } from '@opensumi/ide-components';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
+import { useInjectable } from '@opensumi/ide-core-browser';
 
 import { IMainLayoutService } from '../../common';
 

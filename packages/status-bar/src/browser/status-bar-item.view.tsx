@@ -4,14 +4,15 @@ import React, { memo, useCallback, useMemo } from 'react';
 import { Button, Popover, PopoverPosition, PopoverTriggerType } from '@opensumi/ide-components';
 import {
   IOpenerService,
+  StatusBarEntry,
+  StatusBarHoverContent,
   replaceLocalizePlaceholder,
   toMarkdown,
   toMarkdownHtml,
   transformLabelWithCodicon,
   transformLabelWithCodiconHtml,
+  useInjectable,
 } from '@opensumi/ide-core-browser';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
-import { StatusBarEntry, StatusBarHoverContent } from '@opensumi/ide-core-browser/lib/services';
 import {
   CommandService,
   IMarkdownString,

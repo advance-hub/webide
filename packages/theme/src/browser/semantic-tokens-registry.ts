@@ -1,6 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { IJSONSchema, IJSONSchemaMap } from '@opensumi/ide-core-common/lib/json-schema';
-import { localize } from '@opensumi/ide-core-common/lib/localize';
+import { IJSONSchema, IJSONSchemaMap, localize } from '@opensumi/ide-core-common';
 
 import {
   ISemanticTokenRegistry,

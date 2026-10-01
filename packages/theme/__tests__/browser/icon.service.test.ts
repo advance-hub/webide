@@ -3,16 +3,13 @@ import {
   IFileServiceClient,
   IPreferenceSettingsService,
   PreferenceSchemaProvider,
+  StaticResourceService,
   URI,
 } from '@opensumi/ide-core-browser';
-import {
-  MockPreferenceSchemaProvider,
-  MockPreferenceSettingsService,
-} from '@opensumi/ide-core-browser/__mocks__/preference';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockPreferenceSchemaProvider, MockPreferenceSettingsService } from '@opensumi/ide-dev-tool/mocks/preference';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { IIconService, IconType } from '../../src';
 import { IconService } from '../../src/browser';
 
@@ -179,6 +176,15 @@ describe('icon theme test', () => {
     escape: (str: string) => str,
   };
 
+  it('shows default icons and folder arrows before any extension contributes a theme', () => {
+    expect.hasAssertions();
+    expect(document.body.classList.contains('default-file-icons')).toBe(true);
+    expect(document.body.classList.contains('show-file-icons')).toBe(true);
+    expect(service.currentTheme.hasFileIcons).toBe(true);
+    expect(service.currentTheme.hasFolderIcons).toBe(true);
+    expect(service.currentTheme.hidesExplorerArrows).toBe(false);
+  });
+
   it('should be able to register icon theme', () => {
     service.registerIconThemes(
       [
@@ -203,7 +209,7 @@ describe('icon theme test', () => {
     expect(bodyNode.classList.contains('default-file-icons')).toBeTruthy();
     await service.applyTheme('test-icon-theme');
     expect(service.currentThemeId).toEqual('test-icon-theme');
-    expect(bodyNode.classList.contains('default-file-icons')).toBeTruthy();
+    expect(bodyNode.classList.contains('default-file-icons')).toBeFalsy();
     const iconThemeNode = document.getElementById('icon-style')!;
     expect(iconThemeNode.innerHTML.indexOf('.vs .show-file-icons .folder-icon')).toBeGreaterThan(-1);
   });
@@ -281,5 +287,23 @@ describe('icon theme test', () => {
     );
     await service.applyTheme('test-font-icon-theme');
     expect(service.currentThemeId).toEqual('test-font-icon-theme');
+  });
+
+  it('applies an already configured icon theme when contributions are ready', async () => {
+    const preference = jest.spyOn(service, 'preferenceThemeId', 'get').mockReturnValue('test-icon-theme');
+    (service as any).useDefaultIcons();
+    await (service as any).updateIconThemes();
+    expect(service.currentThemeId).toBe('test-icon-theme');
+    expect(document.getElementById('icon-style')?.textContent).toContain('file-icon');
+    preference.mockRestore();
+  });
+
+  it('does not clear an applied theme when another injector creates IconService', () => {
+    const style = document.getElementById('icon-style');
+    expect(style).not.toBeNull();
+    const another = injector.get(IconService, []);
+    expect(another.currentTheme).toBeDefined();
+    expect(document.getElementById('icon-style')).toBe(style);
+    expect(document.body.classList.contains('default-file-icons')).toBe(false);
   });
 });

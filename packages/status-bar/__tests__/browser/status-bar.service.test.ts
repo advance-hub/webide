@@ -1,10 +1,20 @@
-import { CommandRegistry, IContextKeyService } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
-import { LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
-import { IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IStatusBarService, StatusBarAlignment, StatusBarEntry } from '@opensumi/ide-core-browser/lib/services';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import {
+  CommandRegistry,
+  IContextKeyService,
+  IStatusBarService,
+  StatusBarAlignment,
+  StatusBarEntry,
+} from '@opensumi/ide-core-browser';
+import { LayoutState } from '@opensumi/ide-core-browser/layout';
+import { IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/menu';
+import {
+  StatusBarAlignment as SharedStatusBarAlignment,
+  IStatusBarService as SharedStatusBarService,
+} from '@opensumi/ide-core-common/status-bar';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { IStatusBarService as PublicStatusBarService } from '@opensumi/ide-status-bar';
 
 import { StatusBarModule } from '../../src/browser';
 
@@ -47,8 +57,21 @@ describe('template test', () => {
     await injector.disposeAll();
   });
 
+  it('keeps the shared status contract bound to the browser service instance', () => {
+    expect.hasAssertions();
+    expect(IStatusBarService).toBe(SharedStatusBarService);
+    expect(StatusBarAlignment).toBe(SharedStatusBarAlignment);
+    expect(injector.get(SharedStatusBarService)).toBe(statusBarService);
+  });
+
   it('new StatusBar elements', () => {
     expect(statusBarService.leftEntries.get().length).toBe(1);
+  });
+
+  it('shares the status service token and instance through the public package root', () => {
+    expect.assertions(2);
+    expect(PublicStatusBarService).toBe(IStatusBarService);
+    expect(injector.get(PublicStatusBarService)).toBe(statusBarService);
   });
 
   it('modify StatusBar elements', () => {

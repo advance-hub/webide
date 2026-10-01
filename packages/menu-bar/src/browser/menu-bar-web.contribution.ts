@@ -1,6 +1,11 @@
-import { Disposable, IToolbarRegistry, ToolBarActionContribution } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import {
+  ComponentContribution,
+  ComponentRegistry,
+  Disposable,
+  IToolbarRegistry,
+  ToolBarActionContribution,
+} from '@opensumi/ide-core-browser';
+import { Domain } from '@opensumi/ide-core-common';
 
 import { ToolbarAction } from './toolbar-action.view';
 

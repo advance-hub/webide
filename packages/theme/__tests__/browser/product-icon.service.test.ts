@@ -1,14 +1,15 @@
 import { Injectable } from '@opensumi/di';
-import { IPreferenceSettingsService, PreferenceSchemaProvider, URI } from '@opensumi/ide-core-browser';
 import {
-  MockPreferenceSchemaProvider,
-  MockPreferenceSettingsService,
-} from '@opensumi/ide-core-browser/__mocks__/preference';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+  IPreferenceSettingsService,
+  PreferenceSchemaProvider,
+  StaticResourceService,
+  URI,
+} from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockPreferenceSchemaProvider, MockPreferenceSettingsService } from '@opensumi/ide-dev-tool/mocks/preference';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { getIconRegistry } from '../../lib/common/icon-registry';
 import { IProductIconService } from '../../src';
 import { ProductIconService } from '../../src/browser';

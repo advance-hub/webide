@@ -1,7 +1,7 @@
 import cls from 'classnames';
 import React from 'react';
 
-import { Button } from '@opensumi/ide-components/lib/button';
+import { Button } from '@opensumi/ide-components/button';
 import { IContextKeyService, IOpenerService, getExternalIcon, useInjectable } from '@opensumi/ide-core-browser';
 import { parseLinkedText } from '@opensumi/ide-core-common';
 
@@ -26,9 +26,8 @@ export function renderLabelWithIcons(text: string): Array<React.ReactElement | s
   let match: RegExpMatchArray | null;
 
   let textStart = 0;
-  let textStop = 0;
   while ((match = labelWithIconsRegex.exec(text)) !== null) {
-    textStop = match.index || 0;
+    const textStop = match.index || 0;
     elements.push(text.substring(textStart, textStop));
     textStart = (match.index || 0) + match[0].length;
 

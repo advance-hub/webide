@@ -9,6 +9,13 @@ import { Button } from '../button';
 import antdNotification, { ArgsProps } from './notification';
 import './notification.less';
 
+export type {
+  NotificationApi,
+  NotificationPlacement,
+  ArgsProps as NotificationArgsProps,
+  ConfigProps as NotificationConfigProps,
+} from './notification';
+
 const DURATION: { [type: number]: number } = {
   [MessageType.Info]: 15,
   [MessageType.Warning]: 18,

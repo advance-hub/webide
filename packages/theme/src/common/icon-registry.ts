@@ -6,7 +6,7 @@
 // Some code copied and modified from https://github.com/microsoft/vscode/blob/1.86.0/src/vs/platform/theme/common/iconRegistry.ts
 
 import { Emitter, Event, IJSONSchema, IJSONSchemaMap, ThemeIcon, URI, localize } from '@opensumi/ide-core-common';
-import { getCodiconFontCharacters } from '@opensumi/ide-core-common/lib/codicons';
+import { getCodiconFontCharacters } from '@opensumi/ide-core-common/icons';
 
 import { sumiIconIdentifier } from './icons';
 

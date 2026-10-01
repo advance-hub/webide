@@ -12,18 +12,18 @@ import {
   CommandServiceImpl,
   DisposableCollection,
 } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { DocumentSymbol } from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
-import { FileSearchServicePath } from '@opensumi/ide-file-search/lib/common';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { DocumentSymbol } from '@opensumi/ide-editor/document-symbols';
+import { FileSearchServicePath } from '@opensumi/ide-file-search';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
 import { PrefixQuickOpenService } from '@opensumi/ide-quick-open';
-import { QuickOpenHandlerRegistry } from '@opensumi/ide-quick-open/lib/browser/prefix-quick-open.service';
+import { QuickOpenHandlerRegistry } from '@opensumi/ide-quick-open/prefix-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import * as modes from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { ClientAddonModule } from '../../src/browser';
 import {
   FileSearchContribution,

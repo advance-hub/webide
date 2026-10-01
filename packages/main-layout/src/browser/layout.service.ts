@@ -6,6 +6,7 @@ import {
   CommandRegistry,
   CommandService,
   ComponentRegistry,
+  ComponentRegistryInfo,
   ContributionProvider,
   ExtensionActivateEvent,
   IContextKeyService,
@@ -18,18 +19,17 @@ import {
   WithEventBus,
   slotRendererRegistry,
 } from '@opensumi/ide-core-browser';
-import { fixLayout } from '@opensumi/ide-core-browser/lib/components';
-import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
-import { ComponentRegistryInfo } from '@opensumi/ide-core-browser/lib/layout/layout.interface';
+import { fixLayout } from '@opensumi/ide-core-browser/components';
+import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/layout';
 import {
   AbstractContextMenuService,
   AbstractMenuService,
   IContextMenu,
   IMenuRegistry,
   MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import { Deferred, getDebugLogger, isUndefined } from '@opensumi/ide-core-common';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { transaction } from '@opensumi/ide-monaco/observable';
 import { ThemeChangedEvent } from '@opensumi/ide-theme';
 
 import {

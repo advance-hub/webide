@@ -1,6 +1,11 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { URI, formatLocalize, getDebugLogger, parseWithComments } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import {
+  StaticResourceService,
+  URI,
+  formatLocalize,
+  getDebugLogger,
+  parseWithComments,
+} from '@opensumi/ide-core-browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { IIconTheme } from '../common';
@@ -287,7 +292,9 @@ function processIconThemeDocument(
   return result;
 }
 
+const htmlClassWhitespacePattern = new RegExp('[\\t\\n\\f\\r ]', 'g');
+
 function escapeCSS(str: string) {
-  str = str.replace(/[\x09\x0a\x0c\x0d\x20]/g, '/'); // HTML class names can not contain certain whitespace characters, use / instead, which doesn't exist in file names.
+  str = str.replace(htmlClassWhitespacePattern, '/'); // HTML class names can not contain certain whitespace characters, use / instead, which doesn't exist in file names.
   return window.CSS.escape(str);
 }

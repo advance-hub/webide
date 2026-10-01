@@ -20,9 +20,8 @@ import {
   fastdom,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { EDirection, PanelContext } from '@opensumi/ide-core-browser/lib/components';
-import { Layout } from '@opensumi/ide-core-browser/lib/components/layout/layout';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
+import { EDirection, Layout, PanelContext } from '@opensumi/ide-core-browser/components';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
 
 import { BottomTabbarRenderer, LeftTabbarRenderer, RightTabbarRenderer } from './bar.view';
 import { BottomTabPanelRenderer, LeftTabPanelRenderer, RightTabPanelRenderer } from './panel.view';
@@ -110,8 +109,8 @@ export const RightTabRenderer = ({
 }: {
   className: string;
   components: ComponentRegistryInfo[];
-  tabbarView?: FC<{}>;
-  tabpanelView?: FC<{}>;
+  tabbarView?: FC;
+  tabpanelView?: FC;
 }) => (
   <TabRendererBase
     side={SlotLocation.extendView}
@@ -131,7 +130,7 @@ export const LeftTabRenderer = ({
 }: {
   className: string;
   components: ComponentRegistryInfo[];
-  tabbarView?: FC<{}>;
+  tabbarView?: FC;
 }) => (
   <TabRendererBase
     side={SlotLocation.view}
@@ -151,7 +150,7 @@ export const BottomTabRenderer = ({
 }: {
   className: string;
   components: ComponentRegistryInfo[];
-  tabbarView?: FC<{}>;
+  tabbarView?: FC;
 }) => (
   <TabRendererBase
     side={SlotLocation.panel}

@@ -1,7 +1,7 @@
 import { Autowired } from '@opensumi/di';
 import { AppConfig, ClientAppContribution, Disposable } from '@opensumi/ide-core-browser';
-import { DevtoolsLantencyCommand, EDevtoolsEvent } from '@opensumi/ide-core-common/lib/devtools';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import { Domain } from '@opensumi/ide-core-common';
+import { DevtoolsLantencyCommand, EDevtoolsEvent } from '@opensumi/ide-core-common/devtools';
 
 import { ConnectionRTTBrowserService, ConnectionRTTBrowserServiceToken } from './connection-rtt-service';
 

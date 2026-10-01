@@ -1,6 +1,6 @@
 import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule } from '@opensumi/ide-core-browser';
-import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/browser';
+import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/menu/browser';
 
 import { IDialogService, IMessageService } from '../common';
 

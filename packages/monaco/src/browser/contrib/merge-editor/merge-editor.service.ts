@@ -10,10 +10,10 @@ import {
   SCM_COMMANDS,
   localize,
 } from '@opensumi/ide-core-browser';
-import { MergeConflictReportService } from '@opensumi/ide-core-browser/lib/ai-native/conflict-report.service';
-import { message } from '@opensumi/ide-core-browser/lib/components';
+import { MergeConflictReportService } from '@opensumi/ide-core-browser/ai';
+import { message } from '@opensumi/ide-core-browser/components';
 import { URI, formatLocalize, runWhenIdle } from '@opensumi/ide-core-common';
-import { GitCommands } from '@opensumi/ide-core-common/lib/commands/git';
+import { GitCommands } from '@opensumi/ide-core-common/commands/git';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IDialogService } from '@opensumi/ide-overlay';
 
@@ -31,7 +31,7 @@ import { StickinessConnectManager } from './view/stickiness-connect-manager';
 
 import type { IMergeEditorEditorConstructionOptions } from './merge-editor-widget';
 import type { ICodeEditor } from '../../monaco-api/editor';
-import type { IOpenMergeEditorArgs } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import type { IOpenMergeEditorArgs } from '@opensumi/ide-core-browser/editor';
 
 @Injectable()
 export class MergeEditorService extends Disposable {

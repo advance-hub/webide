@@ -11,19 +11,15 @@ import {
   useDisposable,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Button, Icon, SplitPanel } from '@opensumi/ide-core-browser/lib/components';
-import { InlineActionWidget } from '@opensumi/ide-core-browser/lib/components/actions';
+import { Button, Icon, SplitPanel } from '@opensumi/ide-core-browser/components';
+import { InlineActionWidget } from '@opensumi/ide-core-browser/components/actions';
+import { IMergeEditorInputData, IOpenMergeEditorArgs, MergeEditorInputData } from '@opensumi/ide-core-browser/editor';
 import {
   AbstractMenuService,
   MenuId,
   MenuItemNode,
   generateMergedInlineActions,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import {
-  IMergeEditorInputData,
-  IOpenMergeEditorArgs,
-  MergeEditorInputData,
-} from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+} from '@opensumi/ide-core-browser/menu';
 import { CommandRegistry, FRAME_THREE } from '@opensumi/ide-core-common';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 

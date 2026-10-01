@@ -8,7 +8,7 @@ import {
   KeybindingRegistry,
   localize,
 } from '@opensumi/ide-core-browser';
-import { DialogViewVisibleContext } from '@opensumi/ide-core-browser/lib/contextkey/dialog';
+import { DialogViewVisibleContext } from '@opensumi/ide-core-browser/contextkeys';
 
 import { IDialogService } from '../common';
 

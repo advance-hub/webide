@@ -13,11 +13,10 @@ import {
   useInjectable,
   useViewState,
 } from '@opensumi/ide-core-browser';
-import { InlineActionBar, InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { IMenu } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { ProgressBar } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { InlineActionBar, InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
+import { IMenu } from '@opensumi/ide-core-browser/menu';
+import { IProgressService, ProgressBar } from '@opensumi/ide-core-browser/progress';
 
 import { AccordionService, AccordionServiceFactory } from '../accordion/accordion.service';
 import { AccordionContainer } from '../accordion/accordion.view';

@@ -1,9 +1,8 @@
-import { createMarkedRenderer, toMarkdownHtml } from '@opensumi/ide-components/lib/utils';
-
 import { PROMPT_VALIDATE_TYPE, PromptValidateMessage, TreeNodeType } from '../../../src';
 import { NewPromptHandle, RenamePromptHandle } from '../../../src/recycle-tree/prompt';
 import { Tree } from '../../../src/recycle-tree/tree/Tree';
 import { CompositeTreeNode, TreeNode } from '../../../src/recycle-tree/tree/TreeNode';
+import { createMarkedRenderer, toMarkdownHtml } from '../../../src/utils';
 
 describe('NewPromptHandle', () => {
   class TreeA extends Tree {

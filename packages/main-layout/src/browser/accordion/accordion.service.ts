@@ -21,12 +21,9 @@ import {
   isDefined,
   localize,
 } from '@opensumi/ide-core-browser';
-import { Layout, RESIZE_LOCK } from '@opensumi/ide-core-browser/lib/components';
-import {
-  ISplitPanelService,
-  SplitPanelManager,
-} from '@opensumi/ide-core-browser/lib/components/layout/split-panel.service';
-import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
+import { Layout, RESIZE_LOCK } from '@opensumi/ide-core-browser/components';
+import { ISplitPanelService, SplitPanelManager } from '@opensumi/ide-core-browser/components/layout';
+import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/layout';
 import {
   AbstractContextMenuService,
   AbstractMenuService,
@@ -34,18 +31,13 @@ import {
   IMenu,
   IMenuRegistry,
   MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import {
-  derived,
-  observableValue,
-  recomputeInitiallyAndOnChange,
-  transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-core-browser/menu';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
+import { derived, observableValue, recomputeInitiallyAndOnChange, transaction } from '@opensumi/ide-monaco/observable';
 
-import { IMainLayoutService, ViewCollapseChangedEvent } from '../../common';
+import { ViewCollapseChangedEvent } from '../../common';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
 export interface SectionState {
   collapsed: boolean;
@@ -158,7 +150,10 @@ export class AccordionService extends WithEventBus {
     }
   }
 
-  constructor(public containerId: string, private noRestore?: boolean) {
+  constructor(
+    public containerId: string,
+    private noRestore?: boolean,
+  ) {
     super();
     this.addDispose(recomputeInitiallyAndOnChange(this.visibleViews));
 
@@ -482,7 +477,7 @@ export class AccordionService extends WithEventBus {
     if (this.noRestore || !this.rendered) {
       return;
     }
-    this.layoutState.setState(LAYOUT_STATE.getContainerSpace(this.containerId), this.state);
+    this.layoutState.setStateSync(LAYOUT_STATE.getContainerSpace(this.containerId), this.state);
   };
 
   private registerGlobalToggleCommand() {

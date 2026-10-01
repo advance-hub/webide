@@ -1,12 +1,15 @@
 import cls from 'classnames';
 import React, { memo, useCallback } from 'react';
 
-import { StatusBarEntry, useAutorun, useEventDrivenState } from '@opensumi/ide-core-browser';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { ICtxMenuRenderer, generateCtxMenu } from '@opensumi/ide-core-browser/lib/menu/next';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
-import { IStatusBarService } from '@opensumi/ide-core-browser/lib/services';
+import {
+  IStatusBarService,
+  StatusBarEntry,
+  useAutorun,
+  useEventDrivenState,
+  useInjectable,
+} from '@opensumi/ide-core-browser';
+import { LayoutViewSizeConfig, VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { ICtxMenuRenderer, generateCtxMenu } from '@opensumi/ide-core-browser/menu';
 
 import { StatusBarItem } from './status-bar-item.view';
 import styles from './status-bar.module.less';

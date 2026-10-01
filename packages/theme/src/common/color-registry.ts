@@ -35,16 +35,8 @@ export function WORKBENCH_BACKGROUND(theme: ITheme): Color {
   }
 }
 
-export {
-  lighten,
-  darken,
-  transparent,
-  lessProminent,
-  resolveColorValue,
-  IColorRegistry,
-  registerColor,
-  getColorRegistry,
-};
+export { lighten, darken, transparent, lessProminent, resolveColorValue, registerColor, getColorRegistry };
+export type { IColorRegistry };
 
 // 导出所有的 color token
 export * from './color-tokens';

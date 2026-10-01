@@ -125,12 +125,12 @@ export function createMonacoEditorApi() {
   });
 }
 
-export {
+export { IMarkerData };
+export type {
   ICodeEditor,
   IDecorationOptions,
   IDiffEditorOptions,
   IEditorOptions,
-  IMarkerData,
   IModelDecorationOptions,
   IModelDeltaDecoration,
   ITextModelUpdateOptions,

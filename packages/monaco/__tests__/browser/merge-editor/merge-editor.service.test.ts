@@ -1,16 +1,18 @@
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 
-import { MonacoOverrideServiceRegistry, MonacoService, URI } from '@opensumi/ide-core-browser';
-import { IOpenMergeEditorArgs, MergeEditorInputData } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { MappingManagerService } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/mapping-manager.service';
-import { MergeEditorService } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/merge-editor.service';
-import { monaco } from '@opensumi/ide-monaco/lib/browser/monaco-api/index';
-import MonacoServiceImpl from '@opensumi/ide-monaco/lib/browser/monaco.service';
-import { MonacoOverrideServiceRegistryImpl } from '@opensumi/ide-monaco/lib/browser/override.service.registry';
+import { EDITOR_COMMANDS, MonacoOverrideServiceRegistry, MonacoService, URI } from '@opensumi/ide-core-browser';
+import { IOpenMergeEditorArgs, MergeEditorInputData } from '@opensumi/ide-core-browser/editor';
+import { CommandRegistry } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { WorkspaceService } from '@opensumi/ide-workspace/lib/browser/workspace-service';
+import { WorkspaceService } from '@opensumi/ide-workspace/service';
+
+import { MappingManagerService } from '../../../src/browser/contrib/merge-editor/mapping-manager.service';
+import { MergeEditorService } from '../../../src/browser/contrib/merge-editor/merge-editor.service';
+import { monaco } from '../../../src/browser/monaco-api/index';
+import MonacoServiceImpl from '../../../src/browser/monaco.service';
+import { MonacoOverrideServiceRegistryImpl } from '../../../src/browser/override.service.registry';
 
 let injector: MockInjector;
 
@@ -44,6 +46,9 @@ describe('merge editor service test', () => {
   let openMergeEditorArgs: IOpenMergeEditorArgs;
 
   beforeAll(async () => {
+    injector.get(CommandRegistry).registerCommand(EDITOR_COMMANDS.GET_ENCODING, {
+      execute: () => 'utf8',
+    });
     mergeEditorService = injector.get(MergeEditorService);
     mergeEditorService.instantiationCodeEditor(
       document.createElement('div'),
@@ -106,11 +111,11 @@ a += 2;`),
   it('should be able to create', async () => {
     const monacoService: MonacoService = injector.get(MonacoService);
     let mergeEditor;
-    act(() => {
+    await act(async () => {
       mergeEditor = monacoService.createMergeEditor(document.createElement('div'));
+      await mergeEditor.open(openMergeEditorArgs);
     });
     expect(mergeEditor).toBeDefined();
-    await mergeEditor.open(openMergeEditorArgs);
 
     expect(mergeEditor.getOursEditor()).toBeDefined();
     expect(mergeEditor.getTheirsEditor()).toBeDefined();

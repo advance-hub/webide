@@ -11,6 +11,7 @@ import {
   ILogger,
   KeybindingContribution,
   KeybindingRegistry,
+  LabelService,
   Mode,
   PreferenceService,
   QuickOpenActionProvider,
@@ -22,25 +23,20 @@ import {
   getSymbolIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import {
   CancellationToken,
   CancellationTokenSource,
   Command,
   CommandContribution,
   CommandRegistry,
+  Domain,
   IRange,
   IReporterService,
   REPORT_NAME,
 } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
 import { EditorGroupSplitAction, WorkbenchEditorService } from '@opensumi/ide-editor';
-import {
-  DocumentSymbolStore,
-  IDummyRoot,
-  INormalizedDocumentSymbol,
-} from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
-import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search/lib/common';
+import { DocumentSymbolStore, IDummyRoot, INormalizedDocumentSymbol } from '@opensumi/ide-editor/document-symbols';
+import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
 import * as monaco from '@opensumi/ide-monaco';
 import {
   PrefixQuickOpenService,
@@ -48,10 +44,7 @@ import {
   QuickOpenModel,
   QuickOpenOptions,
 } from '@opensumi/ide-quick-open';
-import {
-  QuickOpenContribution,
-  QuickOpenHandlerRegistry,
-} from '@opensumi/ide-quick-open/lib/browser/prefix-quick-open.service';
+import { QuickOpenContribution, QuickOpenHandlerRegistry } from '@opensumi/ide-quick-open/prefix-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { matchesFuzzy } from '@opensumi/monaco-editor-core/esm/vs/base/common/filters';
 
@@ -284,7 +277,6 @@ export class FileSearchQuickCommandHandler {
     if (lookFor.indexOf('@') > -1) {
       // save current editor state
       this.trySaveEditorState();
-      results = [];
       // 拆分文件查找和symbol查找query
       const [fileQuery, symbolQuery] = lookFor.split('@');
       let targetFile: URI | undefined;

@@ -1,7 +1,7 @@
 import { Disposable, DomListener, Emitter, Event, IDisposable, IRange, uuid } from '@opensumi/ide-core-browser';
-import { IdGenerator } from '@opensumi/ide-core-common/lib/id-generator';
+import { IdGenerator } from '@opensumi/ide-core-common/ids';
 import * as monaco from '@opensumi/ide-monaco';
-import { Color, RGBA } from '@opensumi/ide-theme';
+import { Color } from '@opensumi/ide-theme';
 import {
   createCSSRule,
   removeCSSRulesContainingSelector,
@@ -16,7 +16,7 @@ import {
 import { EditorOption } from '@opensumi/monaco-editor-core/esm/vs/editor/common/config/editorOptions';
 import { TrackedRangeStickiness } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 
-import type { ICodeEditor, ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor, ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 export class ViewZoneDelegate implements monaco.editor.IViewZone {
   public domNode: HTMLElement;
@@ -62,7 +62,10 @@ export class ViewZoneDelegate implements monaco.editor.IViewZone {
 export class OverlayWidgetDelegate extends Disposable implements monaco.editor.IOverlayWidget {
   static id = 'monaco-enhance-overlay-widget';
 
-  constructor(readonly id: string, readonly dom: HTMLDivElement) {
+  constructor(
+    readonly id: string,
+    readonly dom: HTMLDivElement,
+  ) {
     super();
   }
 
@@ -183,7 +186,10 @@ export abstract class ZoneWidget extends Disposable implements IHorizontalSashLa
   private _onDomNodeTop = new Emitter<number>();
   protected onDomNodeTop = this._onDomNodeTop.event;
 
-  constructor(protected readonly editor: IMonacoCodeEditor, readonly options?: IOptions) {
+  constructor(
+    protected readonly editor: IMonacoCodeEditor,
+    readonly options?: IOptions,
+  ) {
     super();
     this._container = document.createElement('div');
     this._listenEvents();
@@ -427,7 +433,11 @@ export abstract class ResizeZoneWidget extends ZoneWidget {
   public onFirstDisplay = Event.once(this.onDomNodeTop);
   protected _isShow = false;
 
-  constructor(protected readonly editor: IMonacoCodeEditor, private range: monaco.IRange, readonly options?: IOptions) {
+  constructor(
+    protected readonly editor: IMonacoCodeEditor,
+    private range: monaco.IRange,
+    readonly options?: IOptions,
+  ) {
     super(editor, options);
     this.lineHeight = this.editor.getOption(monaco.editor.EditorOption.lineHeight);
     this.addDispose(

@@ -1,4 +1,4 @@
-import { IJSONSchema } from '@opensumi/ide-core-common/lib/json-schema';
+import { IJSONSchema } from '@opensumi/ide-core-common';
 
 import { Color } from './color';
 import { ITokenColorizationSetting } from './theme.service';

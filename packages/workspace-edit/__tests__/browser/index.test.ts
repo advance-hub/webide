@@ -1,11 +1,11 @@
 import { URI } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
 import { IEditorGroup, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { FileSystemError, IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { FileSystemError, IFileServiceClient } from '@opensumi/ide-file-service';
 import { Uri } from '@opensumi/ide-monaco';
-import { createMockedMonaco } from '@opensumi/ide-monaco/__mocks__/monaco';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { WorkspaceEditModule } from '../../src/browser';
 import { MonacoBulkEditService } from '../../src/browser/bulk-edit.service';
 import { IResourceFileEdit, IWorkspaceEditService, IWorkspaceFileService } from '../../src/common';
@@ -260,7 +260,6 @@ describe('workspace edit tests', () => {
         ignoreIfExists: true,
       },
     };
-    error = undefined;
     await service.apply({
       edits: [createEdit3],
     });
@@ -307,8 +306,8 @@ describe('workspace edit tests', () => {
   });
 
   it('monaco bulk edit preview test', async () => {
-    const mockedPreviewFn = jest.fn(
-      (edits: ResourceEdit[], options?: IBulkEditOptions): Promise<ResourceEdit[]> => Promise.resolve(edits),
+    const mockedPreviewFn = jest.fn((edits: ResourceEdit[], options?: IBulkEditOptions): Promise<ResourceEdit[]> =>
+      Promise.resolve(edits),
     );
     const monacoBulkEditService: MonacoBulkEditService = injector.get(MonacoBulkEditService);
     monacoBulkEditService.setPreviewHandler(mockedPreviewFn);
@@ -341,8 +340,8 @@ describe('workspace edit tests', () => {
   });
 
   it('monaco bulk edit metadata needsConfirmation test', async () => {
-    const mockedPreviewFn = jest.fn(
-      (edits: ResourceEdit[], options?: IBulkEditOptions): Promise<ResourceEdit[]> => Promise.resolve(edits),
+    const mockedPreviewFn = jest.fn((edits: ResourceEdit[], options?: IBulkEditOptions): Promise<ResourceEdit[]> =>
+      Promise.resolve(edits),
     );
     const monacoBulkEditService: MonacoBulkEditService = injector.get(MonacoBulkEditService);
     monacoBulkEditService.setPreviewHandler(mockedPreviewFn);

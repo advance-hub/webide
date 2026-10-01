@@ -1,16 +1,12 @@
 import React from 'react';
 
-import { CheckBox } from '@opensumi/ide-components/lib/checkbox';
-import { RecycleList } from '@opensumi/ide-components/lib/recycle-list';
-import { useAutorun } from '@opensumi/ide-core-browser';
-import { ViewState } from '@opensumi/ide-core-browser/lib/layout';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services/label-service';
-import { URI, Uri, path } from '@opensumi/ide-core-common';
-import { localize } from '@opensumi/ide-core-common/lib/localize';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/doc-model/types';
+import { CheckBox } from '@opensumi/ide-components/checkbox';
+import { RecycleList } from '@opensumi/ide-components/recycle-list';
+import { LabelService, ViewState, useAutorun, useInjectable } from '@opensumi/ide-core-browser';
+import { URI, Uri, localize, path } from '@opensumi/ide-core-common';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
 import * as monaco from '@opensumi/ide-monaco';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 
 import { IRefactorPreviewService, WorkspaceEditModel } from './refactor-preview.service';
 import styles from './refactor_preview.module.less';

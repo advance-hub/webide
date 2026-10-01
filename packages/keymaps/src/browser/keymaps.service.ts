@@ -30,7 +30,7 @@ import {
   localize,
   runWhenIdle,
 } from '@opensumi/ide-core-browser';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { IKeymapService, KEYMAPS_FILE_NAME, KEYMAPS_SCHEME, KeybindingItem, KeymapItem } from '../common';
@@ -525,8 +525,8 @@ export class KeymapService implements IKeymapService {
               keybinding: isUserKeybinding
                 ? isUserKeybinding.key
                 : kd
-                ? this.keybindingRegistry.acceleratorFor(kd, '+').join(' ')
-                : '',
+                  ? this.keybindingRegistry.acceleratorFor(kd, '+').join(' ')
+                  : '',
               when: isUserKeybinding ? this.getWhen(isUserKeybinding) : this.getWhen(keybindings && kd),
               source: isUserKeybinding ? this.getScope(KeybindingScope.USER) : this.getScope(KeybindingScope.DEFAULT),
               hasCommandLabel: !!command.label,

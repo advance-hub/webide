@@ -4,23 +4,21 @@ import React from 'react';
 import {
   ErrorBoundary,
   getIcon,
-  useAutorun,
+  transformLabelWithCodicon,
   useDesignStyles,
   useInjectable,
   useViewState,
 } from '@opensumi/ide-core-browser';
-import { Layout } from '@opensumi/ide-core-browser/lib/components';
-import { InlineActionBar, InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { IContextMenu, IMenu, isIMenu } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { ProgressBar } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
-import { transformLabelWithCodicon } from '@opensumi/ide-core-browser/lib/utils/label';
+import { Layout } from '@opensumi/ide-core-browser/components';
+import { InlineActionBar, InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { IContextMenu, IMenu, isIMenu } from '@opensumi/ide-core-browser/menu';
+import { IProgressService, ProgressBar } from '@opensumi/ide-core-browser/progress';
 import { IIconService } from '@opensumi/ide-theme';
 
 import { AccordionService } from './accordion.service';
 import styles from './styles.module.less';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
 export interface CollapsePanelProps extends React.PropsWithChildren<any> {
   // Header Title

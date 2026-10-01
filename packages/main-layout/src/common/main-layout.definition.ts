@@ -1,16 +1,12 @@
-import { BasicEvent, IDisposable, SlotLocation } from '@opensumi/ide-core-browser';
-import { SideStateManager, View, ViewContainerOptions } from '@opensumi/ide-core-browser/lib/layout';
-import { ComponentRegistryInfo } from '@opensumi/ide-core-browser/lib/layout/layout.interface';
-import { IContextMenu } from '@opensumi/ide-core-browser/lib/menu/next';
-import { Deferred, Event } from '@opensumi/ide-core-common';
+import { BasicEvent, Deferred, Event, IDisposable } from '@opensumi/ide-core-common';
+import { SlotLocation } from '@opensumi/ide-core-common/workbench';
 import { IContextKeyExpression } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
 
-// eslint-disable-next-line import/no-restricted-paths
 import type { AccordionService } from '../browser/accordion/accordion.service';
-// eslint-disable-next-line import/no-restricted-paths
 import type { TabbarService } from '../browser/tabbar/tabbar.service';
-// eslint-disable-next-line import/no-restricted-paths
 import type { TabBarHandler } from '../browser/tabbar-handler';
+import type { ComponentRegistryInfo, SideStateManager, View, ViewContainerOptions } from '@opensumi/ide-core-browser';
+import type { IContextMenu } from '@opensumi/ide-core-common/menus';
 
 export interface ComponentCollection {
   views?: View[];

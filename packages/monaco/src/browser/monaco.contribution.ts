@@ -27,13 +27,7 @@ import {
   getCDNHref,
   getWorkerBootstrapUrl,
 } from '@opensumi/ide-core-browser';
-import {
-  IMenuItem,
-  IMenuRegistry,
-  ISubmenuItem,
-  MenuContribution,
-  MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuItem, IMenuRegistry, ISubmenuItem, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import {
   CommandService,
   DisposableCollection,
@@ -45,12 +39,8 @@ import {
   removeReadonly,
 } from '@opensumi/ide-core-common';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser/icon.service';
-import {
-  ISemanticTokenRegistry,
-  TokenStyle,
-  parseClassifierString,
-} from '@opensumi/ide-theme/lib/common/semantic-tokens-registry';
+import { IconService } from '@opensumi/ide-theme/icons';
+import { ISemanticTokenRegistry, TokenStyle, parseClassifierString } from '@opensumi/ide-theme/semantic-tokens';
 import {
   EditorContributionInstantiation,
   registerEditorContribution,
@@ -78,6 +68,7 @@ import {
 import { IInstantiationService } from '@opensumi/monaco-editor-core/esm/vs/platform/instantiation/common/instantiation';
 import * as monacoKeybindings from '@opensumi/monaco-editor-core/esm/vs/platform/keybinding/common/keybindingsRegistry';
 
+import pkgJson from '../../package.json';
 import { editor } from '../common';
 import { DELEGATE_COMMANDS, SKIP_UNREGISTER_MONACO_KEYBINDINGS } from '../common/command';
 
@@ -95,8 +86,6 @@ import { MonacoSnippetSuggestProvider } from './monaco-snippet-suggest-provider'
 import { KEY_CODE_MAP } from './monaco.keycode-map';
 import { MonacoResolvedKeybinding } from './monaco.resolved-keybinding';
 import { MonacoTelemetryService } from './telemetry.service';
-
-const pkgJson = require('../../package.json');
 
 export interface Environment {
   /**

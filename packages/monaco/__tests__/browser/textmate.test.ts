@@ -1,13 +1,13 @@
 import { Injectable } from '@opensumi/di';
 import { EventBusImpl, IEventBus, URI } from '@opensumi/ide-core-browser';
-import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/lib/browser/doc-model/editor-document-model-service';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/doc-model/types';
-import { TextmateService } from '@opensumi/ide-editor/lib/browser/monaco-contrib/tokenizer/textmate.service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
+import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { TextmateService } from '@opensumi/ide-editor/runtime';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { ITextmateTokenizer } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { ITextmateTokenizer } from '../../src/browser/contrib/tokenizer';
 import MonacoServiceImpl from '../../src/browser/monaco.service';
 import { MonacoService } from '../../src/common';
 

@@ -1,7 +1,7 @@
 import { MonacoOverrideServiceRegistry } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import MonacoServiceImpl from '../../src/browser/monaco.service';
 import { MonacoOverrideServiceRegistryImpl } from '../../src/browser/override.service.registry';
 import { MonacoService, ServiceNames } from '../../src/common';

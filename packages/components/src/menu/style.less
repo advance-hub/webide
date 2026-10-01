@@ -5,7 +5,7 @@
 
 // default theme
 .@{menu-prefix-cls} {
-  .reset-component;
+  .reset-component();
 
   margin-bottom: 0;
   padding-left: 0; // Override default ul/ol
@@ -15,8 +15,10 @@
   background: @menu-bg;
   outline: none;
   box-shadow: @box-shadow-base;
-  transition: background 0.3s, width 0.2s;
-  .clearfix;
+  transition:
+    background 0.3s,
+    width 0.2s;
+  .clearfix();
 
   ul,
   ol {
@@ -44,7 +46,9 @@
 
   &-submenu &-sub {
     cursor: initial;
-    transition: background 0.3s @ease-in-out, padding 0.3s @ease-in-out;
+    transition:
+      background 0.3s @ease-in-out,
+      padding 0.3s @ease-in-out;
   }
 
   &-item > a {
@@ -153,16 +157,23 @@
     padding: 0 20px;
     white-space: nowrap;
     cursor: pointer;
-    transition: color 0.3s @ease-in-out, border-color 0.3s @ease-in-out, background 0.3s @ease-in-out,
+    transition:
+      color 0.3s @ease-in-out,
+      border-color 0.3s @ease-in-out,
+      background 0.3s @ease-in-out,
       padding 0.15s @ease-in-out;
     .@{iconfont-css-prefix} {
       min-width: 14px;
       margin-right: 10px;
       font-size: @menu-icon-size;
-      transition: font-size 0.15s @ease-out, margin 0.3s @ease-in-out;
+      transition:
+        font-size 0.15s @ease-out,
+        margin 0.3s @ease-in-out;
       + span {
         opacity: 1;
-        transition: opacity 0.3s @ease-in-out, width 0.3s @ease-in-out;
+        transition:
+          opacity 0.3s @ease-in-out,
+          width 0.3s @ease-in-out;
       }
     }
   }
@@ -229,7 +240,10 @@
           background-image: linear-gradient(to right, @menu-item-color, @menu-item-color);
           background-image: ~'none \9';
           border-radius: 2px;
-          transition: background 0.3s @ease-in-out, transform 0.3s @ease-in-out, top 0.3s @ease-in-out;
+          transition:
+            background 0.3s @ease-in-out,
+            transform 0.3s @ease-in-out,
+            top 0.3s @ease-in-out;
           content: '';
         }
         &::before {
@@ -340,7 +354,9 @@
         border-right: @menu-item-active-border-width solid @menu-highlight-color;
         transform: scaleY(0.0001);
         opacity: 0;
-        transition: transform 0.15s @ease-out, opacity 0.15s @ease-out;
+        transition:
+          transform 0.15s @ease-out,
+          opacity 0.15s @ease-out;
         content: '';
       }
     }
@@ -380,7 +396,9 @@
       &::after {
         transform: scaleY(1);
         opacity: 1;
-        transition: transform 0.15s @ease-in-out, opacity 0.15s @ease-in-out;
+        transition:
+          transform 0.15s @ease-in-out,
+          opacity 0.15s @ease-in-out;
       }
     }
 

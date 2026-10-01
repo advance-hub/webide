@@ -11,11 +11,11 @@ import {
   OnEvent,
   PreferenceSchemaProvider,
   PreferenceService,
+  StaticResourceService,
   URI,
   WithEventBus,
   randomString,
 } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
 
 import {
   IIconService,
@@ -33,6 +33,10 @@ import {
 import { IconThemeStore } from './icon-theme-store';
 
 import './icon.less';
+// The product icon styles (iconfont/octicons/codicon) live in core-browser's
+// icon.less; nothing else imports it, and every bundler silently drops the
+// unresolved tilde imports when it is left out.
+import '@opensumi/ide-core-browser/styles/icon.less';
 
 @Injectable()
 export class IconService extends WithEventBus implements IIconService {
@@ -91,7 +95,35 @@ export class IconService extends WithEventBus implements IIconService {
 
   constructor() {
     super();
+    // Some views resolve IIconService from a child injector after the first
+    // instance has applied an extension theme. A new instance must not remove
+    // the document-wide stylesheet owned by the first one.
+    if (document.getElementById('icon-style')) {
+      this.currentThemeId = '';
+      this.currentTheme = this.createDefaultTheme();
+    } else {
+      this.useDefaultIcons();
+    }
     this.listen();
+  }
+
+  private createDefaultTheme(): IIconTheme {
+    return {
+      hasFileIcons: true,
+      hasFolderIcons: true,
+      hidesExplorerArrows: false,
+      styleSheetContent: '',
+      load: async () => '',
+    };
+  }
+
+  private useDefaultIcons() {
+    this.currentThemeId = '';
+    this.currentTheme = this.createDefaultTheme();
+    document.body.classList.add('default-file-icons');
+    this.toggleIconVisible(true);
+    document.getElementById('icon-style')?.remove();
+    this.themeChangeEmitter.fire(this.currentTheme);
   }
 
   private listen() {
@@ -310,13 +342,15 @@ export class IconService extends WithEventBus implements IIconService {
     }, new Map());
 
     this.preferenceSettings.setEnumLabels(GeneralSettingsId.Icon, Object.fromEntries(themeMap.entries()));
-    // 当前没有主题，或没有缓存的主题时，将第一个注册主题设置为当前主题
-    if (!this.currentTheme) {
-      if (!this.preferenceThemeId || !themeMap.has(this.preferenceThemeId)) {
-        const themeId = Array.from(themeMap.keys())[0];
-        if (themeId) {
-          await this.applyTheme(themeId);
-        }
+    // The preference may already be loaded when contributions arrive. In that
+    // case no change event fires, so apply the registered preferred theme here.
+    if (!this.currentThemeId) {
+      const themeId =
+        this.preferenceThemeId && themeMap.has(this.preferenceThemeId)
+          ? this.preferenceThemeId
+          : Array.from(themeMap.keys())[0];
+      if (themeId) {
+        await this.applyTheme(themeId);
       }
     }
   }
@@ -396,7 +430,7 @@ export class IconService extends WithEventBus implements IIconService {
     }
     if (!iconThemeData) {
       this.logger.warn('Target IconTheme extension not detected, use built-in icons.');
-      document.getElementsByTagName('body')[0].classList.add('default-file-icons');
+      this.useDefaultIcons();
       this.iconThemeLoaded.resolve();
       return;
     }

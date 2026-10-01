@@ -1,5 +1,5 @@
 import { Command, getIcon } from '@opensumi/ide-core-browser';
-import { MenuCommandDesc } from '@opensumi/ide-core-browser/lib/menu/next';
+import { MenuCommandDesc } from '@opensumi/ide-core-browser/menu';
 
 /** @deprecated 请使用 main-layout.view.toggle */
 export const TOGGLE_LEFT_PANEL_COMMAND: Command = {

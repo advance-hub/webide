@@ -1,8 +1,7 @@
-import { ComponentRegistryProvider, DisposableCollection } from '@opensumi/ide-core-browser';
-import { SCM_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { ResizeHandle } from '@opensumi/ide-core-browser/lib/components';
-import { AbstractContextMenuService, IContextMenu, IMenuRegistry } from '@opensumi/ide-core-browser/lib/menu/next';
-import { TabbarBehaviorConfig } from '@opensumi/ide-core-browser/lib/react-providers';
+import { ComponentRegistryProvider, DisposableCollection, TabbarBehaviorConfig } from '@opensumi/ide-core-browser';
+import { ResizeHandle } from '@opensumi/ide-core-browser/components';
+import { AbstractContextMenuService, IContextMenu, IMenuRegistry } from '@opensumi/ide-core-browser/menu';
+import { SCM_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 import { IMainLayoutService } from '../../common';
 import { EXPAND_PANEL_COMMAND, RETRACT_PANEL_COMMAND, TOGGLE_PANEL_COMMAND } from '../command';
@@ -24,7 +23,10 @@ export interface ITabbarResizeOptions {
 export class TabbarBehaviorHandler {
   private accordionRestored: Set<string> = new Set();
 
-  constructor(private location: string, private config?: TabbarBehaviorConfig) {}
+  constructor(
+    private location: string,
+    private config?: TabbarBehaviorConfig,
+  ) {}
 
   /**
    * 获取 isLatter 配置

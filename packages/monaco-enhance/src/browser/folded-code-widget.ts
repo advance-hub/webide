@@ -7,7 +7,7 @@ import { IFoldedCodeWidgetContentProvider } from '../common';
 
 import { ZoneWidget } from './zone-widget';
 
-import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 export class FoldedCodeWidget extends ZoneWidget {
   protected _fillContainer(container: HTMLElement): void {}
@@ -72,7 +72,10 @@ export class FoldedCodeWidgetGroup extends Disposable {
     return another;
   }
 
-  constructor(protected readonly editor: IMonacoCodeEditor, protected provider: IFoldedCodeWidgetContentProvider) {
+  constructor(
+    protected readonly editor: IMonacoCodeEditor,
+    protected provider: IFoldedCodeWidgetContentProvider,
+  ) {
     super();
 
     this.editor.updateOptions({

@@ -8,7 +8,7 @@ import {
   ServiceNames,
   Uri,
 } from '@opensumi/ide-core-browser';
-import { IMergeEditorEditor } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { IMergeEditorEditor } from '@opensumi/ide-core-browser/editor';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { KeyCodeChord } from '@opensumi/monaco-editor-core/esm/vs/base/common/keybindings';
 import { IEditorConstructionOptions } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/config/editorConfiguration';

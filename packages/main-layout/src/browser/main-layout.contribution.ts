@@ -1,6 +1,8 @@
 import { Autowired } from '@opensumi/di';
 import {
   ClientAppContribution,
+  ComponentContribution,
+  ComponentRegistry,
   EDITOR_COMMANDS,
   IContextKeyService,
   IQuickOpenHandlerRegistry,
@@ -11,6 +13,8 @@ import {
   SlotLocation,
   SlotRendererContribution,
   SlotRendererRegistry,
+  TabBarToolbarContribution,
+  ToolbarRegistry,
   getIcon,
   slotRendererRegistry,
 } from '@opensumi/ide-core-browser';
@@ -19,27 +23,29 @@ import {
   DEBUG_CONTAINER_ID,
   EXPLORER_CONTAINER_ID,
   EXTENSION_CONTAINER_ID,
+  LayoutState,
   MARKER_CONTAINER_ID,
   OUTPUT_CONTAINER_ID,
   SCM_CONTAINER_ID,
   SEARCH_CONTAINER_ID,
   TERMINAL_CONTAINER_ID,
-} from '@opensumi/ide-core-browser/lib/common/container-id';
-import {
-  ComponentContribution,
-  ComponentRegistry,
-  TabBarToolbarContribution,
-  ToolbarRegistry,
-} from '@opensumi/ide-core-browser/lib/layout';
-import { LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
+} from '@opensumi/ide-core-browser/layout';
 import {
   IMenuRegistry,
   MenuCommandDesc,
   MenuContribution as MenuContribution,
   MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { ContributionProvider, Domain, IEventBus, WithEventBus, localize } from '@opensumi/ide-core-common';
-import { CommandContribution, CommandRegistry, CommandService } from '@opensumi/ide-core-common/lib/command';
+} from '@opensumi/ide-core-browser/menu';
+import {
+  CommandContribution,
+  CommandRegistry,
+  CommandService,
+  ContributionProvider,
+  Domain,
+  IEventBus,
+  WithEventBus,
+  localize,
+} from '@opensumi/ide-core-common';
 
 import { DROP_EXTEND_VIEW_CONTAINER, DROP_PANEL_CONTAINER, DROP_VIEW_CONTAINER, IMainLayoutService } from '../common';
 

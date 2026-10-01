@@ -1,4 +1,23 @@
-export * from '@opensumi/ide-core-browser/lib/monaco';
+export {
+  ServiceNames,
+  MonacoService,
+  MonacoOverrideServiceRegistry,
+  MonacoContribution,
+  Extensions,
+  IJSONSchemaRegistry,
+  JsonSchemaContribution,
+  ISchemaStore,
+  SuggestEvent,
+  createLayoutEventType,
+} from '@opensumi/ide-core-browser/editor';
+export type {
+  FormattingSelectorType,
+  IEditorExtensionContribution,
+  ISchemaContributions,
+  JsonSchemaConfiguration,
+  MimeAssociation,
+  SuggestEventPayload,
+} from '@opensumi/ide-core-browser/editor';
 
 export * from './types';
 export * from './command';

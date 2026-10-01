@@ -1,9 +1,11 @@
 import React, { ReactNode } from 'react';
 
 import { Injectable } from '@opensumi/di';
-import { AIInlineResult } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { ContentWidgetContainerPanel } from '@opensumi/ide-core-browser/lib/components/ai-native/content-widget/containerPanel';
-import { IAIInlineResultIconItemsProps } from '@opensumi/ide-core-browser/lib/components/ai-native/inline-chat/result';
+import {
+  AIInlineResult,
+  ContentWidgetContainerPanel,
+  IAIInlineResultIconItemsProps,
+} from '@opensumi/ide-core-browser/components/ai';
 import { localize } from '@opensumi/ide-core-common';
 
 import { ResolveResultWidget } from './resolve-result-widget';

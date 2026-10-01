@@ -5,7 +5,7 @@ import { IMainLayoutService } from '../common';
 
 import { TabbarService } from './tabbar/tabbar.service';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
 @Injectable({ multiple: true })
 export class TabBarHandler {
@@ -25,7 +25,10 @@ export class TabBarHandler {
   public isVisible = false;
   public accordionService = this.layoutService.getAccordionService(this.containerId);
 
-  constructor(public readonly containerId: string, private tabbarService: TabbarService) {
+  constructor(
+    public readonly containerId: string,
+    private tabbarService: TabbarService,
+  ) {
     // 如果当前视图已经激活，则设置一些激活的标志
     if (tabbarService.currentContainerId.get() === this.containerId) {
       this.onActivateEmitter.fire();

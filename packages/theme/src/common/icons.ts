@@ -1,5 +1,5 @@
 import { localize } from '@opensumi/ide-core-common';
-import { Codicon, Sumicon } from '@opensumi/ide-core-common/lib/codicons';
+import { Codicon, Sumicon } from '@opensumi/ide-core-common/icons';
 
 // https://code.visualstudio.com/api/references/icons-in-labels#icon-listing
 export const codIconIdentifier = {

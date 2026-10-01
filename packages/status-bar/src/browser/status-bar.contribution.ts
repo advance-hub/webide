@@ -1,7 +1,12 @@
 import { Autowired } from '@opensumi/di';
-import { CommandContribution, Domain } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { StatusBarCommand, StatusBarEntry } from '@opensumi/ide-core-browser/lib/services';
+import {
+  CommandContribution,
+  ComponentContribution,
+  ComponentRegistry,
+  Domain,
+  StatusBarCommand,
+  StatusBarEntry,
+} from '@opensumi/ide-core-browser';
 import { CommandRegistry } from '@opensumi/ide-core-common';
 
 import { IStatusBarService } from '../common';

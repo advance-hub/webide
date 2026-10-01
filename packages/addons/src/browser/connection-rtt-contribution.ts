@@ -1,7 +1,6 @@
 import { Autowired } from '@opensumi/di';
-import { IStatusBarService, StatusBarAlignment, StatusBarEntryAccessor } from '@opensumi/ide-core-browser/lib/services';
-import { Command, CommandContribution, CommandRegistry } from '@opensumi/ide-core-common/lib/command';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import { IStatusBarService, StatusBarAlignment, StatusBarEntryAccessor } from '@opensumi/ide-core-browser';
+import { Command, CommandContribution, CommandRegistry, Domain } from '@opensumi/ide-core-common';
 
 import { ConnectionRTTBrowserService, ConnectionRTTBrowserServiceToken } from './connection-rtt-service';
 

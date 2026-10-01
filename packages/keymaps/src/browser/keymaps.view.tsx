@@ -12,7 +12,7 @@ import {
   localize,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { ReactEditorComponent } from '@opensumi/ide-editor/lib/browser';
+import { ReactEditorComponent } from '@opensumi/ide-editor/browser';
 
 import { IKeymapService, KeybindingItem } from '../common';
 

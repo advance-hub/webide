@@ -1,23 +1,25 @@
 import { Autowired } from '@opensumi/di';
-import { ClientAppContribution, PreferenceContribution, getIcon } from '@opensumi/ide-core-browser';
-import { OUTPUT_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
 import {
+  ClientAppContribution,
   ComponentContribution,
   ComponentRegistry,
+  PreferenceContribution,
   TabBarToolbarContribution,
   ToolbarRegistry,
-} from '@opensumi/ide-core-browser/lib/layout';
+  getIcon,
+} from '@opensumi/ide-core-browser';
 import {
   Command,
   CommandContribution,
   CommandRegistry,
   CommonLanguageId,
   Disposable,
+  Domain,
   PreferenceSchema,
   localize,
 } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
-import { monaco as monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { OUTPUT_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
+import { monaco as monacoApi } from '@opensumi/ide-monaco/api';
 
 import { OutputLinkProvider } from './output-link.provider';
 import { outputPreferenceSchema } from './output-preference';

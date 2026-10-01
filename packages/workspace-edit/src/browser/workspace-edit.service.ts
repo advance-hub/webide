@@ -1,11 +1,11 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IEventBus, URI, isUndefined, isWindows, runWhenIdle } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService, IResource, isDiffResource } from '@opensumi/ide-editor/lib/browser';
-import { EditorGroup } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { FileSystemError } from '@opensumi/ide-file-service/lib/common';
-import { EOL, EndOfLineSequence } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
-import { IIdentifiedSingleEditOperation } from '@opensumi/ide-monaco/lib/common';
+import { IEditorDocumentModelService, IResource, isDiffResource } from '@opensumi/ide-editor/browser';
+import { EditorGroup } from '@opensumi/ide-editor/workbench';
+import { FileSystemError } from '@opensumi/ide-file-service';
+import { IIdentifiedSingleEditOperation } from '@opensumi/ide-monaco';
+import { EOL, EndOfLineSequence } from '@opensumi/ide-monaco/types';
 import { Range } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 
 import {

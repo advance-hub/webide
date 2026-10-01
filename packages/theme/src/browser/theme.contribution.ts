@@ -16,12 +16,11 @@ import {
   localize,
   replaceLocalizePlaceholder,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import {
   BuiltinTheme,
   BuiltinThemeComparator,
-  DEFAULT_THEME_ID,
   IIconService,
   IProductIconService,
   IThemeService,

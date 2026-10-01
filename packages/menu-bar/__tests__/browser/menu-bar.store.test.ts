@@ -1,10 +1,10 @@
 import { Injectable } from '@opensumi/di';
 import { Emitter, Event } from '@opensumi/ide-core-browser';
-import { AbstractMenubarService, IMenubarItem, MenuNode } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractMenubarService, IMenubarItem, MenuNode } from '@opensumi/ide-core-browser/menu';
 import { Disposable } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { MenuBarModule } from '../../src';
 import { AbstractMenubarStore, MenubarStore } from '../../src/browser/menu-bar.store';
 

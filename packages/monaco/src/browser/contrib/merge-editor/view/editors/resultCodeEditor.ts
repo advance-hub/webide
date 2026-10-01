@@ -10,7 +10,7 @@ import {
   MonacoService,
   runWhenIdle,
 } from '@opensumi/ide-core-browser';
-import { MergeConflictReportService } from '@opensumi/ide-core-browser/lib/ai-native/conflict-report.service';
+import { MergeConflictReportService } from '@opensumi/ide-core-browser/ai';
 import {
   AIBackSerivcePath,
   ChatResponse,

@@ -12,7 +12,7 @@ import {
   localize,
   path,
 } from '@opensumi/ide-core-common';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 import { SnippetParser } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/snippet/browser/snippetParser';
 
@@ -330,8 +330,8 @@ export interface JsonSerializedSnippet {
   description: string;
 }
 export namespace JsonSerializedSnippet {
-  export function is(obj: Object | undefined): obj is JsonSerializedSnippet {
-    return typeof obj === 'object' && 'body' in obj && 'prefix' in obj;
+  export function is(obj: unknown): obj is JsonSerializedSnippet {
+    return obj !== null && typeof obj === 'object' && 'body' in obj && 'prefix' in obj;
   }
 }
 
@@ -363,7 +363,10 @@ export class MonacoSnippetSuggestion implements monaco.languages.CompletionItem 
     return a.label > b.label ? 1 : a.label < b.label ? -1 : 0;
   }
 
-  constructor(readonly snippet: Snippet, range: IRange) {
+  constructor(
+    readonly snippet: Snippet,
+    range: IRange,
+  ) {
     this.label = snippet.prefix;
     this.detail = `${snippet.description || snippet.name} (${snippet.source})`;
     this.insertText = snippet.body;

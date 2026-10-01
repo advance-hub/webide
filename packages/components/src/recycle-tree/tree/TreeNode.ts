@@ -694,7 +694,7 @@ export class CompositeTreeNode extends TreeNode implements ICompositeTreeNode {
    * @param token CancellationToken
    */
   private async resolveChildrens(token?: CancellationToken) {
-    let childrens = this.children;
+    let childrens: ITreeNodeOrCompositeTreeNode[];
     let expandedPaths: string[] = [];
     try {
       childrens = (await this._tree.resolveChildren(this)) || [];

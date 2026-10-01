@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, Schemes, URI, Uri, path, strings } from '@opensumi/ide-core-browser';
 import * as monaco from '@opensumi/ide-monaco';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 export interface IResourceCreator {

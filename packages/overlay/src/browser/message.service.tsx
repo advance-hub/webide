@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { notification, open } from '@opensumi/ide-components';
-import { parseWithoutEscape } from '@opensumi/ide-components/lib/utils';
+import { parseWithoutEscape } from '@opensumi/ide-components/utils';
 import { IOpenerService, toMarkdown } from '@opensumi/ide-core-browser';
 import { MayCancelablePromise, MessageType, localize, uuid } from '@opensumi/ide-core-common';
 

@@ -10,8 +10,8 @@ import {
   WaitUntilEvent,
 } from '@opensumi/ide-core-common';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { EndOfLineSequence } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+// eslint-disable-next-line import-x/no-restricted-paths
+import type { EndOfLineSequence } from '@opensumi/ide-monaco/types';
 import type { IBulkEditService } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/bulkEditService';
 
 // 对文件位置(添加，删除，移动, 复制)

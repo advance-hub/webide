@@ -1,5 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { MergeConflictReportService } from '@opensumi/ide-core-browser/lib/ai-native/conflict-report.service';
+import { MergeConflictReportService } from '@opensumi/ide-core-browser/ai';
 import { CancelResponse, Disposable, ErrorResponse, Event, ReplyResponse } from '@opensumi/ide-core-common';
 import { IEditorMouseEvent, MouseTargetType } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorBrowser';
 import { Position } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/position';

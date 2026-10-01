@@ -1,11 +1,11 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { PreferenceService } from '@opensumi/ide-core-browser';
-import { OUTPUT_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
 import { Deferred, Disposable, IEventBus, Schemes, URI, localize, strings, uuid } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelRef, IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { OUTPUT_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
+import { IEditorDocumentModelRef, IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import * as monaco from '@opensumi/ide-monaco';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 
 import { ContentChangeEvent, ContentChangeEventPayload, ContentChangeType } from '../common';

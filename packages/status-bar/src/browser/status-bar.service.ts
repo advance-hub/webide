@@ -1,19 +1,23 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { EventEmitter } from '@opensumi/events';
-import { AppConfig, Disposable, IContextKeyService, IDisposable, isUndefined } from '@opensumi/ide-core-browser';
-import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
-import { AbstractMenuService, IMenu, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { RawContextKey } from '@opensumi/ide-core-browser/lib/raw-context-key';
 import {
+  AppConfig,
+  Disposable,
+  IContextKeyService,
+  IDisposable,
   IStatusBarService,
   StatusBarAlignment,
   StatusBarCommand,
   StatusBarEntry,
   StatusBarEntryAccessor,
   StatusBarState,
-} from '@opensumi/ide-core-browser/lib/services';
+  isUndefined,
+} from '@opensumi/ide-core-browser';
+import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/layout';
+import { AbstractMenuService, IMenu, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/menu';
 import { CommandService, DisposableCollection, memoize } from '@opensumi/ide-core-common';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { RawContextKey } from '@opensumi/ide-core-common/contextkeys';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 @Injectable()
 export class StatusBarService extends Disposable implements IStatusBarService {

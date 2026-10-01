@@ -1,8 +1,13 @@
 import { Autowired } from '@opensumi/di';
-import { Disposable, MenubarSettingId, PreferenceService } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenubarItem } from '@opensumi/ide-core-browser/lib/menu/next';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import {
+  ComponentContribution,
+  ComponentRegistry,
+  Disposable,
+  MenubarSettingId,
+  PreferenceService,
+} from '@opensumi/ide-core-browser';
+import { IMenubarItem } from '@opensumi/ide-core-browser/menu';
+import { Domain } from '@opensumi/ide-core-common';
 
 import { MenubarStore } from './menu-bar.store';
 import { MenuBarMixToolbarAction } from './menu-bar.view';

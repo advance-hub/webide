@@ -3,7 +3,7 @@ import debounce from 'lodash/debounce';
 import { Autowired, Injectable } from '@opensumi/di';
 import { Emitter, Event, IJSONSchema, IJSONSchemaRegistry, ISchemaContributions } from '@opensumi/ide-core-browser';
 import { Disposable, IDisposable, replaceLocalizePlaceholder } from '@opensumi/ide-core-common';
-import { cloneAndChangeByKV } from '@opensumi/ide-utils/lib/objects';
+import { cloneAndChangeByKV } from '@opensumi/ide-utils/objects';
 
 import { ISchemaStore, JsonSchemaConfiguration } from '../common';
 

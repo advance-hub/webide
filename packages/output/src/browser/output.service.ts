@@ -6,9 +6,9 @@ import {
   ICodeEditor,
   IEditorDocumentModelService,
   getSimpleEditorOptions,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import { OutputChannel } from './output.channel';
 

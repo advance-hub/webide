@@ -12,19 +12,20 @@ import {
   SlotLocation,
   ViewContainerOptions,
 } from '@opensumi/ide-core-browser';
-import { MockLoggerManageClient } from '@opensumi/ide-core-browser/__mocks__/logger';
-import { useMockStorage } from '@opensumi/ide-core-browser/__mocks__/storage';
-import { ClientApp } from '@opensumi/ide-core-browser/lib/bootstrap/app';
-import { LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
+import { ClientApp } from '@opensumi/ide-core-browser/bootstrap';
+import { LayoutState } from '@opensumi/ide-core-browser/layout';
 import { CommonServerPath, Deferred, ILoggerManagerClient, OS } from '@opensumi/ide-core-common';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockLoggerManageClient } from '@opensumi/ide-dev-tool/mocks/logger';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+import { useMockStorage } from '@opensumi/ide-dev-tool/mocks/storage';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { MainLayoutModule } from '@opensumi/ide-main-layout/lib/browser';
-import { LayoutService } from '@opensumi/ide-main-layout/lib/browser/layout.service';
-import { MainLayoutModuleContribution } from '@opensumi/ide-main-layout/lib/browser/main-layout.contribution';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
-import { IconService } from '@opensumi/ide-theme/lib/browser/icon.service';
-import { IIconService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { IconService } from '@opensumi/ide-theme/icons';
+import { IIconService } from '@opensumi/ide-theme/types';
+
+import { MainLayoutModule } from '../../src/browser';
+import { LayoutService } from '../../src/browser/layout.service';
+import { MainLayoutModuleContribution } from '../../src/browser/main-layout.contribution';
 
 const MockView = (props) => <div>Test view{props.message && <p id='test-unique-id'>has prop.message</p>}</div>;
 
@@ -313,7 +314,7 @@ describe('main layout test', () => {
     act(() => {
       handler.updateViewTitle('test-view-id5', newTitle);
     });
-    expect(handler.accordionService.views.find((view) => view.id === 'test-view-id5')?.name === newTitle);
+    expect(handler.accordionService.views.find((view) => view.id === 'test-view-id5')?.name === newTitle).toBe(true);
     act(() => {
       handler.toggleViews(['test-view-id5'], false);
     });

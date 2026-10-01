@@ -12,7 +12,7 @@ import {
   localize,
   parseWithComments,
 } from '@opensumi/ide-core-browser';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { Color } from '../common/color';
 import { editorBackground, editorForeground } from '../common/color-tokens/editor';

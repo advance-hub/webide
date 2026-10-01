@@ -1,6 +1,6 @@
 import kebabCase from 'lodash/kebabCase';
 
-import { StackingLevelStr } from '@opensumi/ide-core-browser';
+import { StackingLevelStr } from '@opensumi/ide-core-common/workbench';
 
 import { registerCSSVar } from './css-var';
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { Deferred, MessageType, localize } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { IObservable, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { IObservable, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IDialogService } from '@opensumi/ide-overlay';
 import { ResourceEdit } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/bulkEditService';
 

@@ -1,19 +1,15 @@
 import { MonacoOverrideServiceRegistry } from '@opensumi/ide-core-browser';
 import { CommandRegistry, Emitter } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { EditorCollectionService, WorkbenchEditorService } from '@opensumi/ide-editor';
-import {
-  MonacoActionRegistry,
-  MonacoCommandRegistry,
-  MonacoCommandService,
-} from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoActionRegistry, MonacoCommandRegistry, MonacoCommandService } from '@opensumi/ide-editor/commands';
 import {
   EditorAction,
   EditorExtensionsRegistry,
 } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorExtensions';
 import { CommandsRegistry, ICommandEvent } from '@opensumi/monaco-editor-core/esm/vs/platform/commands/common/commands';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import MonacoServiceImpl from '../../src/browser/monaco.service';
 import { MonacoOverrideServiceRegistryImpl } from '../../src/browser/override.service.registry';
 import { MonacoService } from '../../src/common';

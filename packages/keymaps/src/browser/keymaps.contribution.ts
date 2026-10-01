@@ -19,10 +19,10 @@ import {
   getKeyboardLayoutId,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { IResource, IResourceProvider, ResourceService } from '@opensumi/ide-editor';
-import { BrowserEditorContribution, EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/lib/browser';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { BrowserEditorContribution, EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/browser';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { QuickPickItem, QuickPickService } from '@opensumi/ide-quick-open';
 
 import { IKeymapService, KEYMAPS_SCHEME } from '../common';

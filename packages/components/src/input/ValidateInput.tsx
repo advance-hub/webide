@@ -1,21 +1,16 @@
 import cls from 'classnames';
 import React from 'react';
 
+import { VALIDATE_TYPE } from '@opensumi/ide-core-common/validation';
+
 import { IInputBaseProps, Input } from './Input';
+
+import type { ValidateMessage } from '@opensumi/ide-core-common/validation';
 
 import './validate-input.less';
 
-export enum VALIDATE_TYPE {
-  INFO = 1,
-  ERROR = 2,
-  WARNING = 3,
-  IGNORE = 4,
-}
-
-export interface ValidateMessage {
-  message?: string | void;
-  type: VALIDATE_TYPE;
-}
+export { VALIDATE_TYPE } from '@opensumi/ide-core-common/validation';
+export type { ValidateMessage } from '@opensumi/ide-core-common/validation';
 
 export interface ValidateInputProp extends IInputBaseProps {
   // void 返回代表验证通过

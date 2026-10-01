@@ -219,12 +219,12 @@ export class ConfigurationService extends Disposable implements IConfigurationSe
       typeof value?.workspaceFolderValue !== 'undefined'
         ? value?.workspaceFolderValue
         : typeof value?.workspaceValue !== 'undefined'
-        ? value?.workspaceValue
-        : typeof value?.globalValue !== 'undefined'
-        ? value?.globalValue
-        : typeof value?.defaultValue !== 'undefined'
-        ? value?.defaultValue
-        : undefined;
+          ? value?.workspaceValue
+          : typeof value?.globalValue !== 'undefined'
+            ? value?.globalValue
+            : typeof value?.defaultValue !== 'undefined'
+              ? value?.defaultValue
+              : undefined;
 
     return {
       defaultValue: value?.defaultValue as T,
@@ -310,7 +310,7 @@ abstract class BaseContextKeyService extends Disposable implements IContextKeySe
     super();
   }
 
-  bufferChangeEvents(callback: Function): void {
+  bufferChangeEvents(callback: () => void): void {
     this.contextKeyService.bufferChangeEvents(callback);
   }
 

@@ -15,7 +15,7 @@ import {
   WithEventBus,
   debounce,
 } from '@opensumi/ide-core-common';
-import { EditorDocumentModelSavedEvent, EditorDocumentModelWillSaveEvent } from '@opensumi/ide-editor/lib/browser';
+import { EditorDocumentModelSavedEvent, EditorDocumentModelWillSaveEvent } from '@opensumi/ide-editor/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import {
   FileOperation,

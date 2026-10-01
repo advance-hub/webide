@@ -9,8 +9,8 @@ import {
   ISubmenuItem,
   MenuId,
   MenuNode,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { IObservable, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-core-browser/menu';
+import { IObservable, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 export abstract class AbstractMenubarStore extends Disposable {
   menubarItems: IObservable<IMenubarItem[]>;
@@ -105,7 +105,7 @@ export class MenubarStore extends Disposable implements AbstractMenubarStore {
           ({
             label: item.label,
             submenu: item.id,
-          } as ISubmenuItem),
+          }) as ISubmenuItem,
       ),
     );
   }

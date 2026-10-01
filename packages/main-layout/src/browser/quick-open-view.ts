@@ -6,7 +6,7 @@ import {
   QuickOpenItem,
   QuickOpenItemOptions,
   QuickOpenModel,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+} from '@opensumi/ide-core-browser/quick-open';
 
 import { IMainLayoutService } from '../common';
 
@@ -79,7 +79,10 @@ export class ContainerQuickOpenItem extends QuickOpenItem {
   @Autowired(IMainLayoutService)
   private layoutService: IMainLayoutService;
 
-  constructor(private readonly containerId, protected readonly options: QuickOpenItemOptions) {
+  constructor(
+    private readonly containerId,
+    protected readonly options: QuickOpenItemOptions,
+  ) {
     super(options);
   }
 

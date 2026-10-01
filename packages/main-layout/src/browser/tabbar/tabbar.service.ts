@@ -23,10 +23,11 @@ import {
   isDefined,
   isUndefined,
   localize,
+  slotRendererRegistry,
   toDisposable,
 } from '@opensumi/ide-core-browser';
-import { ResizeHandle } from '@opensumi/ide-core-browser/lib/components';
-import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
+import { ResizeHandle } from '@opensumi/ide-core-browser/components';
+import { LAYOUT_STATE, LayoutState } from '@opensumi/ide-core-browser/layout';
 import {
   AbstractContextMenuService,
   AbstractMenuService,
@@ -36,9 +37,8 @@ import {
   IMenuRegistry,
   MenuId,
   generateCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { slotRendererRegistry } from '@opensumi/ide-core-browser/lib/react-providers';
+} from '@opensumi/ide-core-browser/menu';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import {
   ITransaction,
   autorunDelta,
@@ -46,13 +46,13 @@ import {
   observableFromEventOpts,
   observableValue,
   transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 
 import { IMainLayoutService, TabBarRegistrationEvent } from '../../common';
 
 import { ITabbarResizeOptions, TabbarBehaviorHandler } from './tabbar-behavior-handler';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
 export const TabbarServiceFactory = Symbol('TabbarServiceFactory');
 export const TabbarServiceFactoryFn = (injector: Injector) => (location: string) => {

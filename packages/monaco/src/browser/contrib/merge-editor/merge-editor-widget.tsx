@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { AppConfig, ConfigProvider } from '@opensumi/ide-core-browser';
-import { IMergeEditorEditor, IOpenMergeEditorArgs } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { IMergeEditorEditor, IOpenMergeEditorArgs } from '@opensumi/ide-core-browser/editor';
 import { Disposable, IRange, ISelection, URI } from '@opensumi/ide-core-common';
 import { Selection } from '@opensumi/monaco-editor-core';
 import { IDisposable } from '@opensumi/monaco-editor-core/esm/vs/base/common/lifecycle';
@@ -30,8 +30,7 @@ export interface IMergeEditorModel {
   theirs: ITextModel;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IMergeEditorEditorConstructionOptions extends IDiffEditorOptions {}
+export type IMergeEditorEditorConstructionOptions = IDiffEditorOptions;
 
 let MERGE_EDITOR_ID = 0;
 

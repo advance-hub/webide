@@ -2,10 +2,12 @@ import React, { ReactNode, useCallback, useMemo } from 'react';
 
 import { Injectable } from '@opensumi/di';
 import { Button } from '@opensumi/ide-components';
-import { DialogContent, Popover, PopoverPosition } from '@opensumi/ide-core-browser/lib/components';
-import { AIInlineResult } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { ContentWidgetContainerPanel } from '@opensumi/ide-core-browser/lib/components/ai-native/content-widget/containerPanel';
-import { IAIInlineResultIconItemsProps } from '@opensumi/ide-core-browser/lib/components/ai-native/inline-chat/result';
+import { DialogContent, Popover, PopoverPosition } from '@opensumi/ide-core-browser/components';
+import {
+  AIInlineResult,
+  ContentWidgetContainerPanel,
+  IAIInlineResultIconItemsProps,
+} from '@opensumi/ide-core-browser/components/ai';
 import { MessageType, localize, uuid } from '@opensumi/ide-core-common';
 
 import { ReactInlineContentWidget } from '../../../ai-native/BaseInlineContentWidget';

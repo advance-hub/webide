@@ -4,7 +4,7 @@ import path from 'path';
 import * as fs from 'fs-extra';
 
 import { Injectable, Provider } from '@opensumi/di';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   AppConfig,
   BrowserModule,
@@ -18,19 +18,20 @@ import {
   localize,
   runWhenIdle,
 } from '@opensumi/ide-core-browser';
-import { MockProgressService } from '@opensumi/ide-core-browser/__mocks__/progress-service';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockProgressService } from '@opensumi/ide-dev-tool/mocks/progress-service';
 import { IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClientModule } from '@opensumi/ide-file-service/lib/browser';
-import { FileServiceContribution } from '@opensumi/ide-file-service/lib/browser/file-service-contribution';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { KeymapsModule } from '@opensumi/ide-keymaps/lib/browser';
-import { KeymapService } from '@opensumi/ide-keymaps/lib/browser/keymaps.service';
+import { FileServiceClientModule } from '@opensumi/ide-file-service/browser';
+import { FileServiceContribution } from '@opensumi/ide-file-service/browser/contribution';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
+import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/node/watchers';
 import { IUserStorageService } from '@opensumi/ide-preferences';
-import { UserStorageContribution, UserStorageServiceImpl } from '@opensumi/ide-preferences/lib/browser/userstorage';
+import { UserStorageContribution, UserStorageServiceImpl } from '@opensumi/ide-preferences/user-storage';
+
+import { KeymapsModule } from '../../src/browser';
+import { KeymapService } from '../../src/browser/keymaps.service';
 
 @Injectable()
 export class AddonModule extends BrowserModule {
@@ -116,7 +117,7 @@ describe('KeymapsService should be work', () => {
           setClient: () => void 0,
           watch: (() => 1) as any,
           unWatch: () => void 0,
-          createProcess: () => void 0,
+          createProcess: () => Promise.resolve(undefined),
         },
       },
       {
@@ -302,7 +303,7 @@ describe('KeymapsService should be work', () => {
           key: 'cmd+c',
         },
       ];
-      expect(keymapsService.storeKeybindings[0].command === 'editor.action.quickCommand');
+      expect(keymapsService.storeKeybindings[0].command === 'editor.action.quickCommand').toBe(true);
     });
   });
 });
