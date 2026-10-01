@@ -1,0 +1,175 @@
+{
+  "scope": {
+    "workspace": "output/runtime-profiles/real-workspace-20261001/snapshots/opensumi",
+    "query": "SHARED_NODE_WATCH_COMPARE_20261001",
+    "expectedResult": "8 results found in 8 files",
+    "fileSearchQuery": "watch-sharing-target",
+    "expectedFileSearchResult": "watch-sharing-target.md",
+    "extensionDirectory": "output/runtime-profiles/local-node-go-20261001/extensions",
+    "extensions": [
+      "vscode.vscode-theme-seti-1.88.1",
+      "vscode.theme-defaults-1.88.1",
+      "vscode.git-base-1.88.1",
+      "vscode.git-1.88.1",
+      "vscode.markdown-1.88.1",
+      "vscode.typescript-1.88.1",
+      "vscode.typescript-language-features-1.60.0",
+      "vscode.json-language-features-1.88.1",
+      "vscode.configuration-editing-1.55.2"
+    ],
+    "sessions": 5,
+    "runs": 3,
+    "variants": ["node", "shared-node", "go-watch"],
+    "runtimeVersion": "Node 24",
+    "scope": "Five connections to one server and one OpenSumi front/back workspace; watcher sharing; Go search and Gateway disabled."
+  },
+  "metric": "Median across 3 runs of per-run P95 RSS; MiB (1024^2). Browser excludes Chromium, includes extension language-service children.",
+  "limitations": [
+    "macOS ARM64 only; local evidence, not production capacity certification.",
+    "5 connections to one server and one workspace, not five independently hosted IDEs.",
+    "Host load 85-237 on 10 CPUs; whole-tree RSS and latency strongly variable.",
+    "Native probes force Parcel, browser probes use the current default backend.",
+    "No automatic re-subscription after shared host crash has been qualified.",
+    "Extra CLI server stop while browser connected: stop contributions complete and children exit, but server process stays alive with PTY descriptors. Cause not established; outside accepted closed-browser-then-server sequence."
+  ],
+  "variants": {
+    "node": {
+      "nativeWatcherP95MiB": [413.953125, 414.71875, 414.890625],
+      "browserWatcherP95MiB": [227.34375, 228.1875, 268.09375],
+      "browserTreeP95MiB": [3072.46875, 4817.515625, 2069.53125],
+      "searchP95Ms": [740, 659, 598],
+      "quickOpenP95Ms": [818, 960, 1009],
+      "medians": {
+        "nativeWatcherP95MiB": 414.71875,
+        "browserWatcherP95MiB": 228.1875,
+        "browserTreeP95MiB": 3072.46875,
+        "searchP95Ms": 659,
+        "quickOpenP95Ms": 960
+      }
+    },
+    "shared-node": {
+      "nativeWatcherP95MiB": [82.328125, 82.5, 82.578125],
+      "browserWatcherP95MiB": [45.59375, 45.59375, 45.609375],
+      "browserTreeP95MiB": [3141.21875, 4719.40625, 4092.3125],
+      "searchP95Ms": [605, 795, 573],
+      "quickOpenP95Ms": [485, 892, 370],
+      "medians": {
+        "nativeWatcherP95MiB": 82.5,
+        "browserWatcherP95MiB": 45.59375,
+        "browserTreeP95MiB": 4092.3125,
+        "searchP95Ms": 605,
+        "quickOpenP95Ms": 485
+      }
+    },
+    "go-watch": {
+      "nativeWatcherP95MiB": [12.6875, 15.09375, 15],
+      "browserWatcherP95MiB": [13.0, 12.703125, 12.875],
+      "browserTreeP95MiB": [2726.453125, 2239.328125, 3721.6875],
+      "searchP95Ms": [1198, 811, 929],
+      "quickOpenP95Ms": [459, 902, 422],
+      "medians": {
+        "nativeWatcherP95MiB": 15,
+        "browserWatcherP95MiB": 12.875,
+        "browserTreeP95MiB": 2726.453125,
+        "searchP95Ms": 929,
+        "quickOpenP95Ms": 459
+      }
+    }
+  },
+  "validation": {
+    "nativeRuns": 9,
+    "nativeMutationSteps": 63,
+    "browserRuns": 9,
+    "browserSessionsPerRun": 5,
+    "unitTests": 35,
+    "defaultBackendSharedProbe": true,
+    "allLifecycleChecksPass": true,
+    "browserErrors": 0,
+    "postServerStopOwnedLivePids": [],
+    "activeConnectionServerStop": {
+      "passed": false,
+      "forcedCleanup": true,
+      "observation": "Shutdown reports completion, main process remains, no network/Unix sockets in lsof, PTY file descriptors remain. Cause not established."
+    }
+  },
+  "sourceHead": "32dff6cfb4e5c47ab8e2e7e6b03b0095e847bbd2 with uncommitted shared watcher prototype",
+  "evidence": [
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-go-watch-r1/result.json",
+      "sha256": "9d088680216b8a2e4d9739443907917687e66eb305f51e89ef529bc709f78379"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-go-watch-r2/result.json",
+      "sha256": "b67866267db303467085f8d2395572a2a6817b5503d4c33897d1d33a0219b4b2"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-go-watch-r3/result.json",
+      "sha256": "ef3cca0504ac38b55f8e81b3610372ddc6e49a92b2ddcc2c0fb21fdc41a22e2b"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-node-r1/result.json",
+      "sha256": "08eb80c67b975f2bef81c9eb5dc21c380bd8d9e940e48474735aad986843c58e"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-node-r2/result.json",
+      "sha256": "b7d4adf78adf3e0f78c96a123509e3a34b2627af89718da82776e451dbadd764"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-node-r3/result.json",
+      "sha256": "fbcfb7feab41b76876649acac5221a5567a33013a07e40ff41a458209b914f5f"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-shared-node-r1/result.json",
+      "sha256": "1e5fbd7cd85922b6b5490da1a908846028e696b111d3e81e5dba773771e772ea"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-shared-node-r2/result.json",
+      "sha256": "c351e73b5bde39e728f5d681b7209d1de9603979fbeefba098c1bf0e88f6e360"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/native-shared-node-r3/result.json",
+      "sha256": "22d8f679dec760dad99cc46459b0d0d5c1db5cb517a20c4b07edd24d7ffa830b"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-go-watch-r1/profile.jsonl",
+      "sha256": "c12e97a11caf76520236eef2088e5b3c1e70452a0bd06dcc25ad61e77bdfaef0"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-go-watch-r2/profile.jsonl",
+      "sha256": "1ee4349ec00ae175a1ddea626b380b7dc37c4b2bb037409629cc20e8a7111141"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-go-watch-r3/profile.jsonl",
+      "sha256": "5a8b9385767cd9fcc40174b56e7ab4683f9fdb47b61637e346d5557818ff69e8"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-node-r1/profile.jsonl",
+      "sha256": "05833061a0a0d176230fe1c547e1efb38050980fe25bd443c3f9eea92d9150b9"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-node-r2/profile.jsonl",
+      "sha256": "dc347c3112f0f95624796a13d8590d356d028ee2542e2a95fd862fa1821c9191"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-node-r3/profile.jsonl",
+      "sha256": "400105ef7c6d7785016ac755172bcd3f21e8abcc5e0f95e007e7ea382d87ed7a"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-shared-node-r1/profile.jsonl",
+      "sha256": "54076eb7acc411943b0afa140760a908df065d950400bf9e9b2e2d2650ecca29"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-shared-node-r2/profile.jsonl",
+      "sha256": "b7a255848d13fd4c86deced9ed08419343fb07a6bc680a6d31d1d1753cb9160b"
+    },
+    {
+      "path": "output/runtime-profiles/shared-node-watcher-20261001/browser-shared-node-r3/profile.jsonl",
+      "sha256": "9025089daebca9be3822c83b8d170184ae5387dce861c0c9f75d7b9aba6cad3c"
+    }
+  ],
+  "browserWatcherSavingMiB": 182.59375,
+  "browserWatcherSavingPercent": 80.01917282936182,
+  "browserWatcherGapRecoveredPercent": 84.80406386066764,
+  "browserResidualGoWatcherAdvantageMiB": 32.71875,
+  "wholeTreePerformanceQualified": false
+}
