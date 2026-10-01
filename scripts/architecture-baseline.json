@@ -1,0 +1,32 @@
+{
+  "commonFacetImports": {
+    "packages/editor/src/common/editor.ts -> @opensumi/ide-core-browser/editor": 1,
+    "packages/extension/src/common/extension.ts -> ../hosted/vscode.extension": 1,
+    "packages/extension/src/common/sumi/extension.ts -> ../../browser/sumi-browser/types": 1,
+    "packages/extension/src/common/sumi/extension.ts -> ../../browser/sumi/types": 1,
+    "packages/extension/src/common/sumi/extension.ts -> @opensumi/ide-core-browser/menu": 1,
+    "packages/extension/src/common/sumi/toolbar.ts -> ../../browser/sumi/types": 1,
+    "packages/extension/src/common/vscode/doc.ts -> ../../hosted/api/vscode/doc/ext-data.host": 1,
+    "packages/main-layout/src/common/main-layout.definition.ts -> ../browser/accordion/accordion.service": 1,
+    "packages/main-layout/src/common/main-layout.definition.ts -> ../browser/tabbar-handler": 1,
+    "packages/main-layout/src/common/main-layout.definition.ts -> ../browser/tabbar/tabbar.service": 1,
+    "packages/main-layout/src/common/main-layout.definition.ts -> @opensumi/ide-core-browser": 1,
+    "packages/monaco/src/common/index.ts -> @opensumi/ide-core-browser/editor": 2
+  },
+  "commonRuntimeRootImports": {
+    "@opensumi/ide-ai-native -> @opensumi/ide-editor": 2,
+    "@opensumi/ide-ai-native -> @opensumi/ide-monaco": 1,
+    "@opensumi/ide-comments -> @opensumi/ide-editor": 2,
+    "@opensumi/ide-debug -> @opensumi/ide-monaco": 3,
+    "@opensumi/ide-editor -> @opensumi/ide-monaco": 6,
+    "@opensumi/ide-extension -> @opensumi/ide-ai-native": 2,
+    "@opensumi/ide-extension -> @opensumi/ide-debug": 3,
+    "@opensumi/ide-extension -> @opensumi/ide-editor": 8,
+    "@opensumi/ide-extension -> @opensumi/ide-monaco": 1,
+    "@opensumi/ide-main-layout -> @opensumi/ide-core-browser": 1,
+    "@opensumi/ide-task -> @opensumi/ide-editor": 2
+  },
+  "deepImportsByPackage": {},
+  "runtimeImportsFromDevDependencies": {},
+  "undeclaredWorkspaceDependencies": {}
+}
