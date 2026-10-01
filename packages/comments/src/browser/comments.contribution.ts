@@ -13,9 +13,9 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { IEditor } from '@opensumi/ide-editor';
-import { BrowserEditorContribution, IEditorFeatureRegistry } from '@opensumi/ide-editor/lib/browser';
+import { BrowserEditorContribution, IEditorFeatureRegistry } from '@opensumi/ide-editor/browser';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import {

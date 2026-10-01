@@ -19,8 +19,7 @@
 import React from 'react';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { EDITOR_COMMANDS, QuickOpenActionProvider, localize } from '@opensumi/ide-core-browser';
-import { CorePreferences } from '@opensumi/ide-core-browser/lib/core-preferences';
+import { CorePreferences, EDITOR_COMMANDS, QuickOpenActionProvider, localize } from '@opensumi/ide-core-browser';
 import {
   IQuickOpenHandlerRegistry,
   PrefixQuickOpenService,
@@ -30,20 +29,16 @@ import {
   QuickOpenService,
   QuickOpenTab,
   QuickOpenTabConfig,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+} from '@opensumi/ide-core-browser/quick-open';
 import { CommandService, Disposable, DisposableCollection, IDisposable, ILogger } from '@opensumi/ide-core-common';
 
 import { QuickOpenTabs } from './components/quick-open-tabs';
 import { QuickTitleBar } from './quick-title-bar';
 /**
- * @deprecated import from `@opensumi/ide-core-browser/lib/quick-open` instead
+ * @deprecated import from `@opensumi/ide-core-browser/quick-open` instead
  */
-export {
-  QuickOpenContribution,
-  QuickOpenHandler,
-  IQuickOpenHandlerRegistry,
-  QuickOpenTab,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+export { QuickOpenContribution } from '@opensumi/ide-core-browser/quick-open';
+export type { QuickOpenHandler, IQuickOpenHandlerRegistry, QuickOpenTab } from '@opensumi/ide-core-browser/quick-open';
 
 @Injectable()
 export class QuickOpenHandlerRegistry extends Disposable implements IQuickOpenHandlerRegistry {
@@ -228,14 +223,9 @@ export class PrefixQuickOpenServiceImpl implements PrefixQuickOpenService {
     const toggleTab = () => {
       handler.onToggle?.();
       const tabs = this.handlers.getSortedTabs();
-      let nextTab: QuickOpenTab | null = null;
-      if (this.activePrefix) {
-        let index = tabs.findIndex((t) => t.prefix === this.activePrefix);
-        index = index === tabs.length - 1 ? 0 : index + 1;
-        nextTab = tabs[index];
-      } else {
-        nextTab = tabs[0];
-      }
+      const currentIndex = this.activePrefix ? tabs.findIndex((tab) => tab.prefix === this.activePrefix) : -1;
+      const nextIndex = currentIndex < 0 || currentIndex === tabs.length - 1 ? 0 : currentIndex + 1;
+      const nextTab = tabs[nextIndex];
       if (nextTab) {
         this.open(nextTab.prefix);
       }

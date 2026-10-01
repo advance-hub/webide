@@ -1,4 +1,4 @@
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   AppConfig,
   ApplicationService,
@@ -7,9 +7,7 @@ import {
   IContextKeyService,
   PreferenceService,
 } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
-import { MockLogger, MockLoggerManageClient, MockLoggerService } from '@opensumi/ide-core-browser/__mocks__/logger';
-import { IMenuRegistry, MenuRegistryImpl } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuRegistryImpl } from '@opensumi/ide-core-browser/menu';
 import {
   CommandRegistry,
   CommandService,
@@ -22,15 +20,28 @@ import {
   ILoggerManagerClient,
   OperatingSystem,
 } from '@opensumi/ide-core-common';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MockLogger, MockLoggerManageClient, MockLoggerService } from '@opensumi/ide-dev-tool/mocks/logger';
+import {
+  MockEditorService,
+  MockErrorService,
+  MockFileService,
+  MockMainLayoutService,
+  MockPreferenceService,
+  MockProfileService,
+  MockTerminalProfileInternalService,
+  MockTerminalService,
+  MockTerminalThemeService,
+  MockThemeService,
+} from '@opensumi/ide-dev-tool/mocks/terminal';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IMessageService } from '@opensumi/ide-overlay';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
 import { IThemeService } from '@opensumi/ide-theme';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
 
 import { createTerminalClientFactory2 } from '../../src/browser/terminal.client';
 import { TerminalController } from '../../src/browser/terminal.controller';
@@ -51,20 +62,8 @@ import {
   ITerminalServicePath,
   ITerminalTheme,
 } from '../../src/common';
+import { EnvironmentVariableServiceToken } from '../../src/common/environmentVariable';
 import { ITerminalPreference } from '../../src/common/preference';
-
-import {
-  MockEditorService,
-  MockErrorService,
-  MockFileService,
-  MockMainLayoutService,
-  MockPreferenceService,
-  MockProfileService,
-  MockTerminalProfileInternalService,
-  MockTerminalService,
-  MockTerminalThemeService,
-  MockThemeService,
-} from './mock.service';
 
 const mockPreferences = new Map();
 mockPreferences.set('terminal.integrated.shellArgs.linux', []);

@@ -11,7 +11,7 @@ import {
   formatLocalize,
   runWhenIdle,
 } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next/index';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import * as monaco from '@opensumi/ide-monaco';
 
@@ -351,9 +351,7 @@ export class SearchModelService extends Disposable {
   }
 
   activate() {
-    if (this.searchTreeService.contextKey) {
-      this.searchTreeService.contextKey.searchViewVisibleKey.set(true);
-    }
+    this.searchTreeService.contextKey?.searchViewVisibleKey?.set(true);
 
     if (this.treeIsDirty) {
       this.refresh();
@@ -362,9 +360,7 @@ export class SearchModelService extends Disposable {
   }
 
   deactivate() {
-    if (this.searchTreeService.contextKey) {
-      this.searchTreeService.contextKey.searchViewVisibleKey.set(false);
-    }
+    this.searchTreeService.contextKey?.searchViewVisibleKey?.set(false);
   }
 
   dispose() {

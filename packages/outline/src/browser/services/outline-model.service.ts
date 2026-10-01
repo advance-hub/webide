@@ -18,12 +18,9 @@ import {
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import {
-  DocumentSymbolStore,
-  INormalizedDocumentSymbol,
-} from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { DocumentSymbolStore, INormalizedDocumentSymbol } from '@opensumi/ide-editor/document-symbols';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import * as monaco from '@opensumi/ide-monaco';
 
@@ -585,7 +582,7 @@ export class OutlineModelService {
     if (!this.outlineTreeHandle) {
       return;
     }
-    node = (await this.outlineTreeHandle.ensureVisible(node, 'smart')) as OutlineTreeNode;
+    await this.outlineTreeHandle.ensureVisible(node, 'smart');
   };
 
   public collapseAll = async () => {

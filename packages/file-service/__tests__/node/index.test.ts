@@ -5,9 +5,9 @@ import * as fse from 'fs-extra';
 
 import { isWindows } from '@opensumi/ide-core-common';
 import { FileUri, URI } from '@opensumi/ide-core-node';
-import { expectThrowsAsync } from '@opensumi/ide-core-node/__tests__/helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { expectThrowsAsync } from '@opensumi/ide-dev-tool/assertions';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { RecursiveFileSystemWatcher } from '../../lib/node/hosted/recursive/file-service-watcher';
 import {
@@ -19,6 +19,19 @@ import {
   RecursiveWatcherBackend,
 } from '../../src/common';
 import { FileService, FileServiceModule } from '../../src/node';
+
+type AssertTrue<T extends true> = T;
+type IsExactly<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? (<T>() => T extends B ? 1 : 2) extends <T>() => T extends A ? 1 : 2
+      ? true
+      : false
+    : false;
+type LegacySynchronousFileService = Omit<IFileService, 'dispose'> & { dispose(): void };
+const legacySynchronousDisposeIsCompatible: AssertTrue<
+  LegacySynchronousFileService extends IFileService ? true : false
+> = true;
+const publicDisposeReturnRemainsVoid: AssertTrue<IsExactly<ReturnType<IFileService['dispose']>, void>> = true;
 
 describe('FileService', () => {
   let root: URI;
@@ -650,14 +663,14 @@ describe('FileService', () => {
       await fileService.unwatchFileChanges(watchId);
     });
 
-    it('Should set and get Excludes', () => {
+    it('Should set and get Excludes', async () => {
       const diskProvider = injector.get(IDiskFileProvider);
       diskProvider['watcherProcessManager']['_whenReadyDeferred'].resolve();
       diskProvider['watcherProcessManager'].watch = () => 2;
       diskProvider['watcherProcessManager'].unWatch = () => 2;
       diskProvider['watcherProcessManager'].setWatcherFileExcludes = () => void 0;
 
-      fileService.setWatchFileExcludes(['test']);
+      await fileService.setWatchFileExcludes(['test']);
       expect(fileService.getWatchFileExcludes()).toEqual(['test']);
 
       fileService.setFilesExcludes(['test'], ['/root']);
@@ -772,8 +785,14 @@ describe('FileService', () => {
   });
 
   describe('dispose', () => {
+    it('keeps synchronous external implementations source compatible', () => {
+      expect.assertions(2);
+      expect(legacySynchronousDisposeIsCompatible).toBe(true);
+      expect(publicDisposeReturnRemainsVoid).toBe(true);
+    });
+
     it('Should no error', async () => {
-      expect(fileService.dispose()).toBeUndefined();
+      await expect(Promise.resolve(fileService.dispose())).resolves.toBeUndefined();
     });
   });
 });

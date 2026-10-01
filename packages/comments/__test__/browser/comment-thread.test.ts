@@ -1,14 +1,14 @@
 import { Injector } from '@opensumi/di';
 import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { EditorCollectionService } from '@opensumi/ide-editor';
 import { positionToRange } from '@opensumi/ide-monaco';
-import { createMockedMonaco } from '@opensumi/ide-monaco/__mocks__/monaco';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import { CommentsModule } from '../../src/browser';
 import { CommentMode, ICommentsService } from '../../src/common';
@@ -61,7 +61,7 @@ describe('comment service test', () => {
         },
       ],
     });
-    expect(thread.uri.isEqual(uri));
+    expect(thread.uri.isEqual(uri)).toBe(true);
     expect(thread.range.startLineNumber).toBe(1);
   });
 

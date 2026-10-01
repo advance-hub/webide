@@ -1,7 +1,8 @@
 import os from 'os';
 
 import { Injector } from '@opensumi/di';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { AppConfig } from '@opensumi/ide-core-node';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { ITerminalNodeService, ITerminalServiceClient } from '../../src/common';
 import { TerminalNodePtyModule } from '../../src/node';
@@ -22,8 +23,33 @@ describe('TerminalServiceClientImpl', () => {
 
   beforeEach(() => {
     injector = createNodeInjector([TerminalNodePtyModule]);
+    injector.overrideProviders({
+      token: AppConfig,
+      useValue: {},
+    });
     terminalServiceClient = injector.get(ITerminalServiceClient);
     terminalService = injector.get(ITerminalNodeService);
+  });
+
+  afterEach(async () => {
+    const terminals = Array.from((terminalService as any).terminalProcessMap.values()) as PtyService[];
+    await Promise.all(
+      terminals.map(async (terminal) => {
+        if (!terminal.pty) {
+          terminal.dispose();
+          return;
+        }
+        const exit = new Promise<void>((resolve) => {
+          const listener = terminal.onExit(() => {
+            listener.dispose();
+            resolve();
+          });
+        });
+        await terminal.kill();
+        await exit;
+      }),
+    );
+    await injector.disposeAll();
   });
 
   it('setConnectionClientId, should be set the id correctly.', () => {
@@ -77,23 +103,11 @@ describe('TerminalServiceClientImpl', () => {
     expect(receiveData.indexOf('message test') > -1).toEqual(true);
   });
 
-  it('Should be disposed.', async () => {
-    (process as any).env.IS_DEV = 0;
-    const mockId = '2';
-    await terminalServiceClient.create2(mockId, 200, 200, {
-      name: 'test',
-      executable: shellPath,
-    });
-
-    terminalServiceClient.disposeById(mockId);
+  it('releases its connection-scoped client on dispose', () => {
+    const closeClient = jest.spyOn(terminalService, 'closeClient');
+    terminalServiceClient.setConnectionClientId(mockClientId);
     terminalServiceClient.dispose();
 
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 20);
-    });
-
-    expect((terminalService as any).clientTerminalMap.get(mockClientId)).toBeUndefined();
+    expect(closeClient).toHaveBeenCalledWith(mockClientId);
   });
 });

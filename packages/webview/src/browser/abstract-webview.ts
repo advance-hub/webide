@@ -7,11 +7,11 @@ import {
   IDisposable,
   IEventBus,
   MaybeNull,
+  StaticResourceService,
   URI,
 } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
 import { ITheme, IThemeService } from '@opensumi/ide-theme';
-import { ThemeChangedEvent } from '@opensumi/ide-theme/lib/common/event';
+import { ThemeChangedEvent } from '@opensumi/ide-theme/events';
 
 import { IWebview, IWebviewContentOptions, IWebviewContentScrollPosition, IWebviewService } from './types';
 
@@ -70,7 +70,10 @@ export abstract class AbstractWebviewPanel extends Disposable implements IWebvie
     this._keybindingDomTarget = target;
   }
 
-  constructor(public readonly id: string, options: IWebviewContentOptions = {}) {
+  constructor(
+    public readonly id: string,
+    options: IWebviewContentOptions = {},
+  ) {
     super();
     this._options = options;
   }

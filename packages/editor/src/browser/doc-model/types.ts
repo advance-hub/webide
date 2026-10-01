@@ -8,12 +8,12 @@ import {
   MaybePromise,
   URI,
 } from '@opensumi/ide-core-browser';
-import { EOL, EndOfLineSequence } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { EOL, EndOfLineSequence } from '@opensumi/ide-monaco/types';
 
 import { IEditorDocumentModelContentChange, SaveReason } from '../../common';
 import { IEditorDocumentDescription, IEditorDocumentModel, IEditorDocumentModelRef } from '../../common/editor';
 
-export { IDocModelUpdateOptions } from '../../common/types';
+export type { IDocModelUpdateOptions } from '../../common/types';
 export interface IEditorDocumentModelContentProvider {
   /**
    * 是否处理这个Scheme的uri

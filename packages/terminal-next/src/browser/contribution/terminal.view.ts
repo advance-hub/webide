@@ -8,7 +8,7 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
+import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 import TerminalTabs from '../component/tab.view';
 import TerminalView from '../component/terminal.view';

@@ -10,8 +10,8 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { OutlineFollowCursorContext, OutlineSortTypeContext } from '@opensumi/ide-core-browser/lib/contextkey';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { OutlineFollowCursorContext, OutlineSortTypeContext } from '@opensumi/ide-core-browser/contextkeys';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IMainLayoutService, MainLayoutContribution } from '@opensumi/ide-main-layout';
 
 import { OUTLINE_VIEW_ID, OutlineSortOrder } from '../common';

@@ -1,12 +1,12 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/lib/components';
+import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/components';
 import {
   Mode,
   QuickInputOptions,
   QuickOpenItem,
   QuickOpenItemOptions,
   QuickOpenService,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+} from '@opensumi/ide-core-browser/quick-open';
 import { Emitter, Event, localize } from '@opensumi/ide-core-common';
 
 import { QuickTitleBar } from './quick-title-bar';

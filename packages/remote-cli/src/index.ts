@@ -5,7 +5,7 @@ import { join } from 'path';
 import { green, red } from 'chalk';
 import fetch from 'node-fetch';
 
-import { ArgvFactory } from '@opensumi/ide-utils/lib/argv';
+import { ArgvFactory } from '@opensumi/ide-utils/argv';
 
 const PRODUCTION_NAME = process.env.PRODUCTION_NAME || 'OpenSumi';
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -19,7 +19,6 @@ enum OpenType {
 
 function openPathOrUrl(pathOrUrl: string): void {
   if (!CLIENT_ID) {
-    // eslint-disable-next-line no-console
     console.error(red(`${PRODUCTION_NAME} Client id is undefined!`));
     process.exit(0);
   }
@@ -34,7 +33,6 @@ function openPathOrUrl(pathOrUrl: string): void {
 
   if (type === OpenType.file) {
     if (!existsSync(fullPathOrUrl)) {
-      // eslint-disable-next-line no-console
       console.error(red(`The file path ${fullPathOrUrl} is not exist!`));
       process.exit(0);
     }
@@ -47,7 +45,6 @@ function openPathOrUrl(pathOrUrl: string): void {
 
   const query = `?type=${type}&${type}=${encodeURIComponent(fullPathOrUrl)}&clientId=${CLIENT_ID}`;
   fetch(`${SUMI_SERVER_HOST}/${OPENER_ROUTE}${query}`).catch((err) => {
-    // eslint-disable-next-line no-console
     console.error(red(`Open ${type} ${fullPathOrUrl} error: \n ${err.message}`));
     process.exit(1);
   });
@@ -71,7 +68,6 @@ Examples:
 if (argv._[0] !== undefined) {
   openPathOrUrl(argv._[0].toString());
 } else {
-  // eslint-disable-next-line no-console
   console.error(red('The path or url is not defined.'));
   process.exit(0);
 }

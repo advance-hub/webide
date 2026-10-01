@@ -6,9 +6,9 @@ import {
   localize,
   withNullAsUndefined,
 } from '@opensumi/ide-core-browser';
-import { Mode, PrefixQuickOpenService, QuickOpenItem, QuickOpenModel } from '@opensumi/ide-core-browser/lib/quick-open';
+import { Mode, PrefixQuickOpenService, QuickOpenItem, QuickOpenModel } from '@opensumi/ide-core-browser/quick-open';
 import * as monaco from '@opensumi/ide-monaco';
-import { Event as MonacoEvent } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { Event as MonacoEvent } from '@opensumi/ide-monaco/types';
 import { IRange as IMonacoRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 import { IEditor as IMonacoCodeEditor } from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorCommon';
 import { AbstractGotoLineQuickAccessProvider } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/quickAccess/browser/gotoLineQuickAccess';

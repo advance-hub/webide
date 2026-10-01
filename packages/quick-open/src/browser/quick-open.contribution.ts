@@ -11,8 +11,8 @@ import {
   QUICK_OPEN_COMMANDS,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { PrefixQuickOpenService } from '@opensumi/ide-core-browser/lib/quick-open';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { PrefixQuickOpenService } from '@opensumi/ide-core-browser/quick-open';
 
 import { QuickOpenContribution, QuickOpenHandlerRegistry } from './prefix-quick-open.service';
 import { QuickCommandHandler } from './quick-open.command.service';

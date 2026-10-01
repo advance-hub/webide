@@ -1,6 +1,6 @@
-import { StorageService } from '@opensumi/ide-core-browser/lib/services';
-import { Event, URI } from '@opensumi/ide-core-common';
-import { FileStat } from '@opensumi/ide-file-service';
+import type { Event, URI } from '@opensumi/ide-core-common';
+import type { StorageService } from '@opensumi/ide-core-common/storage';
+import type { FileStat } from '@opensumi/ide-file-service';
 
 export interface WorkspaceInput {
   /**

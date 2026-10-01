@@ -1,4 +1,4 @@
-import { IContextMenu } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IContextMenu } from '@opensumi/ide-core-common/menus';
 
 import { ISCMProvider, ISCMResource, ISCMResourceGroup } from './scm';
 

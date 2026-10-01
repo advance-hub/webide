@@ -9,7 +9,7 @@ import {
   SaveTaskResponseState,
   URI,
 } from '@opensumi/ide-core-browser';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { EOL } from '@opensumi/ide-monaco/types';
 
 import { IEditorDocumentModelService } from './types';
 

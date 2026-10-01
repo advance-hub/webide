@@ -9,7 +9,7 @@ import {
   TreeNodeType,
 } from '@opensumi/ide-components';
 import { CommandService, URI, getIcon, useDesignStyles } from '@opensumi/ide-core-browser';
-import { SymbolTag } from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { SymbolTag } from '@opensumi/ide-editor/document-symbols';
 
 import { IOutlineDecorationService } from '../common';
 

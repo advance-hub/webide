@@ -1,10 +1,9 @@
-import { AppConfig, SlotLocation, IElectronMainMenuService } from '@opensumi/ide-core-browser';
-import { IElectronMenuBarService } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/electron';
-import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
-import { IMessageService } from '@opensumi/ide-overlay/lib/common';
-
-import { createBrowserInjector } from '../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../tools/dev-tool/src/mock-injector';
+import { AppConfig, IElectronMainMenuService, SlotLocation } from '@opensumi/ide-core-browser';
+import { IElectronMenuBarService } from '@opensumi/ide-core-browser/menu/electron';
+import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { IMessageService } from '@opensumi/ide-overlay';
 
 import { mockService } from './utils';
 

@@ -1,6 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AppConfig, Domain, OnEvent, URI, WithEventBus } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { AppConfig, Domain, LabelService, OnEvent, URI, WithEventBus } from '@opensumi/ide-core-browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import {

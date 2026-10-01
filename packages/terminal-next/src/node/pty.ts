@@ -14,7 +14,7 @@ import * as osLocale from 'os-locale';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, Emitter, INodeLogger, URI, isWindows, path } from '@opensumi/ide-core-node';
-import { getShellPath } from '@opensumi/ide-core-node/lib/bootstrap/shell-path';
+import { getShellPath } from '@opensumi/ide-core-node/shell';
 
 import { IShellLaunchConfig, ITerminalLaunchError } from '../common';
 import { IProcessExitEvent, IProcessReadyEvent } from '../common/process';
@@ -61,7 +61,12 @@ export class PtyService extends Disposable implements IPtyService {
     return this._ptyProcess;
   }
 
-  constructor(public id: string, public readonly shellLaunchConfig: IShellLaunchConfig, cols: number, rows: number) {
+  constructor(
+    public id: string,
+    public readonly shellLaunchConfig: IShellLaunchConfig,
+    cols: number,
+    rows: number,
+  ) {
     super();
     let name: string;
     if (isWindows) {

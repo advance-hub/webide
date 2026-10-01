@@ -1,6 +1,6 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { IContextKeyService } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/menu';
 import { Disposable, ISplice } from '@opensumi/ide-core-common';
 
 import {

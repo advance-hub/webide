@@ -11,7 +11,7 @@ import {
   WithEventBus,
   encodeBase64,
 } from '@opensumi/ide-core-browser';
-import { FileTreeDropEvent } from '@opensumi/ide-core-common/lib/types/dnd';
+import { FileTreeDropEvent } from '@opensumi/ide-core-common';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
@@ -223,10 +223,10 @@ export class DragAndDropService extends WithEventBus {
         targetDir: activeUri
           ? activeUri.codeUri.path
           : node && node instanceof File
-          ? (node.parent as Directory)?.uri.codeUri.path
-          : node
-          ? node.uri.codeUri.path
-          : new URI(this.workspaceService.workspace?.uri).codeUri.path,
+            ? (node.parent as Directory)?.uri.codeUri.path
+            : node
+              ? node.uri.codeUri.path
+              : new URI(this.workspaceService.workspace?.uri).codeUri.path,
       }),
     );
     try {

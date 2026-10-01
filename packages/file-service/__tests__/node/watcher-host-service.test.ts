@@ -2,8 +2,8 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 
 import { RecursiveWatcherBackend } from '@opensumi/ide-core-common';
-import { createMockPairRPCProtocol } from '@opensumi/ide-extension/__mocks__/initRPCProtocol';
-import { URI } from '@opensumi/ide-utils/lib/uri';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { URI } from '@opensumi/ide-utils';
 
 import { RecursiveFileSystemWatcher } from '../../src/node/hosted/recursive/file-service-watcher';
 import { UnRecursiveFileSystemWatcher } from '../../src/node/hosted/un-recursive/file-service-watcher';

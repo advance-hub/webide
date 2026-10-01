@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, Emitter, Event } from '@opensumi/ide-core-browser';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import {
   IShellLaunchConfig,
@@ -22,7 +22,11 @@ export class Widget extends Disposable implements IWidget {
   readonly name = observableValue<string>(this, '');
   readonly processName = observableValue<string>(this, '');
 
-  constructor(public readonly id: string, public reuse: boolean = false, public recovery: boolean = false) {
+  constructor(
+    public readonly id: string,
+    public reuse: boolean = false,
+    public recovery: boolean = false,
+  ) {
     super();
   }
 

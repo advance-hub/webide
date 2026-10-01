@@ -10,7 +10,7 @@ import {
   TerminalClientAttachEvent,
   WithEventBus,
 } from '@opensumi/ide-core-browser';
-import { ITerminalController } from '@opensumi/ide-terminal-next/lib/common/controller';
+import { ITerminalController } from '@opensumi/ide-terminal-next';
 
 import { ITaskService } from '../common';
 

@@ -10,7 +10,7 @@ import {
   objects,
   path,
 } from '@opensumi/ide-core-common';
-import { IShellLaunchConfig, ITerminalClient } from '@opensumi/ide-terminal-next/lib/common';
+import { IShellLaunchConfig, ITerminalClient } from '@opensumi/ide-terminal-next';
 import { IVariableResolverService } from '@opensumi/ide-variable';
 
 import {

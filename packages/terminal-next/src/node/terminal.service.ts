@@ -1,7 +1,7 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { IDisposable, localize } from '@opensumi/ide-core-common';
 import { AppConfig, INodeLogger, isDevelopment, isElectronNode, pSeries } from '@opensumi/ide-core-node';
-import { getChunks } from '@opensumi/ide-utils/lib/strings';
+import { getChunks } from '@opensumi/ide-utils/strings';
 
 import { ETerminalErrorType, ITerminalNodeService, ITerminalServiceClient, TERMINAL_ID_SEPARATOR } from '../common';
 import { IPtyProcessProxy, IPtyService, IShellLaunchConfig } from '../common/pty';
@@ -23,6 +23,7 @@ const BATCH_CHUNK_MAX_SIZE = 20 * 1024 * 1024;
 @Injectable()
 export class TerminalServiceImpl implements ITerminalNodeService {
   static TerminalPtyCloseThreshold = 10 * 1000;
+  static TerminalPersistentSessionTimeout = 30 * 60 * 1000;
 
   private terminalProcessMap: Map<string, IPtyService> = new Map();
   private clientTerminalMap: Map<string, Map<string, PtyService>> = new Map();
@@ -38,6 +39,7 @@ export class TerminalServiceImpl implements ITerminalNodeService {
   private reconnectListenerBound = false;
   private reconnecting = false;
   private hasEmittedDisconnect = false;
+  private disposed = false;
 
   @Autowired(INJECTOR_TOKEN)
   private injector: Injector;
@@ -83,18 +85,35 @@ export class TerminalServiceImpl implements ITerminalNodeService {
   }
 
   public closeClient(clientId: string) {
+    if (this.disposed) {
+      this.disposeClient(clientId);
+      return;
+    }
     // 延时触发，因为WS本身有重连逻辑，因此通过延时触发来避免断开后不就重连但是回调方法都被dispose的问题
+    const existingTimer = this.closeTimeOutMap.get(clientId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
     const closeTimer = setTimeout(
       () => {
+        this.closeTimeOutMap.delete(clientId);
         this.disposeClient(clientId);
-        this.logger.debug(`Remove pty process from ${clientId} client`);
+        this.logger?.debug(`Remove pty process from ${clientId} client`);
       },
-      isDevelopment() ? 0 : this.appConfig.terminalPtyCloseThreshold || TerminalServiceImpl.TerminalPtyCloseThreshold,
+      isDevelopment() ? 0 : this.appConfig?.terminalPtyCloseThreshold || TerminalServiceImpl.TerminalPtyCloseThreshold,
     );
+    closeTimer.unref?.();
     this.closeTimeOutMap.set(clientId, closeTimer);
   }
 
   public disposeClient(clientId: string) {
+    const closeTimer = this.closeTimeOutMap.get(clientId);
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      this.closeTimeOutMap.delete(clientId);
+    }
+    this.serviceClientMap.delete(clientId);
+
     const terminalMap = this.clientTerminalMap.get(clientId);
     // 如果是Electron也要直接kill掉，跟随IDE Server的生命周期
     const isElectronNodeEnv = isElectronNode();
@@ -110,6 +129,14 @@ export class TerminalServiceImpl implements ITerminalNodeService {
           isElectronNodeEnv
         ) {
           t.kill(); // shellLaunchConfig 有 isTransient 的参数时，要Kill，不保活
+        } else {
+          this.ptyServiceManager.scheduleSessionCleanup(
+            id,
+            this.appConfig.terminalPersistentSessionTimeout || TerminalServiceImpl.TerminalPersistentSessionTimeout,
+          );
+          // The underlying PTY remains resumable, but callbacks owned by the
+          // disconnected client must not retain this PtyService until expiry.
+          t.dispose();
         }
         // t.kill(); // 这个是窗口关闭时候触发，终端默认在这种场景下保活, 不kill
         // TODO: 后续看看有没有更加优雅的方案
@@ -283,6 +310,16 @@ export class TerminalServiceImpl implements ITerminalNodeService {
   }
 
   dispose() {
+    this.disposed = true;
+    for (const timer of this.closeTimeOutMap.values()) {
+      clearTimeout(timer);
+    }
+    this.closeTimeOutMap.clear();
+    for (const timer of this.batchedPtyDataTimer.values()) {
+      clearTimeout(timer);
+    }
+    this.batchedPtyDataTimer.clear();
+    this.batchedPtyDataMap.clear();
     this.reconnectDisposables.forEach((d) => d.dispose());
     this.reconnectDisposables = [];
     // TODO 后续需要一个合理的 Dispose 逻辑，暂时不要 Dispose，避免重连时终端不可用

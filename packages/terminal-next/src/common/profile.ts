@@ -71,7 +71,7 @@ export interface ITerminalExecutable extends IBaseUnresolvedTerminalProfile {
   path: string | string[];
 }
 
-export const enum ProfileSource {
+export enum ProfileSource {
   GitBash = 'Git Bash',
   Pwsh = 'PowerShell',
 }

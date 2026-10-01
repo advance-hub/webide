@@ -1,7 +1,7 @@
 import { Disposable, IContextKeyService } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import * as monaco from '@opensumi/ide-monaco';
-import { ICodeEditor } from '@opensumi/ide-monaco/lib/common/types';
+import { ICodeEditor } from '@opensumi/ide-monaco/types';
 import * as dom from '@opensumi/monaco-editor-core/esm/vs/base/browser/dom';
 import { IAnchor } from '@opensumi/monaco-editor-core/esm/vs/base/browser/ui/contextview/contextview';
 import { KeyCode } from '@opensumi/monaco-editor-core/esm/vs/base/common/keyCodes';

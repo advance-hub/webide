@@ -10,6 +10,7 @@ import {
   Emitter,
   Event,
   FileUri,
+  IConnectionScopeRetirement,
   IDisposable,
   INodeLogger,
   ParsedPattern,
@@ -66,6 +67,11 @@ export class FileService implements IFileService {
   protected watcherId = 0;
   protected readonly watcherDisposerMap = new Map<number, IDisposable>();
   protected readonly watcherWithSchemaMap = new Map<string, number[]>();
+  private readonly pendingWatcherRegistrations = new Set<Promise<number>>();
+  private readonly pendingWatcherDisposals = new Set<Promise<void>>();
+  private disposePromise?: Promise<void>;
+  private isDisposing = false;
+  private connectionScopeRetirement?: IConnectionScopeRetirement;
   protected readonly onFileChangedEmitter = new Emitter<DidFilesChangedParams>();
   protected readonly fileSystemManage = new FileSystemManage();
   readonly onFilesChanged: Event<DidFilesChangedParams> = this.onFileChangedEmitter.event;
@@ -84,18 +90,37 @@ export class FileService implements IFileService {
     this.initProvider();
   }
 
+  setConnectionScopeRetirement(retirement: IConnectionScopeRetirement): void {
+    this.connectionScopeRetirement = retirement;
+  }
+
   registerProvider(scheme: string, provider: FileSystemProvider): IDisposable {
     this.toDisposable.push(this.fileSystemManage.add(scheme, provider));
     this.toDisposable.push(provider.onDidChangeFile((e) => this.fireFilesChange(e)));
     this.toDisposable.push({
-      dispose: () => {
-        (this.watcherWithSchemaMap.get(scheme) || []).forEach((id) => this.unwatchFileChanges(id));
-      },
+      dispose: () => this.disposeWatchers(this.watcherWithSchemaMap.get(scheme) || []),
     });
     return this.toDisposable;
   }
 
-  async watchFileChanges(uri: string, options?: { excludes: string[]; recursive?: boolean }): Promise<number> {
+  watchFileChanges(uri: string, options?: { excludes: string[]; recursive?: boolean }): Promise<number> {
+    if (this.isDisposing || this.connectionScopeRetirement?.retired) {
+      return Promise.reject(new Error('FileService is disposing and cannot accept new watchers'));
+    }
+
+    const registration = this.doWatchFileChanges(uri, options);
+    this.pendingWatcherRegistrations.add(registration);
+    registration.then(
+      () => this.pendingWatcherRegistrations.delete(registration),
+      () => this.pendingWatcherRegistrations.delete(registration),
+    );
+    return registration;
+  }
+
+  private async doWatchFileChanges(
+    uri: string,
+    options?: { excludes: string[]; recursive?: boolean },
+  ): Promise<number> {
     const id = this.watcherId++;
     const _uri = this.getUri(uri);
     const provider = await this.getProvider(_uri.scheme);
@@ -105,25 +130,76 @@ export class FileService implements IFileService {
       excludes: (options && options.excludes) || [],
       recursive: options && options.recursive !== undefined ? options.recursive : this.options.recursive,
     });
+
+    if (this.isDisposing || this.connectionScopeRetirement?.retired) {
+      await this.unwatchProvider(provider, watcherId);
+      throw new Error('FileService was disposed while registering a watcher');
+    }
+
     this.watcherDisposerMap.set(id, {
-      dispose: () => provider.unwatch!(watcherId),
+      dispose: () => this.unwatchProvider(provider, watcherId),
     });
     schemaWatchIdList.push(id);
     this.watcherWithSchemaMap.set(_uri.scheme, schemaWatchIdList);
     return id;
   }
 
-  async unwatchFileChanges(watcherId: number) {
+  unwatchFileChanges(watcherId: number): Promise<void> {
     const disposable = this.watcherDisposerMap.get(watcherId);
     if (!disposable || !disposable.dispose) {
-      return;
+      return Promise.resolve();
     }
-    disposable.dispose();
+    this.watcherDisposerMap.delete(watcherId);
+    for (const [scheme, watcherIds] of this.watcherWithSchemaMap) {
+      const remainingWatcherIds = watcherIds.filter((id) => id !== watcherId);
+      if (remainingWatcherIds.length > 0) {
+        this.watcherWithSchemaMap.set(scheme, remainingWatcherIds);
+      } else {
+        this.watcherWithSchemaMap.delete(scheme);
+      }
+    }
+
+    let disposeResult: void | Promise<void>;
+    try {
+      disposeResult = disposable.dispose() as void | Promise<void>;
+    } catch (error) {
+      disposeResult = Promise.reject(error);
+    }
+    const disposal = Promise.resolve(disposeResult);
+    this.pendingWatcherDisposals.add(disposal);
+    disposal.then(
+      () => this.pendingWatcherDisposals.delete(disposal),
+      () => this.pendingWatcherDisposals.delete(disposal),
+    );
+    return disposal;
+  }
+
+  private unwatchProvider(provider: FileSystemProvider, watcherId: number): Promise<void> {
+    const awaitableProvider = provider as FileSystemProvider & {
+      unwatchAsync?: (watcherId: number) => Promise<void>;
+    };
+    try {
+      return Promise.resolve(
+        awaitableProvider.unwatchAsync
+          ? awaitableProvider.unwatchAsync(watcherId)
+          : awaitableProvider.unwatch?.(watcherId),
+      );
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  private async disposeWatchers(watcherIds: number[]): Promise<void> {
+    const results = await Promise.allSettled(watcherIds.map((id) => this.unwatchFileChanges(id)));
+    const rejected = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+    if (rejected) {
+      throw rejected.reason;
+    }
   }
 
   setWatchFileExcludes(excludes: string[]) {
     const provider = this.getProvider('file');
-    provider.setWatchFileExcludes(excludes);
+    return provider.setWatchFileExcludes(excludes);
   }
 
   getWatchFileExcludes(): string[] {
@@ -400,7 +476,7 @@ export class FileService implements IFileService {
    * Current policy: sends * all * Provider onDidChangeFile events to * all * clients and listeners
    */
   fireFilesChange(e: FileChangeEvent) {
-    if (e.length < 1) {
+    if (e.length < 1 || this.connectionScopeRetirement?.retired) {
       return false;
     }
     this.logger.debug('FileChangeEvent:', e);
@@ -410,7 +486,81 @@ export class FileService implements IFileService {
   }
 
   dispose(): void {
-    this.toDisposable.dispose();
+    // Keep the long-standing concrete void surface. Connection-scope owners
+    // call disposeAsync() below and await the same idempotent cleanup promise.
+    void this.disposeAsync().catch((error) => {
+      this.logger.error('FileService asynchronous disposal failed', error);
+    });
+  }
+
+  /** @internal Awaitable owner hook; external compatibility remains dispose(): void. */
+  disposeAsync(): Promise<void> {
+    if (this.disposePromise) {
+      return this.disposePromise;
+    }
+
+    this.isDisposing = true;
+    this.onFileChangedEmitter.dispose();
+    const pendingRegistrations = Array.from(this.pendingWatcherRegistrations);
+    const watcherDisposals = Array.from(this.watcherDisposerMap.keys()).map((id) => this.unwatchFileChanges(id));
+    const collectionDisposal = this.toDisposable.dispose() as unknown as void | Promise<void>;
+
+    this.disposePromise = (async () => {
+      // A watcher whose provider.watch call was already in flight observes
+      // isDisposing, unwatches its provider handle, and only then settles.
+      const registrationWork = Promise.allSettled(pendingRegistrations);
+      const registrationSettlement = await this.waitWhileConnectionScopeOwned(registrationWork);
+      if (!registrationSettlement.owned) {
+        // Promise.allSettled remains attached to every late registration, so
+        // retirement cannot turn a provider failure into an unhandled rejection.
+        void registrationWork;
+      }
+
+      const cleanupWork = Promise.allSettled([
+        ...watcherDisposals,
+        ...Array.from(this.pendingWatcherDisposals),
+        Promise.resolve(collectionDisposal),
+      ]);
+      const cleanupSettlement = await this.waitWhileConnectionScopeOwned(cleanupWork);
+      this.watcherDisposerMap.clear();
+      this.watcherWithSchemaMap.clear();
+
+      if (!cleanupSettlement.owned) {
+        void cleanupWork.then((results) => {
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              this.logger.warn(
+                'Retired FileService cleanup failed after its connection scope was released.',
+                result.reason,
+              );
+            }
+          }
+        });
+        return;
+      }
+
+      const rejected = cleanupSettlement.value.find(
+        (result): result is PromiseRejectedResult => result.status === 'rejected',
+      );
+      if (rejected) {
+        throw rejected.reason;
+      }
+    })();
+
+    return this.disposePromise;
+  }
+
+  private async waitWhileConnectionScopeOwned<T>(
+    work: Promise<T>,
+  ): Promise<{ owned: true; value: T } | { owned: false }> {
+    const retirement = this.connectionScopeRetirement;
+    if (!retirement) {
+      return { owned: true, value: await work };
+    }
+    return Promise.race([
+      work.then((value) => ({ owned: true as const, value })),
+      retirement.whenRetired.then(() => ({ owned: false as const })),
+    ]);
   }
 
   private updateExcludeMatcher() {
@@ -563,12 +713,16 @@ export class FileService implements IFileService {
   }
 }
 // 每一个后端连接对应一个 injector
-const safeFsInstanceMap: Map<Injector, IFileService> = new Map();
+const safeFsInstanceMap = new WeakMap<Injector, IFileService>();
 export function getSafeFileservice(injector: Injector) {
-  if (safeFsInstanceMap.get(injector)) {
-    return safeFsInstanceMap.get(injector);
+  const cachedFileService = safeFsInstanceMap.get(injector);
+  if (cachedFileService) {
+    return cachedFileService;
   }
   const fileService = injector.get(FileService, [FileSystemNodeOptions.DEFAULT]);
+  if (injector.creatorMap?.has(IConnectionScopeRetirement)) {
+    fileService.setConnectionScopeRetirement(injector.get(IConnectionScopeRetirement) as IConnectionScopeRetirement);
+  }
   const appConfig: AppConfig = injector.get(AppConfig);
   fileServiceInterceptor(
     fileService,
@@ -590,6 +744,30 @@ export function getSafeFileservice(injector: Injector) {
     appConfig.blockPatterns || [],
   );
   safeFsInstanceMap.set(injector, fileService);
+  try {
+    injector.addProviders({
+      token: Symbol('SafeFileServiceConnectionScopeCleanup'),
+      useValue: {
+        dispose: async () => {
+          try {
+            const awaitableFileService = fileService as FileService & {
+              disposeAsync?: () => Promise<void>;
+            };
+            if (typeof awaitableFileService.disposeAsync === 'function') {
+              await awaitableFileService.disposeAsync();
+            } else {
+              await Promise.resolve(fileService.dispose());
+            }
+          } finally {
+            safeFsInstanceMap.delete(injector);
+          }
+        },
+      },
+    });
+  } catch (error) {
+    safeFsInstanceMap.delete(injector);
+    throw error;
+  }
   return fileService;
 }
 
@@ -597,11 +775,17 @@ export function getSafeFileservice(injector: Injector) {
 function fileServiceInterceptor(fileService: IFileService, blackList: string[], blockPatterns: string[]) {
   for (const method of blackList) {
     if (typeof fileService[method] === 'function') {
-      const originFunc: Function = fileService[method];
-      fileService[method] = (...args) => {
+      const originFunc = fileService[method] as (...args: unknown[]) => unknown;
+      fileService[method] = (...args: unknown[]) => {
         // 第一个参数为uri/{uri}
         if (blockPatterns.length > 0) {
-          const uri = typeof args[0] === 'string' ? args[0] : args[0].uri;
+          const firstArg = args[0];
+          const uri =
+            typeof firstArg === 'string'
+              ? firstArg
+              : firstArg && typeof firstArg === 'object' && 'uri' in firstArg
+                ? firstArg.uri
+                : undefined;
           if (typeof uri === 'string') {
             let resolvedURI = uri;
             if (uri.startsWith('file://')) {

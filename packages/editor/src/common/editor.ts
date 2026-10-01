@@ -1,6 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { IScopedContextKeyService } from '@opensumi/ide-core-browser';
-import { IMergeEditorEditor } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { IMergeEditorEditor } from '@opensumi/ide-core-browser/editor';
 import {
   BasicEvent,
   Event,
@@ -20,6 +19,7 @@ import { IMultiDiffEditor } from './multi-diff';
 import { IResource } from './resource';
 import { IDocModelUpdateOptions } from './types';
 
+import type { IScopedContextKeyService } from '@opensumi/ide-core-common/contextkeys';
 import type {
   EOL,
   ICodeEditorViewState,

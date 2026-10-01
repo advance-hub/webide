@@ -16,7 +16,7 @@ import {
   IThemedCssStyle,
 } from './types';
 
-import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 @Injectable({ multiple: true })
 export class MonacoEditorDecorationApplier extends Disposable {

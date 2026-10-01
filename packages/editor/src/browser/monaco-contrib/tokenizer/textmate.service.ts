@@ -18,24 +18,9 @@ import {
   getDebugLogger,
   parseWithComments,
 } from '@opensumi/ide-core-browser';
-import { EKnownResources, RendererRuntime } from '@opensumi/ide-core-browser/lib/application/runtime/types';
+import { EKnownResources, RendererRuntime } from '@opensumi/ide-core-browser/runtime';
 import { Disposable, URI, isObject } from '@opensumi/ide-core-common';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import {
-  GrammarsContribution,
-  ITextmateTokenizerService,
-  ScopeMap,
-} from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
-import { monaco } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import {
-  EnterAction,
-  FoldingRules,
-  IAutoClosingPair,
-  IAutoClosingPairConditional,
-  IndentationRule,
-  LanguageConfiguration,
-  OnEnterRule,
-} from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import {
   CommentRule,
   IIndentationRule,
@@ -44,10 +29,21 @@ import {
   IndentationRuleDto,
   LanguageConfigurationDto,
   LanguagesContribution,
-} from '@opensumi/ide-monaco/lib/common';
+} from '@opensumi/ide-monaco';
+import { monaco } from '@opensumi/ide-monaco/api';
+import { GrammarsContribution, ITextmateTokenizerService, ScopeMap } from '@opensumi/ide-monaco/tokenizer';
+import {
+  EnterAction,
+  FoldingRules,
+  IAutoClosingPair,
+  IAutoClosingPairConditional,
+  IndentationRule,
+  LanguageConfiguration,
+  OnEnterRule,
+} from '@opensumi/ide-monaco/types';
 import { IThemeData } from '@opensumi/ide-theme';
-import { ThemeChangedEvent } from '@opensumi/ide-theme/lib/common/event';
-import { asStringArray } from '@opensumi/ide-utils/lib/arrays';
+import { ThemeChangedEvent } from '@opensumi/ide-theme/events';
+import { asStringArray } from '@opensumi/ide-utils/arrays';
 import {
   ILanguageExtensionPoint,
   ILanguageService,
@@ -895,7 +891,7 @@ export class TextmateService extends WithEventBus implements ITextmateTokenizerS
       initialLanguage,
       configuration,
     ))!;
-    let ruleStack = INITIAL;
+    const ruleStack = INITIAL;
     const lineTokens = grammar.tokenizeLine(line, ruleStack);
     const debugLogger = getDebugLogger('tokenize');
     debugLogger.log(`\nTokenizing line: ${line}`);
@@ -908,7 +904,6 @@ export class TextmateService extends WithEventBus implements ITextmateTokenizerS
           `with scopes ${token.scopes.join(', ')}`,
       );
     }
-    ruleStack = lineTokens.ruleStack;
   }
 
   dispose() {

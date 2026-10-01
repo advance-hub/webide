@@ -1,9 +1,8 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { getExternalIcon } from '@opensumi/ide-core-browser';
-import { QuickTitleButton, QuickTitleButtonSide } from '@opensumi/ide-core-browser/lib/quick-open';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { StaticResourceService, getExternalIcon } from '@opensumi/ide-core-browser';
+import { QuickTitleButton, QuickTitleButtonSide } from '@opensumi/ide-core-browser/quick-open';
 import { Emitter, Event, ThemeIcon, URI, isUndefined } from '@opensumi/ide-core-common';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IIconService, IThemeService, IconType } from '@opensumi/ide-theme';
 import './quick-title-bar.less';
 

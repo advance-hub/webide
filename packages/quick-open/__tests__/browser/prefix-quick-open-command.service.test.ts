@@ -4,10 +4,10 @@ import {
   QuickOpenModel,
   QuickOpenOptions,
   QuickOpenService,
-} from '@opensumi/ide-core-browser/src';
+} from '@opensumi/ide-core-browser';
 import { CommandRegistry, Deferred, ILogger, localize } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
 import { Event } from '@opensumi/ide-utils';
 import { IWorkspaceService } from '@opensumi/ide-workspace';

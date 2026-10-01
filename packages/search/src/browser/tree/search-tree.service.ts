@@ -16,8 +16,8 @@ import {
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelRef,
   IEditorDocumentModelService,
-} from '@opensumi/ide-editor/lib/browser';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+} from '@opensumi/ide-editor/browser';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import * as monaco from '@opensumi/ide-monaco';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { IWorkspaceEditService } from '@opensumi/ide-workspace-edit';
@@ -27,8 +27,8 @@ import { replace } from '../replace';
 import { SearchContextKey } from '../search-contextkey';
 import { SearchContentNode, SearchFileNode, SearchRoot } from '../tree/tree-node.defined';
 
-import type { IModelDeltaDecoration } from '@opensumi/ide-monaco/lib/browser/monaco-api/editor';
-import type { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { IModelDeltaDecoration } from '@opensumi/ide-monaco/api/editor';
+import type { ITextModel } from '@opensumi/ide-monaco/types';
 
 @Injectable()
 export class RangeHighlightDecorations implements IDisposable {

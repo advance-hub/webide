@@ -1,20 +1,18 @@
 import { Injectable, Injector } from '@opensumi/di';
 import { IContextKeyService } from '@opensumi/ide-core-browser';
-import { Disposable, URI } from '@opensumi/ide-core-common';
-import { SearchSettingId } from '@opensumi/ide-core-common/lib/settings/search';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { Disposable, SearchSettingId, URI } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import {
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelService,
   ResourceService,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/lib/browser/doc-model/main';
-import { ResourceServiceImpl } from '@opensumi/ide-editor/lib/browser/resource.service';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common';
-import { OverlayModule } from '@opensumi/ide-overlay/lib/browser';
-import { SearchFileNode, SearchRoot } from '@opensumi/ide-search/lib/browser/tree/tree-node.defined';
+} from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { ResourceServiceImpl } from '@opensumi/ide-editor/resources';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { OverlayModule } from '@opensumi/ide-overlay/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { IWorkspaceEditService } from '@opensumi/ide-workspace-edit';
 
@@ -22,6 +20,8 @@ import { MockContentSearchServer } from '../../__mocks__/content-search.service'
 import { SearchModule } from '../../src/browser/';
 import { SearchPreferences } from '../../src/browser/search-preferences';
 import { SearchTreeService } from '../../src/browser/tree/search-tree.service';
+import { SearchModelService } from '../../src/browser/tree/tree-model.service';
+import { SearchFileNode, SearchRoot } from '../../src/browser/tree/tree-node.defined';
 import {
   ContentSearchResult,
   ContentSearchServerPath,
@@ -98,6 +98,7 @@ describe('search-tree.service.ts', () => {
   let injector: Injector;
   let searchService: IContentSearchClientService;
   let searchTreeService: SearchTreeService;
+  let searchModelService: SearchModelService;
 
   const searchFileUri = root.resolve('test.js');
   const searchResult = {
@@ -171,6 +172,7 @@ describe('search-tree.service.ts', () => {
 
     searchService = injector.get(IContentSearchClientService);
     searchTreeService = injector.get(ISearchTreeService);
+    searchModelService = injector.get(SearchModelService);
 
     searchService.searchResults = searchResults;
     searchService.resultTotal = { resultNum: 2, fileNum: 1 };
@@ -195,6 +197,11 @@ describe('search-tree.service.ts', () => {
     expect(SearchFileNode.is(fileNode)).toBeTruthy();
     const contents = await searchTreeService.resolveChildren(fileNode);
     expect(contents.length).toBe(2);
+  });
+
+  test('activate is safe before the scoped search context keys are ready', () => {
+    expect(() => searchModelService.activate()).not.toThrow();
+    expect(() => searchModelService.deactivate()).not.toThrow();
   });
 
   test('init contextKey with dom', () => {

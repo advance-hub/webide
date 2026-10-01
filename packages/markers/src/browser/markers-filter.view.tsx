@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 
 import { useDesignStyles, useDisposable, useInjectable } from '@opensumi/ide-core-browser';
-import { AutoFocusedInput } from '@opensumi/ide-main-layout/lib/browser/input';
+import { AutoFocusedInput } from '@opensumi/ide-main-layout/input';
 
 import { IMarkerService, MARKER_CONTAINER_ID } from '../common';
 

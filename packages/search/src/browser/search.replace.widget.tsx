@@ -2,7 +2,7 @@ import cls from 'classnames';
 import React from 'react';
 
 import { Input } from '@opensumi/ide-components';
-import { localize } from '@opensumi/ide-core-common/lib/localize';
+import { localize } from '@opensumi/ide-core-common';
 
 import styles from './search.module.less';
 

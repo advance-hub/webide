@@ -6,7 +6,7 @@ import {
   createPreferenceProxy,
   localize,
 } from '@opensumi/ide-core-browser';
-import { SearchSettingId } from '@opensumi/ide-core-common/lib/settings/search';
+import { SearchSettingId } from '@opensumi/ide-core-common';
 
 // 编写好 preference schema 配置
 // 包括分组和选型

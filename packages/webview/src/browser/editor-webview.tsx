@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Disposable, DomListener, useInjectable } from '@opensumi/ide-core-browser';
-import { ReactEditorComponent } from '@opensumi/ide-editor/lib/browser';
+import { ReactEditorComponent } from '@opensumi/ide-editor/browser';
 
 import { IEditorWebviewMetaData, IPlainWebview, IWebview, IWebviewService, isWebview } from './types';
 import { WebviewServiceImpl } from './webview.service';

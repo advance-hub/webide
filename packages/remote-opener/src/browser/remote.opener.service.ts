@@ -1,7 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { RPCService } from '@opensumi/ide-connection/lib/common/rpc-service';
-import { IOpenerService } from '@opensumi/ide-core-browser/lib/opener';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences';
+import { RPCService } from '@opensumi/ide-connection';
+import { IOpenerService, PreferenceService } from '@opensumi/ide-core-browser';
 import { CommandService, Disposable, IDisposable, URI, Uri } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 
@@ -51,7 +50,6 @@ export class RemoteOpenerBrowserServiceImpl extends RPCService implements IRemot
   }
 
   get isRemoteOpenerEnabled(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.preferenceService.get('remote.opener.enable', true)!;
   }
 

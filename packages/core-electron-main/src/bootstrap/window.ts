@@ -22,7 +22,7 @@ import {
   getDebugLogger,
   isMacintosh,
 } from '@opensumi/ide-core-common';
-import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/lib/utils/ipc';
+import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/node/ipc';
 
 import { ElectronAppConfig, ICodeWindow, ICodeWindowOptions } from './types';
 

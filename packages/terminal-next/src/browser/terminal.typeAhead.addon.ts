@@ -1,13 +1,11 @@
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-inferrable-types */
-/* eslint-disable @typescript-eslint/quotes */
-/* eslint-disable arrow-parens */
+
 /* ---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { PreferenceChange } from '@opensumi/ide-core-browser/lib/preferences';
+import { PreferenceChange } from '@opensumi/ide-core-browser';
 import {
   Disposable,
   DisposableCollection,
@@ -46,14 +44,15 @@ export function escapeRegExpCharacters(value: string): string {
   return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
 }
 
-const ESC = '\x1b';
+const ESC = '\u001B';
 const CSI = `${ESC}[`;
 const SHOW_CURSOR = `${CSI}?25h`;
 const HIDE_CURSOR = `${CSI}?25l`;
 const DELETE_CHAR = `${CSI}X`;
 const DELETE_REST_OF_LINE = `${CSI}K`;
-const CSI_STYLE_RE = /^\x1b\[[0-9;]*m/;
-const CSI_MOVE_RE = /^\x1b\[?([0-9]*)(;[35])?O?([DC])/;
+// Build ANSI matchers from ESC so the control byte is explicit and shared with the emitted sequences.
+const CSI_STYLE_RE = new RegExp(`^${ESC}\\[[0-9;]*m`);
+const CSI_MOVE_RE = new RegExp(`^${ESC}\\[?([0-9]*)(;[35])?O?([DC])`);
 const NOT_WORD_RE = /[^a-z0-9]/i;
 
 const statsBufferSize = 24;
@@ -73,7 +72,7 @@ const statsToggleOffThreshold = 0.5; // if latency is less than `threshold * thi
  *   CSI Ps n
  *   CSI ? Ps n
  */
-const PREDICTION_OMIT_RE = /^(\x1b\[(\??25[hl]|\??[0-9;]+n))+/;
+const PREDICTION_OMIT_RE = new RegExp(`^(${ESC}\\[(\\??25[hl]|\\??[0-9;]+n))+`);
 
 const core = (terminal: Terminal): IXtermCore => (terminal as any)._core;
 const flushOutput = (terminal: Terminal) => {
@@ -121,7 +120,11 @@ class Cursor implements ICoordinate {
     return { x: this._x, y: this._y, baseY: this._baseY };
   }
 
-  constructor(readonly rows: number, readonly cols: number, private readonly _buffer: IBuffer) {
+  constructor(
+    readonly rows: number,
+    readonly cols: number,
+    private readonly _buffer: IBuffer,
+  ) {
     this._x = _buffer.cursorX;
     this._y = _buffer.cursorY;
     this._baseY = _buffer.baseY;
@@ -417,7 +420,10 @@ class CharacterPrediction implements IPrediction {
     oldChar: string;
   };
 
-  constructor(private readonly _style: TypeAheadStyle, private readonly _char: string) {}
+  constructor(
+    private readonly _style: TypeAheadStyle,
+    private readonly _char: string,
+  ) {}
 
   apply(_: IBuffer, cursor: Cursor) {
     const cell = cursor.getCell();
@@ -527,7 +533,7 @@ class BackspacePrediction implements IPrediction {
         return r1;
       }
 
-      const r2 = input.eatGradually(`\b \b`);
+      const r2 = input.eatGradually('\b \b');
       if (r2 !== MatchResult.Failure) {
         return r2;
       }
@@ -653,7 +659,7 @@ class CursorMovePrediction implements IPrediction {
 
     // \b is the equivalent to moving one character back
     if (direction === CursorMoveDirection.Back) {
-      if (input.eatStr(`\b`.repeat(amount))) {
+      if (input.eatStr('\b'.repeat(amount))) {
         return MatchResult.Success;
       }
     }
@@ -809,7 +815,10 @@ export class PredictionTimeline {
     return this._expected.length;
   }
 
-  constructor(readonly terminal: Terminal, private readonly _style: TypeAheadStyle) {}
+  constructor(
+    readonly terminal: Terminal,
+    private readonly _style: TypeAheadStyle,
+  ) {}
 
   setShowPredictions(show: boolean) {
     if (show === this._showPredictions) {
@@ -1212,7 +1221,10 @@ class TypeAheadStyle implements IDisposable {
   undo!: string;
   private _csiHandler?: IDisposable;
 
-  constructor(value: ITerminalConfiguration['localEchoStyle'], private readonly _terminal: Terminal) {
+  constructor(
+    value: ITerminalConfiguration['localEchoStyle'],
+    private readonly _terminal: Terminal,
+  ) {
     this.onUpdate(value);
   }
 
@@ -1258,7 +1270,7 @@ class TypeAheadStyle implements IDisposable {
 
   private _onDidWriteSGR(args: (number | number[])[]) {
     const originalUndo = this._undoArgs;
-    for (let i = 0; i < args.length; ) {
+    for (let i = 0; i < args.length;) {
       const px = args[i];
       const p = typeof px === 'number' ? px : px[0];
 
@@ -1515,12 +1527,15 @@ export class TypeAheadAddon extends Disposable implements ITerminalAddon {
       return;
     }
 
-    this._clearPredictionDebounce = disposableTimeout(() => {
-      this._timeline?.undoAllPredictions();
-      if (this._lastRow?.charState === CharPredictState.HasPendingChar) {
-        this._lastRow.charState = CharPredictState.Unknown;
-      }
-    }, Math.max(500, (this.stats.maxLatency * 3) / 2));
+    this._clearPredictionDebounce = disposableTimeout(
+      () => {
+        this._timeline?.undoAllPredictions();
+        if (this._lastRow?.charState === CharPredictState.HasPendingChar) {
+          this._lastRow.charState = CharPredictState.Unknown;
+        }
+      },
+      Math.max(500, (this.stats.maxLatency * 3) / 2),
+    );
   }
 
   /**

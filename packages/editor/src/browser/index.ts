@@ -7,14 +7,10 @@ import {
   PreferenceService,
   createPreferenceProxy,
 } from '@opensumi/ide-core-browser';
-import { ICallHierarchyService } from '@opensumi/ide-monaco/lib/browser/contrib/callHierarchy';
-import {
-  ICommandServiceToken,
-  IMonacoActionRegistry,
-  IMonacoCommandsRegistry,
-} from '@opensumi/ide-monaco/lib/browser/contrib/command';
-import { ITextmateTokenizer } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
-import { ITypeHierarchyService } from '@opensumi/ide-monaco/lib/browser/contrib/typeHierarchy';
+import { ICommandServiceToken, IMonacoActionRegistry, IMonacoCommandsRegistry } from '@opensumi/ide-monaco/commands';
+import { ICallHierarchyService } from '@opensumi/ide-monaco/hierarchy';
+import { ITypeHierarchyService } from '@opensumi/ide-monaco/hierarchy';
+import { ITextmateTokenizer } from '@opensumi/ide-monaco/tokenizer';
 
 import { EditorCollectionService, ILanguageService, ResourceService, WorkbenchEditorService } from '../common';
 import { IDocPersistentCacheProvider } from '../common/doc-cache';

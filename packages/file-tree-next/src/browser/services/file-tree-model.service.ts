@@ -11,7 +11,7 @@ import {
   TreeNodeEvent,
   TreeNodeType,
 } from '@opensumi/ide-components';
-import { ISerializableState, TreeStateWatcher } from '@opensumi/ide-components/lib/recycle-tree/tree/model/treeState';
+import { ISerializableState, TreeStateWatcher } from '@opensumi/ide-components/tree';
 import {
   CommandService,
   CorePreferences,
@@ -24,6 +24,7 @@ import {
   IClipboardService,
   IContextKey,
   IStorage,
+  LabelService,
   MessageType,
   OperatingSystem,
   STORAGE_NAMESPACE,
@@ -38,13 +39,12 @@ import {
   strings,
   toMarkdown,
 } from '@opensumi/ide-core-browser';
-import { ResourceContextKey } from '@opensumi/ide-core-browser/lib/contextkey/resource';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { ResourceContextKey } from '@opensumi/ide-core-browser/contextkeys';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/lib/browser/command';
+import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/commands';
 import { IDialogService, IMessageService } from '@opensumi/ide-overlay';
 
 import { IFileTreeAPI, IFileTreeService, PasteTypes } from '../../common';

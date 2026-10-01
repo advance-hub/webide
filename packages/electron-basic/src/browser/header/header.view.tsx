@@ -13,8 +13,8 @@ import {
   useEventEffect,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
 
 import { IElectronHeaderService } from '../../common/header';
 

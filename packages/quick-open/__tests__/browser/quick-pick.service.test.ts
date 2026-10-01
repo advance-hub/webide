@@ -1,8 +1,8 @@
 import { IContextKeyService, QuickOpenMode, QuickPickService } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { MonacoContextKeyService } from '@opensumi/ide-monaco/lib/browser/monaco.context-key.service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MonacoContextKeyService } from '@opensumi/ide-monaco/contextkeys';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
 
 import { QuickOpenModule } from '../../src/browser';

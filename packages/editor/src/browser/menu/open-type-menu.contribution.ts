@@ -7,9 +7,8 @@ import {
   MenuCommandDesc,
   MenuContribution,
   MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { Command, CommandContribution, CommandRegistry, Disposable, localize } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+} from '@opensumi/ide-core-browser/menu';
+import { Command, CommandContribution, CommandRegistry, Disposable, Domain, localize } from '@opensumi/ide-core-common';
 
 import { WorkbenchEditorService } from '../types';
 

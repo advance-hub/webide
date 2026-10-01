@@ -1,0 +1,12 @@
+export { EditorComponentRegistryImpl } from '../browser/component';
+export { EditorCollectionServiceImpl, BrowserDiffEditor } from '../browser/editor-collection.service';
+export { EditorDecorationCollectionService } from '../browser/editor.decoration.service';
+export { EditorFeatureRegistryImpl } from '../browser/feature';
+export { LanguageService } from '../browser/language/language.service';
+export { TextmateService } from '../browser/monaco-contrib/tokenizer/textmate.service';
+export { CallHierarchyService, TypeHierarchyService } from '../browser/monaco-contrib';
+export { MonacoCodeService } from '../browser/editor.override';
+export { EditorContext } from '../browser/editor.context';
+export { EditorTabService } from '../browser/editor.tab.service';
+export { EditorActionRegistryImpl } from '../browser/menu/editor.menu';
+export { NotebookService } from '../browser/notebook.service';

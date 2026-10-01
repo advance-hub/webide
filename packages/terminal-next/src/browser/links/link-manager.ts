@@ -16,10 +16,11 @@ import {
   localize,
   path,
 } from '@opensumi/ide-core-common';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/common';
+import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import {
+  ILinkHoverTargetOptions,
   ITerminalClient,
   ITerminalExternalLinkProvider,
   ITerminalHoverManagerService,
@@ -53,29 +54,7 @@ export interface ITextEditorSelection {
   readonly endColumn?: number;
 }
 
-export interface ILinkHoverTargetOptions {
-  readonly viewportRange: IViewportRange;
-  readonly cellDimensions: {
-    width: number;
-    height: number;
-  };
-  readonly terminalDimensions: {
-    width: number;
-    height: number;
-  };
-  readonly boundingClientRect: {
-    bottom: number;
-    height: number;
-    left: number;
-    right: number;
-    top: number;
-    width: number;
-    x: number;
-    y: number;
-  };
-  readonly modifierDownCallback?: () => void;
-  readonly modifierUpCallback?: () => void;
-}
+export type { ILinkHoverTargetOptions } from '../../common/hover';
 
 /**
  * An object responsible for managing registration of link matchers and link providers.
@@ -114,7 +93,10 @@ export class TerminalLinkManager extends Disposable {
 
   private _wrappedTextLinkActivateCallback: XtermLinkMatcherHandler;
 
-  constructor(private _xterm: Terminal, private _client: TerminalClient) {
+  constructor(
+    private _xterm: Terminal,
+    private _client: TerminalClient,
+  ) {
     super();
 
     // Protocol links
@@ -303,20 +285,14 @@ export class TerminalLinkManager extends Disposable {
   private _getLinkHoverString(uri: string, label: string | undefined): string {
     const multiCursorModifier = this.preferenceService.get<'ctrlCmd' | 'alt'>('editor.multiCursorModifier');
 
-    let clickLabel = '';
-    if (multiCursorModifier === 'ctrlCmd') {
-      if (isMacintosh) {
-        clickLabel = localize('terminalLinkHandler.followLinkAlt.mac', 'option + click');
-      } else {
-        clickLabel = localize('terminalLinkHandler.followLinkAlt', 'alt + click');
-      }
-    } else {
-      if (isMacintosh) {
-        clickLabel = localize('terminalLinkHandler.followLinkCmd', 'cmd + click');
-      } else {
-        clickLabel = localize('terminalLinkHandler.followLinkCtrl', 'ctrl + click');
-      }
-    }
+    const clickLabel =
+      multiCursorModifier === 'ctrlCmd'
+        ? isMacintosh
+          ? localize('terminalLinkHandler.followLinkAlt.mac', 'option + click')
+          : localize('terminalLinkHandler.followLinkAlt', 'alt + click')
+        : isMacintosh
+          ? localize('terminalLinkHandler.followLinkCmd', 'cmd + click')
+          : localize('terminalLinkHandler.followLinkCtrl', 'ctrl + click');
 
     const fallbackLabel = localize('followLink', 'Follow link');
     label = label || fallbackLabel;

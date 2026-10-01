@@ -1,8 +1,8 @@
-import { Injectable, Injector } from '@opensumi/di';
-import { NodeModule } from '@opensumi/ide-core-node';
+import { Injectable, Injector, Token } from '@opensumi/di';
+import { IConnectionScopeRetirement, NodeModule } from '@opensumi/ide-core-node';
 
 import {
-  DiskFileServicePath,
+  DiskFileServiceRuntimeBinding,
   FileServicePath,
   FileSystemProvider,
   IDiskFileProvider,
@@ -15,16 +15,49 @@ import { DiskFileServiceProtocol } from '../common/protocols/disk-file-service';
 import { DiskFileSystemProvider } from './disk-file-system.provider';
 import { getSafeFileservice } from './file-service';
 import { WatcherProcessManagerImpl, WatcherProcessManagerToken } from './watcher-process-manager';
+import {
+  WorkspaceAgentClient,
+  WorkspaceAgentClientToken,
+  WorkspaceAgentLifecycleContribution,
+} from './workspace-agent';
 
 export * from './file-service';
 
-const fsInstanceMap: Map<Injector, FileSystemProvider> = new Map();
-export function getFileservice(injector: Injector, providerToken: string | symbol | Function): FileSystemProvider {
-  if (fsInstanceMap.get(injector)) {
-    return fsInstanceMap.get(injector)!;
+const fsInstanceMap = new WeakMap<Injector, FileSystemProvider>();
+function getConnectionScopeRetirement(injector: Injector): IConnectionScopeRetirement | undefined {
+  return injector.creatorMap?.has(IConnectionScopeRetirement)
+    ? (injector.get(IConnectionScopeRetirement) as IConnectionScopeRetirement)
+    : undefined;
+}
+
+export function getFileservice(injector: Injector, providerToken: Token): FileSystemProvider {
+  const cachedFileService = fsInstanceMap.get(injector);
+  if (cachedFileService) {
+    return cachedFileService;
   }
   const fileService = injector.get(providerToken) as FileSystemProvider;
+  const scopeRetirement = getConnectionScopeRetirement(injector);
+  if (scopeRetirement && fileService instanceof DiskFileSystemProvider) {
+    fileService.setConnectionScopeRetirement(scopeRetirement);
+  }
   fsInstanceMap.set(injector, fileService);
+  try {
+    injector.addProviders({
+      token: Symbol('DiskFileServiceConnectionScopeCleanup'),
+      useValue: {
+        dispose: async () => {
+          try {
+            await (fileService as FileSystemProvider & { dispose?: () => void | Promise<void> }).dispose?.();
+          } finally {
+            fsInstanceMap.delete(injector);
+          }
+        },
+      },
+    });
+  } catch (error) {
+    fsInstanceMap.delete(injector);
+    throw error;
+  }
   return fileService;
 }
 
@@ -33,12 +66,14 @@ export class FileServiceModule extends NodeModule {
   providers = [
     { token: IFileService, useFactory: (injector: Injector) => getSafeFileservice(injector) },
     { token: IDiskFileProvider, useFactory: (injector: Injector) => getFileservice(injector, DiskFileSystemProvider) },
+    { token: WorkspaceAgentClientToken, useClass: WorkspaceAgentClient },
+    WorkspaceAgentLifecycleContribution,
     { token: WatcherProcessManagerToken, useClass: WatcherProcessManagerImpl },
   ];
 
   backServices = [
     {
-      servicePath: DiskFileServicePath,
+      servicePath: DiskFileServiceRuntimeBinding.servicePath,
       token: IDiskFileProvider,
       protocol: DiskFileServiceProtocol,
     },

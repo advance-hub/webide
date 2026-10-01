@@ -13,7 +13,7 @@ import {
   useInjectable,
   useUpdateOnEvent,
 } from '@opensumi/ide-core-browser';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import { BreadCrumbsMenuService } from './menu/breadcrumbs.menus';
 import styles from './navigation.module.less';

@@ -1,14 +1,11 @@
 import { CommandRegistry, CommandService, EDITOR_COMMANDS, FILE_COMMANDS, URI } from '@opensumi/ide-core-browser';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { EditorModule } from '@opensumi/ide-editor/lib/browser';
-import {
-  EditorAutoSaveEditorContribution,
-  EditorContribution,
-} from '@opensumi/ide-editor/lib/browser/editor.contribution';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/common';
+import { MenuId } from '@opensumi/ide-core-browser/menu';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { EditorModule } from '../../src/browser';
+import { EditorAutoSaveEditorContribution, EditorContribution } from '../../src/browser/editor.contribution';
+import { WorkbenchEditorService } from '../../src/common';
 
 describe('Editor contribution should be work', () => {
   let injector: MockInjector;

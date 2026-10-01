@@ -2,7 +2,7 @@ import cls from 'classnames';
 import debounce from 'lodash/debounce';
 import React, { KeyboardEvent, createElement, useCallback, useEffect, useRef } from 'react';
 
-import { Icon } from '@opensumi/ide-components/lib/icon/icon';
+import { Icon } from '@opensumi/ide-components';
 import {
   TERMINAL_COMMANDS,
   URI,
@@ -12,10 +12,10 @@ import {
   useDesignStyles,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Loading } from '@opensumi/ide-core-browser/lib/components/loading';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { Loading } from '@opensumi/ide-core-browser/components/loading';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import { ItemProps, ItemType } from '../../common';
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@opensumi/di';
 import { Emitter, Event, OnEvent, URI, WithEventBus } from '@opensumi/ide-core-browser';
 import { IEditorGroup, IResource } from '@opensumi/ide-editor';
-import { EditorActiveResourceStateChangedEvent, EditorSelectionChangeEvent } from '@opensumi/ide-editor/lib/browser';
-import { DocumentSymbolChangedEvent } from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { EditorActiveResourceStateChangedEvent, EditorSelectionChangeEvent } from '@opensumi/ide-editor/browser';
+import { DocumentSymbolChangedEvent } from '@opensumi/ide-editor/document-symbols';
 import { ViewCollapseChangedEvent } from '@opensumi/ide-main-layout';
 
 import { OUTLINE_VIEW_ID } from '../../common/index';

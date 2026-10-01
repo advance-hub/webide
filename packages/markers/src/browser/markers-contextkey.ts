@@ -1,9 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IContextKey, IContextKeyService } from '@opensumi/ide-core-browser';
-import {
-  MarkerFocusContextKey,
-  MarkersTreeVisibilityContextKey,
-} from '@opensumi/ide-core-browser/lib/contextkey/markers';
+import { MarkerFocusContextKey, MarkersTreeVisibilityContextKey } from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class MarkersContextKey {

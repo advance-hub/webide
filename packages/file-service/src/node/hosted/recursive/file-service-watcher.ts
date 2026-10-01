@@ -1,3 +1,4 @@
+import { createRequire } from 'module';
 import { tmpdir } from 'os';
 import paths, { join } from 'path';
 
@@ -7,28 +8,28 @@ import debounce from 'lodash/debounce';
 import uniqBy from 'lodash/uniqBy';
 
 import {
-  FileChangeType,
-  FileSystemWatcherClient,
-  IWatcher,
-  RecursiveWatcherBackend,
-  WatchOptions,
-} from '@opensumi/ide-core-common';
-import { ILogService } from '@opensumi/ide-core-common/lib/log';
-import {
   Disposable,
   DisposableCollection,
+  FileChangeType,
+  FileSystemWatcherClient,
   FileUri,
   IDisposable,
+  IWatcher,
   ParsedPattern,
+  RecursiveWatcherBackend,
   RunOnceScheduler,
+  WatchOptions,
   isLinux,
   isWindows,
   parseGlob,
-} from '@opensumi/ide-core-common/lib/utils';
+} from '@opensumi/ide-core-common';
+import { ILogService } from '@opensumi/ide-core-common/log';
 
-import { INsfw } from '../../../common/watcher';
+import { INsfw, INsfwFunction } from '../../../common/watcher';
 import { FileChangeCollection } from '../../file-change-collection';
 import { shouldIgnorePath } from '../shared';
+
+const requireNative = createRequire(__filename);
 
 export interface WatcherOptions {
   excludesPattern: ParsedPattern[];
@@ -52,10 +53,18 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
 
   private WATCHER_HANDLERS = new Map<
     string,
-    { path: string; handlers: ParcelWatcher.SubscribeCallback[]; disposable: IDisposable }
+    { path: string; handlers: ParcelWatcher.SubscribeCallback[]; disposable: IDisposable; ready: Promise<void> }
   >();
 
   private readonly watchPathMap = new Map<string, string>();
+
+  /**
+   * Maps the original request to the existing path that was selected for the
+   * physical subscription. A missing target (for example `.sumi`) is watched
+   * through its parent, so native events must be mapped back to that parent
+   * rather than fabricated underneath the missing target.
+   */
+  private readonly requestedWatchPathMap = new Map<string, string>();
 
   protected watcherOptions = new Map<string, WatcherOptions>();
 
@@ -76,6 +85,8 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
     this.addDispose(
       Disposable.create(() => {
         this.WATCHER_HANDLERS.clear();
+        this.watchPathMap.clear();
+        this.requestedWatchPathMap.clear();
       }),
     );
   }
@@ -127,9 +138,17 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
 
   private async resolveWatchPath(basePath: string): Promise<string> {
     try {
-      return await fs.realpath(basePath);
-    } catch (e) {
-      return basePath;
+      // On Windows the non-native implementation can retain an 8.3 alias such
+      // as RUNNER~1. Parcel Watcher receives long paths from ReadDirectoryChangesW
+      // and asserts that they start with the subscribed directory, so the
+      // physical subscription must use the native final path.
+      return await fs.realpath.native(basePath);
+    } catch {
+      try {
+        return await fs.realpath(basePath);
+      } catch {
+        return basePath;
+      }
     }
   }
 
@@ -166,20 +185,28 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
 
     if (prevWatchPath && prevWatchPath !== realWatchPath) {
       this.logger.warn(`[Recursive] Watch path changed from ${prevWatchPath} to ${realWatchPath}`);
-      this.disposeWatcher(prevWatchPath);
-    }
-
-    // 先检查并清理已存在的 handler（使用 watchPath 确保目录级别的去重）
-    if (this.WATCHER_HANDLERS.has(realWatchPath)) {
-      this.logger.debug(`[Recursive] Cleaning up existing watcher for directory: ${realWatchPath}`);
-      const handler = this.WATCHER_HANDLERS.get(realWatchPath);
-      handler?.disposable.dispose();
-      this.WATCHER_HANDLERS.delete(realWatchPath);
-      this.cleanupWatchPathMap(realWatchPath);
+      this.releaseWatchRequest(basePath, prevWatchPath);
     }
 
     // 记录原始请求与真实监听目录的映射，方便后续释放
     this.watchPathMap.set(basePath, realWatchPath);
+    this.requestedWatchPathMap.set(basePath, watchPath);
+
+    const existingWatcher = this.WATCHER_HANDLERS.get(realWatchPath);
+    if (existingWatcher) {
+      this.logger.debug(`[Recursive] Reuse existing watcher for directory: ${realWatchPath}`);
+      try {
+        await existingWatcher.ready;
+      } catch (error) {
+        this.watchPathMap.delete(basePath);
+        this.requestedWatchPathMap.delete(basePath);
+        throw error;
+      }
+      if (this.isDisposed) {
+        throw new Error(`Recursive watcher disposed while reusing subscription: ${uri}`);
+      }
+      return;
+    }
 
     const handler = (err, events: ParcelWatcher.Event[]) => {
       if (err) {
@@ -202,17 +229,35 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
       }
     };
 
-    this.WATCHER_HANDLERS.set(realWatchPath, {
+    const ready = this.start(realWatchPath, options).then((disposable) => {
+      toDisposeWatcher.push(disposable);
+    });
+    const watcherEntry = {
       path: realWatchPath,
       disposable: toDisposeWatcher,
       handlers: [handler],
-    });
+      ready,
+    };
+    this.WATCHER_HANDLERS.set(realWatchPath, watcherEntry);
 
-    toDisposeWatcher.push(await this.start(realWatchPath, options));
+    try {
+      await ready;
+    } catch (error) {
+      if (this.WATCHER_HANDLERS.get(realWatchPath) === watcherEntry) {
+        this.WATCHER_HANDLERS.delete(realWatchPath);
+      }
+      this.watchPathMap.delete(basePath);
+      this.requestedWatchPathMap.delete(basePath);
+      await toDisposeWatcher.dispose();
+      throw error;
+    }
     if (this.isDisposed) {
       this.logger.warn('[Recursive] Watcher disposed while starting, cleanup:', uri);
-      this.WATCHER_HANDLERS.delete(realWatchPath);
+      if (this.WATCHER_HANDLERS.get(realWatchPath) === watcherEntry) {
+        this.WATCHER_HANDLERS.delete(realWatchPath);
+      }
       this.watchPathMap.delete(basePath);
+      this.requestedWatchPathMap.delete(basePath);
       await toDisposeWatcher.dispose();
       throw new Error(`Recursive watcher disposed while starting: ${uri}`);
     }
@@ -495,18 +540,27 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
     }
   }
 
+  private releaseWatchRequest(basePath: string, watchPath: string) {
+    this.watchPathMap.delete(basePath);
+    this.requestedWatchPathMap.delete(basePath);
+    if (Array.from(this.watchPathMap.values()).some((mappedPath) => mappedPath === watchPath)) {
+      return;
+    }
+    this.disposeWatcher(watchPath);
+  }
+
   unwatchFileChanges(uri: string): void {
     this.logger.log('[Recursive] Un watch: ', uri);
     const basePath = FileUri.fsPath(uri);
     const watchPath = this.watchPathMap.get(basePath) ?? basePath;
-    this.watchPathMap.delete(basePath);
-    this.disposeWatcher(watchPath);
+    this.releaseWatchRequest(basePath, watchPath);
   }
 
   private cleanupWatchPathMap(watchPath: string) {
     for (const [basePath, mappedPath] of this.watchPathMap) {
       if (mappedPath === watchPath) {
         this.watchPathMap.delete(basePath);
+        this.requestedWatchPathMap.delete(basePath);
       }
     }
   }
@@ -772,8 +826,8 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
     );
   }
 
-  private async withNSFWModule(): Promise<typeof import('nsfw')> {
-    return require('nsfw');
+  private async withNSFWModule(): Promise<INsfwFunction> {
+    return requireNative('nsfw') as INsfwFunction;
   }
 
   protected pushAdded(path: string): void {
@@ -788,8 +842,26 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
     this.pushFileChange(path, FileChangeType.DELETED);
   }
 
+  private mapEventPathToRequestedPath(eventPath: string): string {
+    let bestResolvedRootLength = -1;
+    let requestedEventPath = eventPath;
+    for (const [originalRequest, resolvedRoot] of this.watchPathMap) {
+      const requestedRoot = this.requestedWatchPathMap.get(originalRequest) ?? originalRequest;
+      const relativePath = paths.relative(resolvedRoot, eventPath);
+      const isInsideResolvedRoot =
+        relativePath === '' ||
+        (relativePath !== '..' && !relativePath.startsWith(`..${paths.sep}`) && !paths.isAbsolute(relativePath));
+      if (!isInsideResolvedRoot || resolvedRoot.length <= bestResolvedRootLength) {
+        continue;
+      }
+      bestResolvedRootLength = resolvedRoot.length;
+      requestedEventPath = relativePath ? paths.join(requestedRoot, relativePath) : requestedRoot;
+    }
+    return requestedEventPath;
+  }
+
   protected pushFileChange(path: string, type: FileChangeType): void {
-    const uri = FileUri.create(path).toString();
+    const uri = FileUri.create(this.mapEventPathToRequestedPath(path)).toString();
     this.changes.push({ uri, type });
 
     this.fireDidFilesChanged();
@@ -801,11 +873,11 @@ export class RecursiveFileSystemWatcher extends Disposable implements IWatcher {
     if (isLinux) {
       try {
         return await fs.realpath.native(path);
-      } catch (_e) {
+      } catch {
         try {
           // file does not exist try to resolve directory
           return paths.join(await fs.realpath.native(directory), file);
-        } catch (_e) {
+        } catch {
           // directory does not exist fall back to symlink
           return path;
         }

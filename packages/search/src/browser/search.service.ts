@@ -5,7 +5,9 @@ import { VALIDATE_TYPE, ValidateMessage } from '@opensumi/ide-components';
 import {
   COMMON_COMMANDS,
   CommandService,
+  CorePreferences,
   Emitter,
+  GlobalBrowserStorageService,
   IDisposable,
   ParsedPattern,
   PreferenceService,
@@ -16,8 +18,6 @@ import {
   parseGlob,
   strings,
 } from '@opensumi/ide-core-browser';
-import { CorePreferences } from '@opensumi/ide-core-browser/lib/core-preferences';
-import { GlobalBrowserStorageService } from '@opensumi/ide-core-browser/lib/services/storage-service';
 import {
   CancellationToken,
   CancellationTokenSource,
@@ -26,9 +26,9 @@ import {
   IReporterService,
   IReporterTimer,
   REPORT_NAME,
+  SearchSettingId,
   localize,
 } from '@opensumi/ide-core-common';
-import { SearchSettingId } from '@opensumi/ide-core-common/lib/settings/search';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import {
   EditorDocumentModelContentChangedEvent,
@@ -37,7 +37,7 @@ import {
   IEditorDocumentModelContentChangedEventPayload,
   IEditorDocumentModelService,
   ResourceService,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
 import { IDialogService, IMessageService } from '@opensumi/ide-overlay';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
@@ -186,7 +186,7 @@ export class ContentSearchClientService extends Disposable implements IContentSe
   private searchCancelToken: CancellationTokenSource;
   private searchOnType: boolean;
 
-  public searchDebounce: () => void;
+  public searchDebounce: ReturnType<typeof debounce>;
 
   constructor() {
     super();
@@ -205,6 +205,7 @@ export class ContentSearchClientService extends Disposable implements IContentSe
         maxWait: timeout * 5,
       },
     );
+    this.addDispose({ dispose: () => this.searchDebounce.cancel() });
 
     this.addDispose(
       this.searchPreferences.onPreferenceChanged((e) => {
@@ -230,6 +231,9 @@ export class ContentSearchClientService extends Disposable implements IContentSe
   }
 
   async search(insertUIState?: IUIState) {
+    // An explicit Enter/search action supersedes the queued search-on-type invocation.
+    // Without this, the trailing debounce can cancel and replace the explicit request while it is starting.
+    this.searchDebounce.cancel();
     const value = this.searchValue;
     this.cleanSearchResults();
     if (!value) {

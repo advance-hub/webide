@@ -2,7 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { DisposableStore, IDisposable, IEventBus, URI } from '@opensumi/ide-core-browser';
 import * as monaco from '@opensumi/ide-monaco';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
-import { ICSSStyleService } from '@opensumi/ide-theme/lib/common/style';
+import { ICSSStyleService } from '@opensumi/ide-theme/style';
 
 import { IContentDecorationRenderOptions, IDecorationRenderOptions, IThemeDecorationRenderOptions } from '../common';
 

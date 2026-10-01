@@ -1,8 +1,8 @@
 import fs, { watch } from 'fs-extra';
 import debounce from 'lodash/debounce';
 
-import { ILogService } from '@opensumi/ide-core-common/lib/log';
-import { Disposable, DisposableCollection, FileUri, isMacintosh, path } from '@opensumi/ide-utils/lib';
+import { ILogService } from '@opensumi/ide-core-common/log';
+import { Disposable, DisposableCollection, FileUri, isMacintosh, path } from '@opensumi/ide-utils';
 
 import { FileChangeType, FileSystemWatcherClient, IWatcher } from '../../../common/index';
 import { FileChangeCollection } from '../../file-change-collection';
@@ -41,7 +41,7 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
    * @param basePath 要监听的路径
    * @returns 创建的 watcher，如果失败则返回 undefined
    */
-  private async doWatch(basePath: string): Promise<fs.FSWatcher | undefined> {
+  private async doWatch(basePath: string, requestedPath = basePath): Promise<fs.FSWatcher | undefined> {
     try {
       const watcher = watch(basePath);
       this.logger.log('[Un-Recursive] start watching', basePath);
@@ -89,7 +89,11 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
         // 对传入的raw做一个统一处理
         let changeFileName = '';
         if (filename) {
-          changeFileName = filename as string;
+          // `fs.watch` may provide a Buffer here when the underlying watcher
+          // resolves a symlinked directory. Normalize it to the same string
+          // representation used by the requested path before joining and
+          // comparing entries.
+          changeFileName = filename.toString();
           if (isMacintosh) {
             changeFileName = normalize(changeFileName);
           }
@@ -98,7 +102,7 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
           return;
         }
 
-        const changePath = join(basePath, changeFileName);
+        const changePath = join(requestedPath, changeFileName);
         if (isDirectory) {
           setTimeout(async () => {
             // 检查是否已销毁，避免在销毁后执行
@@ -132,9 +136,9 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
             }
             if (changeFileName === signalDoc) {
               if (await fs.pathExists(basePath)) {
-                this.pushUpdated(basePath);
+                this.pushUpdated(requestedPath);
               } else {
-                this.pushDeleted(basePath);
+                this.pushDeleted(requestedPath);
                 signalDoc = '';
               }
             }
@@ -185,12 +189,17 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
       return disposables;
     }
 
-    const realPath = await fs.realpath(basePath);
+    let realPath: string;
+    try {
+      realPath = await fs.realpath.native(basePath);
+    } catch {
+      realPath = await fs.realpath(basePath);
+    }
     if (this.watcherCollections.has(realPath)) {
       return disposables;
     }
 
-    const watcher = await this.doWatch(realPath);
+    const watcher = await this.doWatch(realPath, basePath);
 
     if (watcher) {
       disposables.push(
@@ -215,9 +224,13 @@ export class UnRecursiveFileSystemWatcher implements IWatcher {
     // 尝试解析 realPath，保持与 start 方法一致
     let realPath = basePath;
     try {
-      realPath = fs.realpathSync(basePath);
+      realPath = fs.realpathSync.native(basePath);
     } catch {
-      // 如果解析失败（如路径不存在），使用原始路径
+      try {
+        realPath = fs.realpathSync(basePath);
+      } catch {
+        // 如果解析失败（如路径不存在），使用原始路径
+      }
     }
 
     // 尝试使用 realPath 和 basePath 两种方式查找

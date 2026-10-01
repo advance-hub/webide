@@ -10,7 +10,7 @@ import {
   MaybePromise,
   URI,
 } from '@opensumi/ide-core-browser';
-import { IContextMenu } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IContextMenu } from '@opensumi/ide-core-browser/menu';
 import { IThemeColor } from '@opensumi/ide-core-common';
 import { editor } from '@opensumi/ide-monaco';
 

@@ -9,7 +9,7 @@ import {
   localize,
 } from '@opensumi/ide-core-browser';
 import { DocumentFormattingEditProvider, DocumentRangeFormattingEditProvider } from '@opensumi/ide-monaco';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { IMessageService } from '@opensumi/ide-overlay';
 import {
   FormattingKind,

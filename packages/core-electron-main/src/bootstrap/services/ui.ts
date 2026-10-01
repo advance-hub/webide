@@ -11,7 +11,7 @@ import {
   IElectronMainUIService,
   IElectronMainUIServiceShape,
   IElectronPlainWebviewWindowOptions,
-} from '@opensumi/ide-core-common/lib/electron';
+} from '@opensumi/ide-core-common/electron';
 
 import { ElectronMainApiProvider, ElectronMainApiRegistry, ElectronMainContribution } from '../types';
 

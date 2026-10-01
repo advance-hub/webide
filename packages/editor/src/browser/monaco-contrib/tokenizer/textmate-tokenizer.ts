@@ -1,6 +1,6 @@
 import { IGrammar, INITIAL, StackElement } from 'vscode-textmate';
 
-import { Disposable, Emitter, Event } from '@opensumi/ide-core-common/lib/utils';
+import { Disposable, Emitter, Event } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
 import {
   MetadataConsts,

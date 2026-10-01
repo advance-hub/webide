@@ -11,7 +11,7 @@ import {
   URI,
   WithEventBus,
 } from '@opensumi/ide-core-browser';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
 import { DocumentSymbol, SymbolTag } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 
 import { WorkbenchEditorService } from '../../common';
@@ -144,7 +144,8 @@ export class DocumentSymbolStore extends WithEventBus {
 
 export class DocumentSymbolChangedEvent extends BasicEvent<URI> {}
 
-export { DocumentSymbol, SymbolTag };
+export { SymbolTag };
+export type { DocumentSymbol };
 
 export interface INormalizedDocumentSymbol extends DocumentSymbol {
   parent?: INormalizedDocumentSymbol | IDummyRoot;

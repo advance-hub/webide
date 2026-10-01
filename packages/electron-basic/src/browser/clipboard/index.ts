@@ -1,13 +1,12 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { CLIPBOARD_FILE_TOKEN, IClipboardService, URI } from '@opensumi/ide-core-common';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
 
 export { CLIPBOARD_FILE_TOKEN };
 
 export const INativeClipboardService = Symbol('INativeClipboardService');
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface INativeClipboardService extends IClipboardService {}
+export type INativeClipboardService = IClipboardService;
 
 @Injectable()
 export class ElectronClipboardService implements INativeClipboardService {

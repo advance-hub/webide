@@ -1,4 +1,4 @@
-import { ProxyIdentifier } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { ProxyIdentifier } from '@opensumi/ide-connection/rpc-contracts';
 import { Event, FileChange, IRelativePattern, URI, UriComponents } from '@opensumi/ide-core-common';
 import {
   DidFilesChangedParams,
@@ -6,7 +6,7 @@ import {
   FileWatcherFailureParams,
   FileWatcherOverflowParams,
   RecursiveWatcherBackend,
-} from '@opensumi/ide-core-common/lib/types/file-watch';
+} from '@opensumi/ide-core-common/file-watch';
 
 import { IFileServiceClient } from './file-service-client';
 
@@ -42,7 +42,7 @@ export namespace INsfw {
 
   export interface Options {
     debounceMS?: number;
-    errorCallback?: (error: string) => void;
+    errorCallback?: (error: unknown) => void;
   }
 
   export interface ChangeEvent {

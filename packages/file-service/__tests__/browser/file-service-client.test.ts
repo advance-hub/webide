@@ -1,26 +1,26 @@
 import fs from 'fs-extra';
 import temp from 'temp';
 
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import {
   DisposableCollection,
   Event,
   FileChangeType,
+  FileStat,
   FileSystemProviderCapabilities,
   FileUri,
   UTF8,
 } from '@opensumi/ide-core-common';
-import { FileStat } from '@opensumi/ide-core-common/lib/types/file';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { FileService } from '@opensumi/ide-file-service/lib/node';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
-import { FileServicePath, IDiskFileProvider, IFileServiceClient } from '../../src';
+import { FileServicePath, FileSystemError, IDiskFileProvider, IFileServiceClient } from '../../src';
 import { FileServiceClientModule } from '../../src/browser';
+import { FileService } from '../../src/node';
+import { DiskFileSystemProvider } from '../../src/node/disk-file-system.provider';
 import { RecursiveFileSystemWatcher } from '../../src/node/hosted/recursive/file-service-watcher';
+import { WatcherProcessManagerToken } from '../../src/node/watcher-process-manager';
 
 function createMockStreamProvider() {
   return {
@@ -87,7 +87,7 @@ describe('FileServiceClient should be work', () => {
         setClient: () => void 0,
         watch: (() => 1) as any,
         unWatch: () => void 0,
-        createProcess: () => void 0,
+        createProcess: () => Promise.resolve(undefined),
         setWatcherFileExcludes: () => void 0,
       },
     },
@@ -107,7 +107,7 @@ describe('FileServiceClient should be work', () => {
   });
 
   afterAll(async () => {
-    toDispose.dispose();
+    await toDispose.dispose();
     await injector.disposeAll();
     track.cleanupSync();
   });
@@ -151,6 +151,26 @@ describe('FileServiceClient should be work', () => {
       const result = await fileServiceClient.readFile(stat.uri);
       expect(result.content.toString()).toBe(content);
     }
+  });
+
+  it('setContent serializes compare-and-write for the same disk file', async () => {
+    const sourceFile = tempDir.resolve('concurrent-content.json');
+    await fileServiceClient.createFile(sourceFile.toString());
+    const stat = await fileServiceClient.getFileStat(sourceFile.toString());
+    expect(stat).toBeDefined();
+
+    const results = await Promise.allSettled([
+      fileServiceClient.setContent(stat!, 'first', { expectedContent: '' }),
+      fileServiceClient.setContent(stat!, 'other', { expectedContent: '' }),
+    ]);
+    const fulfilled = results.filter((result) => result.status === 'fulfilled');
+    const rejected = results.filter((result) => result.status === 'rejected') as PromiseRejectedResult[];
+
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect(FileSystemError.FileIsOutOfSync.is(rejected[0].reason)).toBeTruthy();
+    const content = (await fileServiceClient.readFile(sourceFile.toString())).content.toString();
+    expect(['first', 'other']).toContain(content);
   });
 
   it('isReadonly', async () => {

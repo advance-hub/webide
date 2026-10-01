@@ -1,29 +1,30 @@
 import {
+  Emitter,
   IApplicationService,
   IClipboardService,
   IContextKeyService,
   OperatingSystem,
   PreferenceService,
   QuickOpenService,
+  URI,
 } from '@opensumi/ide-core-browser';
-import { Emitter, URI } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
 import { IDecorationsService } from '@opensumi/ide-decoration';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MockWorkbenchEditorService } from '@opensumi/ide-dev-tool/mocks/editor-workbench';
+import { MockQuickOpenService } from '@opensumi/ide-dev-tool/mocks/quick-open';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { MockWorkbenchEditorService } from '@opensumi/ide-editor/lib/common/mocks/workbench-editor.service';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IFileTreeAPI, IFileTreeService } from '@opensumi/ide-file-tree-next';
-import { FileTreeContribution } from '@opensumi/ide-file-tree-next/lib/browser/file-tree-contribution';
-import { FileTreeModelService } from '@opensumi/ide-file-tree-next/lib/browser/services/file-tree-model.service';
 import { IMainLayoutService, IViewsRegistry } from '@opensumi/ide-main-layout';
-import { ViewsRegistry } from '@opensumi/ide-main-layout/lib/browser/views-registry';
+import { ViewsRegistry } from '@opensumi/ide-main-layout/views';
 import { IDialogService, IMessageService, IWindowDialogService } from '@opensumi/ide-overlay';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
-import { MockQuickOpenService } from '../../../quick-open/src/common/mocks/quick-open.service';
+import { FileTreeContribution } from '../../src/browser/file-tree-contribution';
+import { FileTreeModelService } from '../../src/browser/services/file-tree-model.service';
 
 describe('FileTreeContribution', () => {
   let mockInjector: MockInjector;

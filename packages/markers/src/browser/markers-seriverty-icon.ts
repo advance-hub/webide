@@ -70,7 +70,8 @@ function getIconStyle(severity: MarkerSeverity, theme: ThemeType): CSSProperties
   };
 }
 
-export { DARK, LIGHT, HIGH_CONTRAST_LIGHT, HIGH_CONTRAST_DARK, ThemeType } from '@opensumi/ide-theme';
+export { DARK, LIGHT, HIGH_CONTRAST_LIGHT, HIGH_CONTRAST_DARK } from '@opensumi/ide-theme';
+export type { ThemeType } from '@opensumi/ide-theme';
 
 export const SeverityIconStyle = {
   [LIGHT]: {

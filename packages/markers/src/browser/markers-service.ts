@@ -1,9 +1,9 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService } from '@opensumi/ide-core-browser';
 import { Deferred, Emitter, Event, IBaseMarkerManager, MarkerManager, OnEvent } from '@opensumi/ide-core-common';
-import { EditorGroupCloseEvent, EditorGroupOpenEvent } from '@opensumi/ide-editor/lib/browser';
+import { EditorGroupCloseEvent, EditorGroupOpenEvent } from '@opensumi/ide-editor/browser';
 import { ThemeType } from '@opensumi/ide-theme';
-import { Themable } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
+import { Themable } from '@opensumi/ide-theme/workbench';
 
 import { IMarkerService } from '../common/types';
 
@@ -12,7 +12,7 @@ import { FilterOptions } from './markers-filter.model';
 import { MarkerViewModel } from './markers.model';
 import { MarkerGroupNode, MarkerNode, MarkerRoot } from './tree/tree-node.defined';
 
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
 const MAX_DIAGNOSTICS_BADGE = 1000;
 

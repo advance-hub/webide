@@ -1,5 +1,5 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
-import { AbstractMenuService, IMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractMenuService, IMenu, MenuId } from '@opensumi/ide-core-browser/menu';
 import { Disposable, memoize } from '@opensumi/ide-core-common';
 
 import { ICommentsService } from '../common';

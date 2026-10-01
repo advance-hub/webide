@@ -7,8 +7,8 @@ import {
   QuickOpenItem,
   QuickOpenTabOptions,
 } from '@opensumi/ide-core-browser';
-import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/lib/components';
-import { IObservable } from '@opensumi/ide-monaco/lib/common/observable';
+import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/components';
+import { IObservable } from '@opensumi/ide-monaco/observable';
 
 export const QuickOpenContext = React.createContext<{
   widget: IQuickOpenWidget;

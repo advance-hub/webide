@@ -9,10 +9,10 @@ import {
   addDisposableListener,
   isNumber,
 } from '@opensumi/ide-core-browser';
-import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/lib/components';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/components';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import {
   IAutoFocus,

@@ -6,7 +6,7 @@ import {
   EditorComponentRegistry,
   EditorComponentRenderMode,
   EditorOpenType,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IWelcomeMetaData } from './common';

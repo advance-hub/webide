@@ -9,6 +9,7 @@ import {
   IPosition,
   IRange,
   LRUMap,
+  LabelService,
   MaybeNull,
   OnEvent,
   URI,
@@ -16,10 +17,9 @@ import {
   getSymbolIcon,
   path,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
-import { FileStat } from '@opensumi/ide-file-service/lib/common';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common/file-service-client';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common/workspace.interface';
+import { FileStat } from '@opensumi/ide-file-service';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IEditor } from '../../common';
 import { EditorSelectionChangeEvent, IBreadCrumbPart, IBreadCrumbProvider } from '../types';

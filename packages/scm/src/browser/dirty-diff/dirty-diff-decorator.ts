@@ -1,7 +1,7 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { Disposable } from '@opensumi/ide-core-browser';
 import { OverviewRulerLane } from '@opensumi/ide-editor';
-import { IEditorDocumentModel } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModel } from '@opensumi/ide-editor/browser';
 import { themeColorFromId } from '@opensumi/ide-theme';
 import * as model from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 import * as textModel from '@opensumi/monaco-editor-core/esm/vs/editor/common/model/textModel';
@@ -71,7 +71,10 @@ export class DirtyDiffDecorator extends Disposable {
   @Autowired(SCMPreferences)
   private readonly scmPreferences: SCMPreferences;
 
-  constructor(@Optional() editorModel: IEditorDocumentModel, @Optional() private model: DirtyDiffModel) {
+  constructor(
+    @Optional() editorModel: IEditorDocumentModel,
+    @Optional() private model: DirtyDiffModel,
+  ) {
     super();
     this.editorModel = editorModel;
     const decorations = this.scmPreferences['scm.diffDecorations'];

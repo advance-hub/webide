@@ -1,4 +1,4 @@
-import { Event } from '@opensumi/ide-core-browser';
+import { Event } from '@opensumi/ide-core-common';
 export const IElectronHeaderService = Symbol('IElectronHeaderService');
 
 export interface IElectronHeaderService {

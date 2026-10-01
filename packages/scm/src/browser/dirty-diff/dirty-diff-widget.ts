@@ -1,13 +1,13 @@
 import { CommandService, URI, formatLocalize, path } from '@opensumi/ide-core-browser';
-import { ScmChangeTitleCallback } from '@opensumi/ide-core-browser/lib/menu/next';
-import { ZoneWidget } from '@opensumi/ide-monaco-enhance/lib/browser';
+import { ScmChangeTitleCallback } from '@opensumi/ide-core-browser/menu';
+import { ZoneWidget } from '@opensumi/ide-monaco-enhance/browser';
 import { EditorOption } from '@opensumi/monaco-editor-core/esm/vs/editor/common/config/editorOptions';
 
 import { IDirtyDiffModel, OPEN_DIRTY_DIFF_WIDGET } from '../../common';
 
 import { ChangeType, getChangeType, toChange } from './dirty-diff-util';
 
-import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 export enum DirtyDiffWidgetActionType {
   close,
@@ -34,7 +34,11 @@ export class DirtyDiffWidget extends ZoneWidget {
     return URI.from(this.editor.getModel()!.uri);
   }
 
-  constructor(editor: IMonacoCodeEditor, dirtyModel: IDirtyDiffModel, readonly commandService: CommandService) {
+  constructor(
+    editor: IMonacoCodeEditor,
+    dirtyModel: IDirtyDiffModel,
+    readonly commandService: CommandService,
+  ) {
     super(editor);
 
     this._model = dirtyModel;

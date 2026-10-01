@@ -1,12 +1,11 @@
 import { TreeNodeType } from '@opensumi/ide-components';
-import { URI } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
-import { FileStat } from '@opensumi/ide-file-service';
-import { FileTreeDialogService } from '@opensumi/ide-file-tree-next/lib/browser/dialog/file-dialog.service';
+import { LabelService, URI } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
+import { FileTreeDialogService } from '../../../src/browser/dialog/file-dialog.service';
 import { IFileTreeAPI } from '../../../src/common';
 import { Directory, File } from '../../../src/common/file-tree-node.define';
 
@@ -119,6 +118,32 @@ describe('FileDialogService should be work', () => {
     expect(directory.length === 2).toBeTruthy();
   });
 
+  it('rejects directories in file dialogs but accepts them in folder dialogs', async () => {
+    expect.hasAssertions();
+    const getFileStat = jest.fn(async (uri) => ({ uri, isDirectory: uri === 'file:///' }));
+    injector.overrideProviders({ token: IFileServiceClient, useValue: { getFileStat } });
+    await expect(fileTreeDialogService.resolveOpenSelection(['/'], { canSelectFolders: false })).rejects.toThrow(
+      'Folders cannot be opened as files',
+    );
+    await expect(
+      fileTreeDialogService.resolveOpenSelection(['/'], { canSelectFolders: true, canSelectFiles: false }),
+    ).resolves.toEqual(['/']);
+    await expect(
+      fileTreeDialogService.resolveOpenSelection(['/app/package.json'], { canSelectFiles: true }),
+    ).resolves.toEqual(['/app/package.json']);
+  });
+
+  it('validates typed paths against file filters', async () => {
+    expect.hasAssertions();
+    injector.overrideProviders({
+      token: IFileServiceClient,
+      useValue: { getFileStat: async (uri) => ({ uri, isDirectory: false }) },
+    });
+    await expect(
+      fileTreeDialogService.resolveOpenSelection(['/app/readme.md'], { filters: { Workspace: ['code-workspace'] } }),
+    ).rejects.toThrow('requested type');
+  });
+
   it('sortComparator method should be work', () => {
     let res = fileTreeDialogService.sortComparator(newFileByName('a'), newDirectoryByName('a'));
     expect(res).toBe(1);
@@ -129,5 +154,6 @@ describe('FileDialogService should be work', () => {
     res = fileTreeDialogService.sortComparator(newDirectoryByName('a'), newDirectoryByName('a'));
     expect(res).toBe(0);
     res = fileTreeDialogService.sortComparator(newFileByName('a'), newFileByName('a'));
+    expect(res).toBe(0);
   });
 });

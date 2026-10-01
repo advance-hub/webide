@@ -35,22 +35,17 @@ import {
   FilesExplorerFilteredContext,
   FilesExplorerFocusedContext,
   FilesExplorerInputFocusedContext,
-} from '@opensumi/ide-core-browser/lib/contextkey/explorer';
-import {
-  ExplorerContextCallback,
-  IMenuRegistry,
-  MenuContribution,
-  MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+} from '@opensumi/ide-core-browser/contextkeys';
+import { ExplorerContextCallback, IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
+import { Domain } from '@opensumi/ide-core-common';
 import { IDecorationsService } from '@opensumi/ide-decoration';
 import { DIFF_SCHEME, EditorOpenType, IEditorOpenType, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IMainLayoutService, IViewsRegistry, MainLayoutContribution } from '@opensumi/ide-main-layout';
-import { ViewContentGroups } from '@opensumi/ide-main-layout/lib/browser/views-registry';
+import { ViewContentGroups } from '@opensumi/ide-main-layout/views';
 import { IOpenDialogOptions, ISaveDialogOptions, IWindowDialogService } from '@opensumi/ide-overlay';
-import { Path } from '@opensumi/ide-utils/lib/path';
+import { Path } from '@opensumi/ide-utils/path';
 import { IWorkspaceService, UNTITLED_WORKSPACE } from '@opensumi/ide-workspace';
 
 import { IFileTreeService, PasteTypes, RESOURCE_VIEW_ID } from '../common';

@@ -9,8 +9,8 @@ import {
   IDisposable,
   RecursiveWatcherBackend,
 } from '@opensumi/ide-core-common';
-import { defaultFilesWatcherExcludes, flattenExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
-import { URI, Uri, UriComponents } from '@opensumi/ide-utils/lib/uri';
+import { defaultFilesWatcherExcludes, flattenExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
+import { URI, Uri, UriComponents } from '@opensumi/ide-utils';
 
 import { IWatcherHostService, WatcherProcessManagerProxy, WatcherServiceProxy } from '../../common/watcher';
 import { IWatcher } from '../disk-file-system.provider';

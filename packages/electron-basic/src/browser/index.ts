@@ -5,6 +5,8 @@ import {
   ClientAppContribution,
   CommandContribution,
   CommandRegistry,
+  ComponentContribution,
+  ComponentRegistry,
   Domain,
   IClipboardService,
   IElectronMainMenuService,
@@ -21,17 +23,12 @@ import {
   isOSX,
   isWindows,
 } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IElectronMenuBarService } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/electron';
-import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IElectronMenuBarService } from '@opensumi/ide-core-browser/menu/electron';
+import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/electron';
 import { IResourceOpenOptions } from '@opensumi/ide-editor';
-import {
-  DragOverPosition,
-  EditorGroupFileDropEvent,
-  getSplitActionFromDragDrop,
-} from '@opensumi/ide-editor/lib/browser';
-import { IMessageService } from '@opensumi/ide-overlay/lib/common';
+import { DragOverPosition, EditorGroupFileDropEvent, getSplitActionFromDragDrop } from '@opensumi/ide-editor/browser';
+import { IMessageService } from '@opensumi/ide-overlay';
 
 import { IElectronHeaderService } from '../common/header';
 
@@ -101,12 +98,7 @@ const nativeRoles = [
 
 @Domain(ComponentContribution, ClientAppContribution, MenuContribution, CommandContribution, KeybindingContribution)
 export class ElectronBasicContribution
-  implements
-    KeybindingContribution,
-    CommandContribution,
-    ComponentContribution,
-    ClientAppContribution,
-    MenuContribution
+  implements KeybindingContribution, CommandContribution, ComponentContribution, ClientAppContribution, MenuContribution
 {
   @Autowired(AppConfig)
   config: AppConfig;
@@ -352,10 +344,10 @@ export class ElectronBasicContribution
     // 注册drag drop file的行为
     this.eventBus.on(EditorGroupFileDropEvent, async (event) => {
       const payload = event.payload;
+      let group = event.payload.group;
       // fileList 只能这样遍历
       for (let i = 0; i < payload.files.length; i++) {
         const file = payload.files[i];
-        let group = event.payload.group;
         if (file.path) {
           const fileURI = URI.file(file.path);
           const options: IResourceOpenOptions = {

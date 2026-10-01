@@ -13,6 +13,7 @@ import {
   Emitter,
   Event,
   FileUri,
+  IConnectionScopeRetirement,
   IDisposable,
   IFileStatOptions,
   ILogService,
@@ -67,6 +68,8 @@ export interface IWatcher {
   disposable: IDisposable;
 }
 
+export type DirectoryEntry = [string, FileType];
+
 @Injectable({ multiple: true })
 export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvider> implements IDiskFileProvider {
   private fileChangeEmitter = new Emitter<FileChangeEvent>();
@@ -91,6 +94,14 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
   private logger: ILogService;
 
   private ignoreNextChangesEvent: Set<string> = new Set();
+  private pendingFileWrites = new Map<string, Promise<void>>();
+  private readonly pendingMutations = new Set<Promise<unknown>>();
+  private readonly pendingWatcherInitializations = new Set<Promise<void>>();
+  private readonly pendingWatcherRegistrations = new Set<Promise<void>>();
+  private readonly pendingWatcherDisposals = new Set<Promise<void>>();
+  private disposing = false;
+  private disposePromise?: Promise<void>;
+  private connectionScopeRetirement?: IConnectionScopeRetirement;
 
   private recursive: boolean;
 
@@ -101,6 +112,9 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
 
     this.watcherProcessManager.setClient({
       onDidFilesChanged: (events: DidFilesChangedParams) => {
+        if (this.connectionScopeRetirement?.retired) {
+          return;
+        }
         if (events.changes.length > 0) {
           const changes = events.changes.filter((c) => !this.ignoreNextChangesEvent.has(c.uri));
           this.fileChangeEmitter.fire(changes);
@@ -114,12 +128,18 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
         }
       },
       onWatcherOverflow: (event: FileWatcherOverflowParams) => {
+        if (this.connectionScopeRetirement?.retired) {
+          return;
+        }
         this.watcherOverflowEmitter.fire(event);
         if (Array.isArray(this.rpcClient)) {
           this.rpcClient.forEach((client) => client.onWatcherOverflow?.(event));
         }
       },
       onWatcherFailed: (event: FileWatcherFailureParams) => {
+        if (this.connectionScopeRetirement?.retired) {
+          return;
+        }
         this.watcherFailedEmitter.fire(event);
         if (Array.isArray(this.rpcClient)) {
           this.rpcClient.forEach((client) => client.onWatcherFailed?.(event));
@@ -128,8 +148,27 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
     });
   }
 
-  async initialize(clientId: string, backend?: RecursiveWatcherBackend) {
-    await this.watcherProcessManager.createProcess(clientId, backend);
+  setConnectionScopeRetirement(retirement: IConnectionScopeRetirement): void {
+    this.connectionScopeRetirement = retirement;
+  }
+
+  async initialize(clientId: string, backend?: RecursiveWatcherBackend): Promise<void> {
+    if (this.disposing || this.connectionScopeRetirement?.retired) {
+      throw new Error('DiskFileSystemProvider is disposing and cannot initialize the watcher process');
+    }
+
+    const initialization = this.watcherProcessManager.createProcess(clientId, backend);
+    const initializationSettlement = initialization.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.pendingWatcherInitializations.add(initializationSettlement);
+    void initializationSettlement.then(() => this.pendingWatcherInitializations.delete(initializationSettlement));
+
+    await initialization;
+    if (this.disposing) {
+      throw new Error('DiskFileSystemProvider was disposed while initializing the watcher process');
+    }
   }
 
   get whenReady() {
@@ -156,9 +195,81 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
     return this._capabilities;
   }
 
-  async dispose() {
-    this.watcherServerDisposeCollection?.dispose();
-    this.watcherProcessManager.dispose();
+  dispose(): Promise<void> {
+    if (!this.disposePromise) {
+      this.disposing = true;
+      this.disposePromise = this.doDispose();
+    }
+    return this.disposePromise;
+  }
+
+  private async doDispose(): Promise<void> {
+    const mutations = Array.from(this.pendingMutations);
+    const watcherDisposals = Array.from(this.pendingWatcherDisposals);
+    const admittedWork = Promise.all([
+      Promise.allSettled(mutations),
+      Promise.allSettled(Array.from(this.pendingWatcherInitializations)),
+      Promise.allSettled(Array.from(this.pendingWatcherRegistrations)),
+    ]);
+    const admittedSettlement = await this.waitWhileConnectionScopeOwned(admittedWork);
+    if (admittedSettlement.owned) {
+      this.reportMutationFailures(admittedSettlement.value[0]);
+    } else {
+      void admittedWork.then(([mutationResults]) => this.reportMutationFailures(mutationResults));
+    }
+
+    const cleanupWork = Promise.allSettled([
+      ...watcherDisposals,
+      Promise.resolve().then(() => this.watcherServerDisposeCollection?.dispose() as unknown as void | Promise<void>),
+      Promise.resolve().then(() => this.watcherProcessManager.dispose()),
+    ]);
+    const cleanupSettlement = await this.waitWhileConnectionScopeOwned(cleanupWork);
+    if (!cleanupSettlement.owned) {
+      void cleanupWork.then((results) => this.reportRetiredCleanupFailures(results));
+      return;
+    }
+
+    const errors = cleanupSettlement.value
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map((result) => result.reason);
+    if (errors.length === 1) {
+      throw errors[0];
+    }
+    if (errors.length > 1) {
+      throw new AggregateError(errors, 'Disk file-system provider disposal failed');
+    }
+  }
+
+  private async waitWhileConnectionScopeOwned<T>(
+    work: Promise<T>,
+  ): Promise<{ owned: true; value: T } | { owned: false }> {
+    const retirement = this.connectionScopeRetirement;
+    if (!retirement) {
+      return { owned: true, value: await work };
+    }
+    return Promise.race([
+      work.then((value) => ({ owned: true as const, value })),
+      retirement.whenRetired.then(() => ({ owned: false as const })),
+    ]);
+  }
+
+  private reportMutationFailures(results: PromiseSettledResult<unknown>[]): void {
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.warn('An admitted disk provider mutation failed while the provider was draining.', result.reason);
+      }
+    }
+  }
+
+  private reportRetiredCleanupFailures(results: PromiseSettledResult<unknown>[]): void {
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.warn(
+          'Retired disk provider cleanup failed after its connection scope was released.',
+          result.reason,
+        );
+      }
+    }
   }
 
   /**
@@ -170,7 +281,30 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
     uri: UriComponents,
     options?: { excludes?: string[]; recursive?: boolean; pollingWatch?: boolean },
   ): Promise<number> {
+    if (this.disposing || this.connectionScopeRetirement?.retired) {
+      throw new Error('DiskFileSystemProvider is disposing and cannot accept new watchers');
+    }
+
+    const registration = this.registerWatcher(uri, options);
+    const registrationSettlement = registration.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.pendingWatcherRegistrations.add(registrationSettlement);
+    void registrationSettlement.then(() => this.pendingWatcherRegistrations.delete(registrationSettlement));
+
+    return registration;
+  }
+
+  private async registerWatcher(
+    uri: UriComponents,
+    options?: { excludes?: string[]; recursive?: boolean; pollingWatch?: boolean },
+  ): Promise<number> {
     await this.whenReady;
+    if (this.disposing) {
+      throw new Error('DiskFileSystemProvider was disposed while registering a watcher');
+    }
+
     const _uri = Uri.revive(uri);
 
     const id = await this.watcherProcessManager.watch(_uri, {
@@ -179,11 +313,37 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
       pollingWatch: options?.pollingWatch,
     });
 
+    if (this.disposing) {
+      await this.watcherProcessManager.unWatch(id);
+      throw new Error('DiskFileSystemProvider was disposed while registering a watcher');
+    }
+
     return id;
   }
 
-  unwatch(watcherId: number) {
-    this.watcherProcessManager.unWatch(watcherId);
+  unwatch(watcherId: number): void {
+    // Preserve the concrete synchronous return type used by external subclasses.
+    // FileService and connection-scope owners call unwatchAsync() when they need
+    // to await the underlying watcher process cleanup.
+    void this.unwatchAsync(watcherId).catch((error) => {
+      this.logger.error('Disk watcher asynchronous disposal failed', error);
+    });
+  }
+
+  /** @internal Awaitable owner hook; external compatibility remains unwatch(): void. */
+  unwatchAsync(watcherId: number): Promise<void> {
+    if (this.disposePromise) {
+      // Global provider disposal owns every remaining watcher once it starts.
+      return this.disposePromise;
+    }
+
+    const disposal = Promise.resolve(this.watcherProcessManager.unWatch(watcherId));
+    this.pendingWatcherDisposals.add(disposal);
+    disposal.then(
+      () => this.pendingWatcherDisposals.delete(disposal),
+      () => this.pendingWatcherDisposals.delete(disposal),
+    );
+    return disposal;
   }
 
   async stat(uri: UriComponents, options?: IFileStatOptions): Promise<FileStat> {
@@ -193,31 +353,49 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
       if (stat) {
         return stat;
       }
-      throw FileSystemError.Unavailable(uri.path, 'Error occurred while getting the file stat.');
+      throw FileSystemError.FileNotFound(uri.path);
     } catch (e) {
-      this.logger.error(e);
+      if (!FileSystemError.FileNotFound.is(e)) {
+        this.logger.error(e);
+      }
       throw e;
     }
   }
 
-  async readDirectory(uri: UriComponents): Promise<[string, FileType][]> {
+  async readDirectory(uri: UriComponents): Promise<DirectoryEntry[]> {
     const _uri = Uri.revive(uri);
-    const result: [string, FileType][] = [];
+    const result: DirectoryEntry[] = [];
     try {
-      const dirList = await fse.readdir(_uri.fsPath);
-
-      dirList.forEach((name) => {
-        const filePath = paths.join(_uri.fsPath, name);
-        // eslint-disable-next-line import/namespace
-        result.push([name, this.getFileStatType(fse.statSync(filePath))]);
+      const dirList = await fse.readdir(_uri.fsPath, { withFileTypes: true });
+      dirList.forEach((entry) => {
+        let type: FileType;
+        if (entry.isDirectory()) {
+          type = FileType.Directory;
+        } else if (entry.isFile()) {
+          type = FileType.File;
+        } else if (entry.isSymbolicLink()) {
+          // Preserve the historical statSync behavior: directory listings
+          // report a symbolic link as the type of its target.
+          const filePath = paths.join(_uri.fsPath, entry.name);
+          // eslint-disable-next-line import-x/namespace
+          type = this.getFileStatType(fse.statSync(filePath));
+        } else {
+          type = FileType.Unknown;
+        }
+        result.push([entry.name, type]);
       });
-      return result;
-    } catch (e) {
-      return result;
+    } catch {
+      // Keep the historical contract: callers receive the entries collected
+      // before the first filesystem failure, or an empty directory result.
     }
+    return result;
   }
 
-  async createDirectory(uri: UriComponents): Promise<FileStat> {
+  createDirectory(uri: UriComponents): Promise<FileStat> {
+    return this.queueMutation(() => this.doCreateDirectory(uri));
+  }
+
+  private async doCreateDirectory(uri: UriComponents): Promise<FileStat> {
     const _uri = Uri.revive(uri);
     const stat = await this.doGetStat(_uri, 0);
     if (stat) {
@@ -236,7 +414,6 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
 
   async readFile(uri: UriComponents, encoding = 'utf8'): Promise<Uint8Array> {
     const _uri = Uri.revive(uri);
-
     try {
       const buffer = await fse.readFile(FileUri.fsPath(new URI(_uri)));
       return buffer;
@@ -277,6 +454,99 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean; encoding?: string },
   ): Promise<void | FileStat> {
+    return this.queueFileWrite(uri, () => this.doWriteFile(uri, content, options));
+  }
+
+  async writeFileWithStat(
+    file: FileStat,
+    content: Uint8Array,
+    options?: { encoding?: string; expectedContent?: Uint8Array },
+  ): Promise<FileStat> {
+    const uri = URI.parse(file.uri).codeUri;
+    return this.queueFileWrite(uri, async () => {
+      const stat = await this.doGetStat(uri, 0);
+      if (!stat) {
+        throw FileSystemError.FileNotFound(file.uri, 'File not found.');
+      }
+      if (stat.isDirectory) {
+        throw FileSystemError.FileIsADirectory(file.uri, 'Cannot set the content.');
+      }
+      const contentChanged =
+        options?.expectedContent !== undefined &&
+        !Buffer.from(await this.readFile(uri)).equals(Buffer.from(Uint8Array.from(options.expectedContent)));
+      const statChanged = stat.lastModification !== file.lastModification || stat.size !== file.size;
+      if (contentChanged || (options?.expectedContent === undefined && statChanged)) {
+        throw FileSystemError.FileIsOutOfSync(file.uri);
+      }
+
+      await this.doWriteFile(uri, content, { create: false, overwrite: true, encoding: options?.encoding });
+      const newStat = await this.doGetStat(uri, 0);
+      if (!newStat) {
+        throw FileSystemError.FileNotFound(file.uri, 'File not found.');
+      }
+      return newStat;
+    });
+  }
+
+  private queueFileWrite<T>(uri: UriComponents, task: () => Promise<T>): Promise<T> {
+    if (this.disposing || this.connectionScopeRetirement?.retired) {
+      return Promise.reject(new Error('DiskFileSystemProvider is disposing and cannot accept new file mutations'));
+    }
+
+    const key = Uri.revive(uri).toString();
+    const previous = this.pendingFileWrites.get(key) || Promise.resolve();
+    const current = previous.then(() => {
+      this.assertConnectionScopeOwnsMutation();
+      return task();
+    });
+    const settled = current.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.pendingFileWrites.set(key, settled);
+    void settled.then(() => {
+      if (this.pendingFileWrites.get(key) === settled) {
+        this.pendingFileWrites.delete(key);
+      }
+    });
+    return this.trackMutation(current);
+  }
+
+  private queueMutation<T>(task: () => Promise<T>): Promise<T> {
+    if (this.disposing || this.connectionScopeRetirement?.retired) {
+      return Promise.reject(new Error('DiskFileSystemProvider is disposing and cannot accept new file mutations'));
+    }
+    const mutation = Promise.resolve().then(() => {
+      this.assertConnectionScopeOwnsMutation();
+      return task();
+    });
+    return this.trackMutation(mutation);
+  }
+
+  private trackMutation<T>(mutation: Promise<T>): Promise<T> {
+    const fencedMutation = mutation.then((value) => {
+      this.assertConnectionScopeOwnsMutation();
+      return value;
+    });
+    this.pendingMutations.add(fencedMutation);
+    fencedMutation.then(
+      () => this.pendingMutations.delete(fencedMutation),
+      () => this.pendingMutations.delete(fencedMutation),
+    );
+    return fencedMutation;
+  }
+
+  private assertConnectionScopeOwnsMutation(): void {
+    if (this.connectionScopeRetirement?.retired) {
+      throw new Error('DiskFileSystemProvider connection scope retired before the file mutation completed');
+    }
+  }
+
+  private async doWriteFile(
+    uri: UriComponents,
+    content: Uint8Array,
+    options: { create: boolean; overwrite: boolean; encoding?: string },
+  ): Promise<void | FileStat> {
     const _uri = Uri.revive(uri);
     const exists = await this.access(uri);
 
@@ -311,7 +581,11 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
     }
   }
 
-  async delete(uri: UriComponents, options: { recursive?: boolean; moveToTrash?: boolean }): Promise<void> {
+  delete(uri: UriComponents, options: { recursive?: boolean; moveToTrash?: boolean }): Promise<void> {
+    return this.queueMutation(() => this.doDelete(uri, options));
+  }
+
+  private async doDelete(uri: UriComponents, options: { recursive?: boolean; moveToTrash?: boolean }): Promise<void> {
     const _uri = Uri.revive(uri);
     const stat = await this.doGetStat(_uri, 0);
     if (!stat) {
@@ -328,22 +602,27 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
       const outputRootPath = paths.join(os.tmpdir(), uuid());
       try {
         await fse.rename(filePath, outputRootPath);
-        // There is no reason for the promise returned by this function not to resolve
-        // as soon as the move is complete.  Clearing up the temporary files can be
-        // done in the background.
-        fse.remove(FileUri.fsPath(outputRootPath));
-      } catch (error) {
-        return fse.remove(filePath);
+      } catch {
+        await fse.remove(filePath);
+        return;
       }
+      await fse.remove(FileUri.fsPath(outputRootPath));
     }
   }
 
-  async rename(sourceUri: UriComponents, targetUri: UriComponents, options: { overwrite: boolean }): Promise<FileStat> {
-    const result = await this.doMove(sourceUri, targetUri, options);
-    return result;
+  rename(sourceUri: UriComponents, targetUri: UriComponents, options: { overwrite: boolean }): Promise<FileStat> {
+    return this.queueMutation(() => this.doMove(sourceUri, targetUri, options));
   }
 
-  async copy(sourceUri: UriComponents, targetUri: UriComponents, options: { overwrite: boolean }): Promise<FileStat> {
+  copy(sourceUri: UriComponents, targetUri: UriComponents, options: { overwrite: boolean }): Promise<FileStat> {
+    return this.queueMutation(() => this.doCopy(sourceUri, targetUri, options));
+  }
+
+  private async doCopy(
+    sourceUri: UriComponents,
+    targetUri: UriComponents,
+    options: { overwrite: boolean },
+  ): Promise<FileStat> {
     const _sourceUri = Uri.revive(sourceUri);
     const _targetUri = Uri.revive(targetUri);
     const [sourceStat, targetStat] = await Promise.all([this.doGetStat(_sourceUri, 0), this.doGetStat(_targetUri, 0)]);
@@ -390,17 +669,17 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
   }
 
   // 出于通信成本的考虑，排除文件的逻辑必须放在node层（fs provider层，不同的fs实现的exclude应该不一样）
-  setWatchFileExcludes(excludes: string[]) {
-    let watchExcludes = excludes;
-    if (excludes.includes(UNSUPPORTED_NODE_MODULES_EXCLUDE)) {
-      const idx = watchExcludes.findIndex((v) => v === UNSUPPORTED_NODE_MODULES_EXCLUDE);
-      watchExcludes = watchExcludes.splice(idx, 1, DEFAULT_NODE_MODULES_EXCLUDE);
-    }
-    // 每次调用之后都需要重新初始化 WatcherServer，保证最新的规则生效
-    this.logger.log('Set watcher exclude:', watchExcludes);
-    this.watchFileExcludes = watchExcludes;
-
-    this.watcherProcessManager.setWatcherFileExcludes(watchExcludes);
+  setWatchFileExcludes(excludes: string[]): Promise<void> {
+    return this.queueMutation(async () => {
+      const watchExcludes = excludes.map((exclude) =>
+        exclude === UNSUPPORTED_NODE_MODULES_EXCLUDE ? DEFAULT_NODE_MODULES_EXCLUDE : exclude,
+      );
+      // 每次调用之后都需要重新初始化 WatcherServer，保证最新的规则生效
+      this.logger.log('Set watcher exclude:', watchExcludes);
+      await this.watcherProcessManager.setWatcherFileExcludes(watchExcludes);
+      this.assertConnectionScopeOwnsMutation();
+      this.watchFileExcludes = watchExcludes;
+    });
   }
 
   getWatchFileExcludes() {
@@ -527,8 +806,8 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
       sourceMightHaveChildren
     ) {
       // Copy source to target, since target is empty. Then wipe the source content.
-      const newStat = await this.copy(sourceUri, targetUri, { overwrite });
-      await this.delete(sourceUri, { moveToTrash: false });
+      const newStat = await this.doCopy(sourceUri, targetUri, { overwrite });
+      await this.doDelete(sourceUri, { moveToTrash: false });
       return newStat;
     } else {
       await this.validateMoveCopy(_sourceUri, _targetUri);
@@ -590,6 +869,16 @@ export class DiskFileSystemProvider extends RPCService<IRPCDiskFileSystemProvide
         return fileStat;
       }
     } catch (error) {
+      // A stat probe is also the implementation of exists/getFileStat. Missing
+      // optional files (for example .sumi/settings.json) are normal control
+      // flow and must not flood production error logs.
+      if (isErrnoException(error) && error.code === 'ENOENT') {
+        if (options?.throwError) {
+          handleError(error);
+        }
+        return undefined;
+      }
+
       this.logger.error('Error occurred when getting file stat', uri, error);
       if (options?.throwError) {
         handleError(error);

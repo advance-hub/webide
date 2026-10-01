@@ -1,7 +1,7 @@
 import { Command, ILineChange } from '@opensumi/ide-core-common';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { ICodeEditor as IMonacoCodeEditor, IPosition } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+// eslint-disable-next-line import-x/no-restricted-paths
+import type { ICodeEditor as IMonacoCodeEditor, IPosition } from '@opensumi/ide-monaco/types';
 
 export interface IDirtyDiffModel {
   changes: ILineChange[];

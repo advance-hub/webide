@@ -1,4 +1,4 @@
-import { ThemeType } from '@opensumi/ide-theme/lib/common';
+import { ThemeType } from '@opensumi/ide-theme';
 
 import { IWidgetGroup } from '../index';
 
@@ -30,3 +30,4 @@ export interface ITerminalRenderProvider {
   infoItemRender: React.FunctionComponent<ItemProps>;
   addItemRender: React.FunctionComponent<ItemProps>;
 }
+import type React from 'react';

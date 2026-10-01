@@ -20,7 +20,7 @@ import {
   observableFromValueWithChangeEvent,
   observableValue,
   recomputeInitiallyAndOnChange,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { ISelection } from '@opensumi/monaco-editor-core';
 import { Dimension } from '@opensumi/monaco-editor-core/esm/vs/base/browser/dom';

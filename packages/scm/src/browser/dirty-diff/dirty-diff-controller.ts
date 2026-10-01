@@ -1,6 +1,6 @@
 import { Disposable } from '@opensumi/ide-core-common';
 
-import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 /* istanbul ignore file */
 // 文件没有使用

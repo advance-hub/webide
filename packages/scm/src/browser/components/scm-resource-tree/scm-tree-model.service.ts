@@ -10,14 +10,14 @@ import {
   Emitter,
   Event,
   ILogger,
+  LabelService,
   PreferenceService,
   URI,
 } from '@opensumi/ide-core-browser';
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/base';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IIconService, IIconTheme } from '@opensumi/ide-theme';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 

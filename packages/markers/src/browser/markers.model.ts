@@ -1,4 +1,4 @@
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService } from '@opensumi/ide-core-browser';
 import { Disposable, IMarker, MarkerSeverity, URI, arrays, compareRangesUsingStarts } from '@opensumi/ide-core-common';
 
 import { IMarkerService, IRenderableMarkerModel, MarkerModelBuilder } from '../common';
@@ -20,7 +20,10 @@ export class MarkerViewModel extends Disposable {
   // marker filter
   private filter: Filter | undefined;
 
-  constructor(private _service: IMarkerService, private labelService: LabelService) {
+  constructor(
+    private _service: IMarkerService,
+    private labelService: LabelService,
+  ) {
     super();
     this.addDispose([
       this._service.getManager().onMarkerChanged(this._onMarkerChanged, this),

@@ -12,10 +12,7 @@ import {
   compareRangesUsingStarts,
   getSymbolIcon,
 } from '@opensumi/ide-core-browser';
-import {
-  DocumentSymbolStore,
-  INormalizedDocumentSymbol,
-} from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { DocumentSymbolStore, INormalizedDocumentSymbol } from '@opensumi/ide-editor/document-symbols';
 
 import { OutlineSortOrder } from '../../common';
 import { OutlineCompositeTreeNode, OutlineRoot, OutlineTreeNode } from '../outline-node.define';

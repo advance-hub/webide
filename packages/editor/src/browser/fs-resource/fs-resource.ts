@@ -2,6 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import {
   IApplicationService,
   LRUMap,
+  LabelService,
   MessageType,
   OperatingSystem,
   URI,
@@ -9,9 +10,8 @@ import {
   formatLocalize,
   localize,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import { FileChangeType, path } from '@opensumi/ide-core-common';
-import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
 import { IDialogService } from '@opensumi/ide-overlay';
 
 import { AskSaveResult, DIFF_SCHEME, IResource, IResourceProvider, ResourceNeedUpdateEvent } from '../../common';

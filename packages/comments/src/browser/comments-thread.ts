@@ -1,8 +1,8 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { Disposable, Emitter, IContextKeyService, IRange, URI, localize, uuid } from '@opensumi/ide-core-browser';
-import { ResourceContextKey } from '@opensumi/ide-core-browser/lib/contextkey/resource';
+import { ResourceContextKey } from '@opensumi/ide-core-browser/contextkeys';
 import { EditorCollectionService, IEditor } from '@opensumi/ide-editor';
-import { autorun, derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { autorun, derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import {
   CommentThreadCollapsibleState,

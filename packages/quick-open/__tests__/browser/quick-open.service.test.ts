@@ -1,13 +1,12 @@
 import { VALIDATE_TYPE } from '@opensumi/ide-components';
-import { HideReason, IContextKeyService, URI } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
-import { StaticResourceServiceImpl } from '@opensumi/ide-core-browser/lib/static-resource/static.service';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { MonacoContextKeyService } from '@opensumi/ide-monaco/lib/browser/monaco.context-key.service';
-import { IconService } from '@opensumi/ide-theme/lib/browser/icon.service';
-import { IIconService, IThemeService } from '@opensumi/ide-theme/lib/common';
+import { HideReason, IContextKeyService, StaticResourceService, URI } from '@opensumi/ide-core-browser';
+import { StaticResourceServiceImpl } from '@opensumi/ide-core-browser/static-resources';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MonacoContextKeyService } from '@opensumi/ide-monaco/contextkeys';
+import { IIconService, IThemeService } from '@opensumi/ide-theme';
+import { IconService } from '@opensumi/ide-theme/icons';
 
 import { QuickOpenModule } from '../../src/browser';
 import { QuickOpenItemService } from '../../src/browser/quick-open-item.service';
@@ -130,7 +129,7 @@ describe('quick-open service test', () => {
     expect($onClose).toHaveBeenCalledWith(false);
   });
 
-  it('hide quick-open with element select', () => {
+  it('hide quick-open with focus lost', () => {
     const $widgetHide = jest.spyOn(widget, 'hide');
     const $onClose = jest.fn();
     quickOpenService.open(model, {

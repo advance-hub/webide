@@ -17,7 +17,7 @@ import {
   getLanguageIdFromMonaco,
 } from '@opensumi/ide-core-browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { EOL } from '@opensumi/ide-monaco/types';
 
 import { IEditorDocumentModelContentProvider } from '../doc-model/types';
 import { EditorPreferences } from '../preference/schema';

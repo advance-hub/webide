@@ -1,4 +1,5 @@
-import { MockInjector } from '../../../tools/dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+
 import { ElectronURLService } from '../src/bootstrap/services/url';
 
 jest.mock('electron', () => ({

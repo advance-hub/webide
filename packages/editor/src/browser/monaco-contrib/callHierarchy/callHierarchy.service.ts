@@ -16,8 +16,8 @@ import {
   ICallHierarchyService,
   IncomingCall,
   OutgoingCall,
-} from '@opensumi/ide-monaco/lib/browser/contrib/callHierarchy';
-import { ITextModel, Position, ProviderResult } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+} from '@opensumi/ide-monaco/hierarchy';
+import { ITextModel, Position, ProviderResult } from '@opensumi/ide-monaco/types';
 
 import { IEditorDocumentModelService } from '../../doc-model/types';
 

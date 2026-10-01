@@ -5,7 +5,7 @@ import {
   SearchInputBoxFocusedKey,
   SearchViewFocusedKey,
   SearchViewVisibleKey,
-} from '@opensumi/ide-core-browser/lib/contextkey/search';
+} from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class SearchContextKey {

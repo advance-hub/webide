@@ -1,7 +1,7 @@
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { OutlineModule } from '../../src/browser';
 import { OutlineContribution } from '../../src/browser/outline.contribution';
 

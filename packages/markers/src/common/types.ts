@@ -2,9 +2,9 @@ import { Event, IBaseMarkerManager, IMarker, IMatch } from '@opensumi/ide-core-c
 import { ThemeType } from '@opensumi/ide-theme';
 
 import type { ITree } from '@opensumi/ide-components';
-import type { ViewBadge } from 'vscode';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 
-export { MARKER_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
+export { MARKER_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 export const IMarkerService = Symbol('IMarkerService');
 export interface IMarkerService extends ITree {
@@ -31,8 +31,7 @@ export interface IMarkerService extends ITree {
 /**
  * marker 过滤条件
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IFilterOptions {}
+export type IFilterOptions = object;
 
 /**
  * 过滤后的marker

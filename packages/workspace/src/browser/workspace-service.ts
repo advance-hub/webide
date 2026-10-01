@@ -26,9 +26,9 @@ import {
   formatLocalize,
   localize,
 } from '@opensumi/ide-core-common';
-import { flattenExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
+import { flattenExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
 import { FileStat } from '@opensumi/ide-file-service';
-import { FileChangeEvent, IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { FileChangeEvent, IFileServiceClient } from '@opensumi/ide-file-service';
 
 import {
   DEFAULT_WORKSPACE_SUFFIX_NAME,
@@ -597,7 +597,7 @@ export class WorkspaceService implements IWorkspaceService {
     }
     let uriStr = uri.toString();
     try {
-      if (uriStr.endsWith('/')) {
+      if (uriStr.endsWith('/') && new URI(uriStr).path.toString() !== '/') {
         uriStr = uriStr.slice(0, -1);
       }
       const fileStat = await this.fileServiceClient.getFileStat(uriStr);
@@ -627,13 +627,24 @@ export class WorkspaceService implements IWorkspaceService {
   }
 
   protected reloadWindow(): void {
+    const workspacePath = this._workspace && new URI(this._workspace.uri).path.toString();
+    window.history.replaceState(window.history.state, '', this.getWorkspaceURL(workspacePath));
     this.clientApp.fireOnReload(true);
   }
 
-  protected openNewWindow(workspacePath: string): void {
+  protected getWorkspaceURL(workspacePath?: string): string {
     const url = new URL(window.location.href);
-    url.hash = workspacePath;
-    this.windowService.openNewWindow(url.toString());
+    url.hash = '';
+    if (workspacePath) {
+      url.searchParams.set('workspaceDir', workspacePath);
+    } else {
+      url.searchParams.delete('workspaceDir');
+    }
+    return url.toString();
+  }
+
+  protected openNewWindow(workspacePath: string): void {
+    this.windowService.openNewWindow(this.getWorkspaceURL(workspacePath));
   }
 
   protected shouldPreserveWindow(options?: WorkspaceInput): boolean {

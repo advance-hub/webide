@@ -1,6 +1,6 @@
 import { Disposable, DisposableCollection, IDisposable } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { monacoApi } from '@opensumi/ide-monaco/api';
 
 import { Diagnostic, DiagnosticCollection, asMonacoDiagnostics } from '../../common';
 
@@ -43,7 +43,11 @@ export class MonacoModelDiagnostics implements IDisposable {
   readonly uri: monaco.Uri;
   protected _markers: IMonacoMarkerData[] = [];
   protected _diagnostics: Diagnostic[] = [];
-  constructor(uri: string, diagnostics: Diagnostic[], readonly owner: string) {
+  constructor(
+    uri: string,
+    diagnostics: Diagnostic[],
+    readonly owner: string,
+  ) {
     this.uri = monaco.Uri.parse(uri);
     this.diagnostics = diagnostics;
     monacoApi.editor.onDidCreateModel((model) => this.doUpdateModelMarkers(model));

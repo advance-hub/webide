@@ -1,5 +1,5 @@
 import { CompositeTreeNode, ICompositeTreeNode, ITree, TreeNode } from '@opensumi/ide-components';
-import { URI } from '@opensumi/ide-core-browser';
+import { URI } from '@opensumi/ide-core-common';
 import { FileStat } from '@opensumi/ide-file-service';
 
 export class Directory extends CompositeTreeNode {

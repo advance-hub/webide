@@ -1,33 +1,31 @@
 import { TreeNodeType } from '@opensumi/ide-components';
 import {
-  CommandRegistry,
   Disposable,
   Emitter,
   IApplicationService,
   IContextKeyService,
+  LabelService,
   OS,
   StorageProvider,
   URI,
 } from '@opensumi/ide-core-browser';
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { IDecorationsService } from '@opensumi/ide-decoration';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { IFileTreeService } from '@opensumi/ide-file-tree-next';
-import { IFileTreeAPI } from '@opensumi/ide-file-tree-next';
-import { FileContextKey } from '@opensumi/ide-file-tree-next/lib/browser/file-contextkey';
-import { FileTreeModelService } from '@opensumi/ide-file-tree-next/lib/browser/services/file-tree-model.service';
+import { IFileTreeAPI, IFileTreeService } from '@opensumi/ide-file-tree-next';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/lib/browser/command';
+import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/commands';
 import { IDialogService, IMessageService } from '@opensumi/ide-overlay';
 import { IThemeService } from '@opensumi/ide-theme';
 
-import { MockContextKeyService } from '../../..//monaco/__mocks__/monaco.context-key.service';
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
-import { createMockedMonaco } from '../../../monaco/__mocks__/monaco';
+import { FileContextKey } from '../../src/browser/file-contextkey';
 import styles from '../../src/browser/file-tree-node.modules.less';
+import { FileTreeModelService } from '../../src/browser/services/file-tree-model.service';
 import { Directory, File } from '../../src/common/file-tree-node.define';
 
 class TempDirectory {}

@@ -12,9 +12,15 @@ import {
   TreeNode,
   TreeNodeType,
 } from '@opensumi/ide-components';
-import { URI, getIcon, path, transformLabelWithCodicon, useDesignStyles } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
-import { IIconService } from '@opensumi/ide-theme/lib/common/index';
+import {
+  LabelService,
+  URI,
+  getIcon,
+  path,
+  transformLabelWithCodicon,
+  useDesignStyles,
+} from '@opensumi/ide-core-browser';
+import { IIconService } from '@opensumi/ide-theme';
 
 import { Directory, File } from '../common/file-tree-node.define';
 
@@ -221,13 +227,10 @@ export const FileTreeNode: React.FC<FileTreeNodeRenderedProps> = ({
       return <Loading />;
     }
     if (isPrompt && node instanceof PromptHandle) {
-      let isDirectory = false;
-      if (isRenamePrompt) {
-        isDirectory = (node as RenamePromptHandle).target.type === TreeNodeType.CompositeTreeNode;
-      } else {
-        isDirectory = (node as NewPromptHandle).type === TreeNodeType.CompositeTreeNode;
-      }
-      if (isDirectory) {
+      const promptIsDirectory = isRenamePrompt
+        ? (node as RenamePromptHandle).target.type === TreeNodeType.CompositeTreeNode
+        : (node as NewPromptHandle).type === TreeNodeType.CompositeTreeNode;
+      if (promptIsDirectory) {
         return (
           <div
             className={cls(styles.file_tree_node_segment, styles_expansion_toggle, getIcon('arrow-right'), {

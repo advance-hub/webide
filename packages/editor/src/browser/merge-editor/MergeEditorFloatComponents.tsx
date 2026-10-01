@@ -8,7 +8,7 @@ import {
   URI,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { MergeActions } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/components/merge-actions';
+import { MergeActions } from '@opensumi/ide-monaco/merge-editor/widgets';
 
 import { useMergeConflictModel } from '../merge-conflict/merge-conflict.model';
 import { MergeConflictService } from '../merge-conflict/merge-conflict.service';

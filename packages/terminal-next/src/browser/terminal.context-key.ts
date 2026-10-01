@@ -4,7 +4,7 @@ import {
   IsTerminalFocused,
   IsTerminalViewInitialized,
   ShellExecutionSupported,
-} from '@opensumi/ide-core-browser/lib/contextkey';
+} from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class TerminalContextKey {

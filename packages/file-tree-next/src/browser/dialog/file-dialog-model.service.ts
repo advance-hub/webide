@@ -8,8 +8,7 @@ import {
   TreeNodeEvent,
   TreeNodeType,
 } from '@opensumi/ide-components';
-import { CorePreferences, DisposableCollection, Emitter, Event, URI } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { CorePreferences, DisposableCollection, Emitter, Event, LabelService, URI } from '@opensumi/ide-core-browser';
 
 import { IFileDialogModel, IFileDialogTreeService, PasteTypes } from '../../common';
 import { Directory, File } from '../../common/file-tree-node.define';

@@ -15,8 +15,8 @@ import {
   getSlotLocation,
   toMarkdown,
 } from '@opensumi/ide-core-browser';
-import { ResourceContextKey } from '@opensumi/ide-core-browser/lib/contextkey/resource';
-import { IMergeEditorEditor, MergeEditorInputData } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { ResourceContextKey } from '@opensumi/ide-core-browser/contextkeys';
+import { IMergeEditorEditor, MergeEditorInputData } from '@opensumi/ide-core-browser/editor';
 import {
   CUSTOM_EDITOR_SCHEME,
   CommandService,
@@ -278,7 +278,7 @@ export class WorkbenchEditorServiceImpl extends WithEventBus implements Workbenc
 
       return uri;
     } catch (error) {
-      throw new Error(`Save Failed: ${error.message}`);
+      throw new Error(`Save Failed: ${error.message}`, { cause: error });
     }
   }
 
@@ -303,7 +303,7 @@ export class WorkbenchEditorServiceImpl extends WithEventBus implements Workbenc
       });
       return result;
     } catch (error) {
-      throw new Error(`SaveAs Failed: ${error.message}`);
+      throw new Error(`SaveAs Failed: ${error.message}`, { cause: error });
     }
   }
 
@@ -926,7 +926,10 @@ export class EditorGroup extends WithEventBus implements IGridEditorGroup {
   private _multiDiffEditorDomNode: HTMLElement | null | undefined;
   private _multiDiffEditorDomNodeAttached = false;
 
-  constructor(public readonly name: string, public readonly groupId: number) {
+  constructor(
+    public readonly name: string,
+    public readonly groupId: number,
+  ) {
     super();
     this.eventBus.onDirective(
       ResizeEvent.createDirective(getSlotLocation('@opensumi/ide-editor', this.config.layoutConfig)),
@@ -2373,8 +2376,8 @@ export class EditorGroup extends WithEventBus implements IGridEditorGroup {
     const targetPinned = targetResource
       ? targetIndex >= 0 && targetIndex < this._pinnedTabCount
       : this.resources.length === 0
-      ? sourceWasPinned
-      : false;
+        ? sourceWasPinned
+        : false;
 
     if (sourceGroup === this) {
       this.moveTab(uri, targetIndex, targetPinned);

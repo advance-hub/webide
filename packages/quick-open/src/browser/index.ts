@@ -1,10 +1,6 @@
 import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule, QuickOpenService } from '@opensumi/ide-core-browser';
-import {
-  IQuickInputService,
-  PrefixQuickOpenService,
-  QuickPickService,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+import { IQuickInputService, PrefixQuickOpenService, QuickPickService } from '@opensumi/ide-core-browser/quick-open';
 
 import { PrefixQuickOpenServiceImpl, QuickOpenContribution } from './prefix-quick-open.service';
 import { QuickInputService } from './quick-input-service';

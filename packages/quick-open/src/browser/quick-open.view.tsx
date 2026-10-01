@@ -18,9 +18,8 @@ import {
   useDesignStyles,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
-import { ProgressBar } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { IProgressService, ProgressBar } from '@opensumi/ide-core-browser/progress';
 import {
   HideReason,
   QuickInputButton,
@@ -28,9 +27,9 @@ import {
   QuickOpenItem,
   QuickOpenMode,
   QuickTitleButton,
-} from '@opensumi/ide-core-browser/lib/quick-open';
-import { KEY_CODE_MAP } from '@opensumi/ide-monaco/lib/browser/monaco.keycode-map';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-core-browser/quick-open';
+import { KEY_CODE_MAP } from '@opensumi/ide-monaco/keycodes';
+import { transaction } from '@opensumi/ide-monaco/observable';
 import { KeyCode as KeyCodeEnum } from '@opensumi/monaco-editor-core/esm/vs/base/common/keyCodes';
 
 import { HighlightLabel } from './components/highlight-label';

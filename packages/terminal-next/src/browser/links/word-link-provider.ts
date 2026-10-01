@@ -1,12 +1,10 @@
 import { IBufferLine, Terminal } from '@xterm/xterm';
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { PrefixQuickOpenService } from '@opensumi/ide-core-browser/lib/quick-open';
-import { AppConfig } from '@opensumi/ide-core-browser/lib/react-providers/config-provider';
-import { IWindowService } from '@opensumi/ide-core-browser/lib/window';
-import { URI, isUndefined } from '@opensumi/ide-core-common';
-import { CommandService } from '@opensumi/ide-core-common/lib/command';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common/workspace.interface';
+import { AppConfig, IWindowService } from '@opensumi/ide-core-browser';
+import { PrefixQuickOpenService } from '@opensumi/ide-core-browser/quick-open';
+import { CommandService, URI, isUndefined } from '@opensumi/ide-core-common';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { escapeRegExpCharacters } from '../terminal.typeAhead.addon';
 

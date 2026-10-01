@@ -2,7 +2,7 @@ import capitalize from 'lodash/capitalize';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { Emitter, Event } from '@opensumi/ide-core-common';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { transaction } from '@opensumi/ide-monaco/observable';
 
 import {
   ITerminalApiService,

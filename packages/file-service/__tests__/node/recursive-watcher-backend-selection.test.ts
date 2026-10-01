@@ -1,5 +1,5 @@
-jest.mock('@opensumi/ide-core-common/lib/utils', () => {
-  const actual = jest.requireActual('@opensumi/ide-core-common/lib/utils');
+jest.mock('@opensumi/ide-core-common', () => {
+  const actual = jest.requireActual('@opensumi/ide-core-common');
   return {
     ...actual,
     isLinux: true,

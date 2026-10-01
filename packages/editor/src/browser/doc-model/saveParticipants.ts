@@ -14,16 +14,12 @@ import {
   WithEventBus,
   formatLocalize,
 } from '@opensumi/ide-core-browser';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import * as monaco from '@opensumi/ide-monaco';
-import {
-  CodeActionItem,
-  CodeActionKind,
-  CodeActionTriggerSource,
-} from '@opensumi/ide-monaco/lib/browser/contrib/codeAction';
-import { ResourceEdit } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ResourceEdit } from '@opensumi/ide-monaco/api';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { CodeActionItem, CodeActionKind, CodeActionTriggerSource } from '@opensumi/ide-monaco/code-actions';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { Selection } from '@opensumi/monaco-editor-core';
 import { IActiveCodeEditor } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorBrowser';
 import { ICodeEditorService } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/codeEditorService';

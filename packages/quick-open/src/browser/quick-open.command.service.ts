@@ -1,14 +1,13 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import {
-  EDITOR_COMMANDS,
+  CorePreferences,
   IContextKeyService,
   Keybinding,
   KeybindingRegistry,
   localize,
 } from '@opensumi/ide-core-browser';
-import { CorePreferences } from '@opensumi/ide-core-browser/lib/core-preferences';
-import { AbstractMenuService, MenuId, MenuItemNode } from '@opensumi/ide-core-browser/lib/menu/next';
-import { Mode, QuickOpenItem, QuickOpenItemOptions, QuickOpenModel } from '@opensumi/ide-core-browser/lib/quick-open';
+import { AbstractMenuService, MenuId, MenuItemNode } from '@opensumi/ide-core-browser/menu';
+import { Mode, QuickOpenItem, QuickOpenItemOptions, QuickOpenModel } from '@opensumi/ide-core-browser/quick-open';
 import {
   Command,
   CommandRegistry,
@@ -17,7 +16,7 @@ import {
   IReporterService,
   REPORT_NAME,
 } from '@opensumi/ide-core-common';
-import { uppercaseFirstLetter } from '@opensumi/ide-utils/lib/strings';
+import { uppercaseFirstLetter } from '@opensumi/ide-utils/strings';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { QuickOpenHandler } from './prefix-quick-open.service';
@@ -221,7 +220,10 @@ export class CommandQuickOpenItem extends QuickOpenItem {
   @Autowired(IWorkspaceService)
   workspaceService: IWorkspaceService;
 
-  constructor(protected readonly command: Command, protected readonly commandOptions: QuickOpenItemOptions) {
+  constructor(
+    protected readonly command: Command,
+    protected readonly commandOptions: QuickOpenItemOptions,
+  ) {
     super(commandOptions);
   }
 

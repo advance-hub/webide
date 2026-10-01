@@ -8,16 +8,15 @@ import {
   getTabbarCtxKey,
   localize,
 } from '@opensumi/ide-core-browser';
-import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
 import {
   MenuId as CoreMenuId,
   IMenuRegistry,
   MenuContribution,
   MenuId,
   getTabbarCommonMenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { CommandService, Domain, OperatingSystem, isWindows } from '@opensumi/ide-core-common';
-import { IApplicationService } from '@opensumi/ide-core-common/lib/types/application';
+} from '@opensumi/ide-core-browser/menu';
+import { CommandService, Domain, IApplicationService, OperatingSystem } from '@opensumi/ide-core-common';
+import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 import { ITerminalController, ITerminalGroupViewService, ITerminalSearchService } from '../../common';
 

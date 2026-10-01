@@ -13,9 +13,9 @@ import {
   QuickOpenTabOptions,
   compareAnything,
 } from '@opensumi/ide-core-browser';
-import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/lib/components';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/components';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import {
   HideReason,
   QuickOpenModel as IKaitianQuickOpenModel,
@@ -23,9 +23,9 @@ import {
   QuickOpenItem,
   QuickOpenOptions,
   QuickOpenService,
-} from '@opensumi/ide-core-browser/lib/quick-open';
-import { MonacoContextKeyService } from '@opensumi/ide-monaco/lib/browser/monaco.context-key.service';
-import { matchesFuzzyIconAware, parseLabelWithIcons } from '@opensumi/ide-utils/lib/iconLabels';
+} from '@opensumi/ide-core-browser/quick-open';
+import { MonacoContextKeyService } from '@opensumi/ide-monaco/contextkeys';
+import { matchesFuzzyIconAware, parseLabelWithIcons } from '@opensumi/ide-utils/icon-labels';
 
 import { IAutoFocus, IQuickOpenModel, QuickOpenContext } from './quick-open.type';
 import { QuickOpenView } from './quick-open.view';

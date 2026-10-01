@@ -14,7 +14,7 @@ import {
   dispose,
   toDisposable,
 } from '@opensumi/ide-core-common';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import { ISCMMenus, ISCMRepository, ISCMResource, ISCMResourceGroup, SCMService } from '../common';
 

@@ -4,13 +4,12 @@ import { ISearchOptions, SearchAddon } from '@xterm/addon-search';
 import { ITerminalOptions, ITheme, Terminal } from '@xterm/xterm';
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { IClipboardService } from '@opensumi/ide-core-browser';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences/types';
+import { IClipboardService, PreferenceService } from '@opensumi/ide-core-browser';
 import { Disposable } from '@opensumi/ide-core-common';
-import { MessageService } from '@opensumi/ide-overlay/lib/browser/message.service';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
-import { PANEL_BACKGROUND } from '@opensumi/ide-theme/lib/common/color-registry';
-import { IThemeService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { MessageService } from '@opensumi/ide-overlay/messages';
+import { PANEL_BACKGROUND } from '@opensumi/ide-theme/color-registry';
+import { IThemeService } from '@opensumi/ide-theme/types';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
 
 import { CodeTerminalSettingId, SupportedOptions } from '../common/preference';
 import { IXTerm, RenderType } from '../common/xterm';

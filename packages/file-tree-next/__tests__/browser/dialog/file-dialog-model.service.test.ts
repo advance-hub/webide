@@ -1,9 +1,8 @@
 import { TreeNodeType } from '@opensumi/ide-components';
-import { CorePreferences, Disposable, URI } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { CorePreferences, Disposable, LabelService, URI } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
 import { FileTreeDialogModel } from '../../../src/browser/dialog/file-dialog-model.service';
 import styles from '../../../src/browser/file-tree-node.modules.less';
 import { FileTreeDecorationService } from '../../../src/browser/services/file-tree-decoration.service';

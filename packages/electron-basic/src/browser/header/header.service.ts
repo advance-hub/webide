@@ -9,9 +9,9 @@ import {
   localize,
   replaceLocalizePlaceholder,
 } from '@opensumi/ide-core-browser';
-import { ResourceDidUpdateEvent, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { basename, dirname, posix, toSlashes } from '@opensumi/ide-utils/lib/path';
-import { template } from '@opensumi/ide-utils/lib/strings';
+import { ResourceDidUpdateEvent, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { basename, dirname, posix, toSlashes } from '@opensumi/ide-utils/path';
+import { template } from '@opensumi/ide-utils/strings';
 
 import { IElectronHeaderService } from '../../common/header';
 

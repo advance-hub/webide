@@ -1,10 +1,9 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { ITreeNodeOrCompositeTreeNode, Tree, TreeNodeType } from '@opensumi/ide-components';
-import { Schemes, URI } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService, Schemes, URI, localize } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
-import { IDialogService } from '@opensumi/ide-overlay';
+import { IDialogService, IOpenDialogOptions } from '@opensumi/ide-overlay';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IFileTreeAPI, IFileTreeService } from '../../common';
@@ -89,17 +88,40 @@ export class FileTreeDialogService extends Tree {
   }
 
   async resolveRoot(path: string) {
-    let rootUri: URI;
-    if (/^file:\/\//.test(path)) {
-      rootUri = new URI(path);
-    }
-    rootUri = URI.file(path);
+    const rootUri = /^file:\/\//.test(path) ? new URI(path) : URI.file(path);
     const rootFileStat = await this.fileTreeAPI.resolveFileStat(rootUri);
     if (rootFileStat) {
       const { children } = await this.fileTreeAPI.resolveChildren(this, rootFileStat);
       this.root = children[0] as Directory;
       return children;
     }
+  }
+
+  async resolveOpenSelection(paths: string[], options: IOpenDialogOptions): Promise<string[]> {
+    if (!paths.length || (!options.canSelectMany && paths.length > 1)) {
+      throw new Error(localize('filedialog.selectFile', 'Select a file or folder to open.'));
+    }
+    for (const path of paths) {
+      const stat = await this.fileServiceClient.getFileStat(URI.file(path).toString());
+      if (!stat) {
+        throw new Error(localize('filedialog.pathMissing', 'The selected path does not exist.'));
+      }
+      if (stat.isDirectory ? !options.canSelectFolders : options.canSelectFiles === false) {
+        throw new Error(
+          stat.isDirectory
+            ? localize('filedialog.selectFileOnly', 'Select a file. Folders cannot be opened as files.')
+            : localize('filedialog.selectFolderOnly', 'Select a folder.'),
+        );
+      }
+      const extensions = Object.values(options.filters || {}).flat();
+      if (!stat.isDirectory && extensions.length && !extensions.includes('*')) {
+        const suffix = URI.file(path).path.ext.slice(1).toLowerCase();
+        if (!extensions.some((extension) => extension.toLowerCase() === suffix)) {
+          throw new Error(localize('filedialog.unsupportedType', 'Select a file of the requested type.'));
+        }
+      }
+    }
+    return paths;
   }
 
   getDirectoryList() {
@@ -171,7 +193,8 @@ export class FileTreeDialogService extends Tree {
         await this.fileTreeModelService.activeFileDecoration(file);
       }
     } catch (error) {
-      throw new Error(`Failed to open saveAs file: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to open saveAs file: ${message}`, { cause: error });
     }
   }
 
@@ -191,8 +214,9 @@ export class FileTreeDialogService extends Tree {
         encoding: 'utf8',
         overwrite: true,
       });
-    } catch (e) {
-      throw new Error(`Failed to create file: ${e.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to create file: ${message}`, { cause: error });
     }
   }
 

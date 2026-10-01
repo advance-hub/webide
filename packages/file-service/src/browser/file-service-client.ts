@@ -20,10 +20,16 @@ import {
   Uri,
   parseGlob,
 } from '@opensumi/ide-core-browser';
-import { FileSystemProviderCapabilities, IEventBus, ILogger, Schemes, isUndefined } from '@opensumi/ide-core-common';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
-import { IApplicationService } from '@opensumi/ide-core-common/lib/types/application';
-import { IReadableStream, listenReadable } from '@opensumi/ide-utils/lib/stream';
+import {
+  FileSystemProviderCapabilities,
+  IApplicationService,
+  IEventBus,
+  ILogger,
+  Schemes,
+  isUndefined,
+} from '@opensumi/ide-core-common';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { IReadableStream, listenReadable } from '@opensumi/ide-utils/stream';
 import { Iterable } from '@opensumi/monaco-editor-core/esm/vs/base/common/iterator';
 
 import {
@@ -149,8 +155,10 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
     this.toDisposable.push(
       this.onDidChangeFileSystemProviderRegistrations((e) => {
         // 只支持 file
-        if (e.added && e.scheme === Schemes.file) {
-          this.doGetCurrentUserHome();
+        if (e.added && e.scheme === Schemes.file && e.provider) {
+          this.doGetCurrentUserHome(e.provider as IDiskFileProvider).catch((error) => {
+            this.logger.error('Failed to resolve the current user home from the file provider:', error);
+          });
         }
       }),
     );
@@ -163,8 +171,7 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
     }
   }
 
-  private async doGetCurrentUserHome() {
-    const provider = await this.getProvider(Schemes.file);
+  private async doGetCurrentUserHome(provider: IDiskFileProvider) {
     const userHome = provider.getCurrentUserHome();
     this.userHomeDeferred.resolve(userHome);
   }
@@ -229,6 +236,16 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
   async setContent(file: FileStat, content: string | Uint8Array, options?: FileSetContentOptions) {
     const _uri = this.convertUri(file.uri);
     const provider = await this.getProvider(_uri.scheme);
+    const buffer = typeof content === 'string' ? BinaryBuffer.fromString(content).buffer : content;
+
+    if (containsExtraFileMethod(provider, 'writeFileWithStat')) {
+      const expectedContent =
+        typeof options?.expectedContent === 'string'
+          ? BinaryBuffer.fromString(options.expectedContent).buffer
+          : options?.expectedContent;
+      return provider.writeFileWithStat(file, buffer, { encoding: options?.encoding, expectedContent });
+    }
+
     const stat = await provider.stat(_uri.codeUri);
 
     if (!stat) {
@@ -240,11 +257,7 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
     if (!(await this.isInSync(file, stat))) {
       throw this.createOutOfSyncError(file);
     }
-    await provider.writeFile(
-      _uri.codeUri,
-      typeof content === 'string' ? BinaryBuffer.fromString(content).buffer : content,
-      { create: false, overwrite: true, encoding: options?.encoding },
-    );
+    await provider.writeFile(_uri.codeUri, buffer, { create: false, overwrite: true, encoding: options?.encoding });
     const newStat = await provider.stat(_uri.codeUri);
     return newStat;
   }
@@ -362,7 +375,7 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
         ({
           uri: change.uri,
           type: change.type,
-        } as FileChange),
+        }) as FileChange,
     );
 
     // 触发所有文件变化事件
@@ -406,7 +419,7 @@ export class FileServiceClient implements IFileServiceClient, IDisposable {
 
     const _uri = this.convertUri(uri.toString());
 
-    let id = 0;
+    let id: number;
     const provider = await this.getProvider(_uri.scheme);
     const schemaWatchIdList = this.watcherWithSchemaMap.get(_uri.scheme) || [];
 

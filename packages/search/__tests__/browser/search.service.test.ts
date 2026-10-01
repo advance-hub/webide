@@ -1,10 +1,10 @@
 import { Injectable, Injector } from '@opensumi/di';
 import { CorePreferences } from '@opensumi/ide-core-browser';
 import { Disposable, URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/lib/browser/doc-model/main';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { MockContentSearchServer } from '../../__mocks__/content-search.service';
@@ -140,6 +140,18 @@ describe('search.service.ts', () => {
     expect(contentSearchServer.catchSearchOptions.includeIgnored).toBe(false);
     expect(contentSearchServer.catchSearchOptions.include).toEqual(['*.java', '*.ts']);
     expect(contentSearchServer.catchSearchOptions.exclude).toEqual(['**/node_modules', '**/bower_components']);
+  });
+
+  test('method: explicit search cancels the pending search-on-type debounce', async () => {
+    expect.assertions(1);
+    const service: any = searchService;
+    const cancel = jest.spyOn(service.searchDebounce, 'cancel');
+    searchService.searchValue = 'value';
+
+    await searchService.search();
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    cancel.mockRestore();
   });
 
   test('method: search options', async () => {

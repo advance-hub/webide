@@ -1,18 +1,16 @@
-import { EDITOR_COMMANDS, QUICK_OPEN_COMMANDS } from '@opensumi/ide-core-browser';
-import { CorePreferences } from '@opensumi/ide-core-browser/lib/core-preferences';
+import { CorePreferences, EDITOR_COMMANDS, QUICK_OPEN_COMMANDS } from '@opensumi/ide-core-browser';
 import {
   QuickOpenItem,
   QuickOpenModel,
   QuickOpenOptions,
   QuickOpenService,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+} from '@opensumi/ide-core-browser/quick-open';
 import { Deferred, ILogger, localize } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
 
 import { PrefixQuickOpenServiceImpl, QuickOpenHandlerRegistry } from '../../src/browser/prefix-quick-open.service';
-import { QuickTitleBar } from '../../src/browser/quick-title-bar';
 
 describe('prefix quick open service test', () => {
   let injector: MockInjector;

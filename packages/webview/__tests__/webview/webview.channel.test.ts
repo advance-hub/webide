@@ -1,14 +1,16 @@
-// eslint-disable-next-line import/order
-import { mockElectronRenderer } from '@opensumi/ide-core-common/lib/mocks/electron/browserMock';
+import { MockedElectronIpcRenderer } from '@opensumi/ide-dev-tool/mocks/electron-ipc-renderer';
 
-mockElectronRenderer();
-import { MockedElectronIpcRenderer } from '@opensumi/ide-core-common/lib/mocks/electron/ipcRenderer';
-
-import { ElectronWebviewChannel } from '../../src/electron-webview/host-channel';
 import { WebIframeChannel, getIdFromSearch } from '../../src/webview-host/web-iframe-channel';
 import { WebviewPanelManager } from '../../src/webview-host/webview-manager';
 
+jest.mock('electron', () => {
+  const { MockedElectronIpcRenderer } = jest.requireActual('@opensumi/ide-dev-tool/mocks/electron-ipc-renderer');
+  return { ipcRenderer: new MockedElectronIpcRenderer() };
+});
+
 const { JSDOM } = require('jsdom');
+const { ElectronWebviewChannel } =
+  require('../../src/electron-webview/host-channel') as typeof import('../../src/electron-webview/host-channel');
 
 describe('electron webview test', () => {
   const ipcRenderer = require('electron').ipcRenderer as MockedElectronIpcRenderer;

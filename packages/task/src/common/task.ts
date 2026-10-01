@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RawContextKey } from '@opensumi/ide-core-browser/lib/raw-context-key';
 import { IJSONSchemaMap, ProblemMatch, ProblemMatcher, URI, isString, path } from '@opensumi/ide-core-common';
+import { RawContextKey } from '@opensumi/ide-core-common/contextkeys';
 import { UriComponents } from '@opensumi/ide-editor';
 
 import { IWorkspaceFolder } from './index';
@@ -418,7 +418,7 @@ export interface TaskGroup {
   isDefault?: boolean;
 }
 
-export const enum TaskScope {
+export enum TaskScope {
   Global = 1,
   Workspace = 2,
   Folder = 3,
@@ -497,11 +497,7 @@ export interface WorkspaceFileTaskSource extends BaseTaskSource {
 }
 
 export type TaskSource =
-  | WorkspaceTaskSource
-  | ExtensionTaskSource
-  | InMemoryTaskSource
-  | UserTaskSource
-  | WorkspaceFileTaskSource;
+  WorkspaceTaskSource | ExtensionTaskSource | InMemoryTaskSource | UserTaskSource | WorkspaceFileTaskSource;
 export type FileBasedTaskSource = WorkspaceTaskSource | UserTaskSource | WorkspaceFileTaskSource;
 export interface TaskIdentifier {
   type: string;
@@ -517,12 +513,12 @@ export interface TaskDependency {
   task: string | KeyedTaskIdentifier | undefined;
 }
 
-export const enum GroupType {
+export enum GroupType {
   default = 'default',
   user = 'user',
 }
 
-export const enum DependsOrder {
+export enum DependsOrder {
   parallel = 'parallel',
   sequence = 'sequence',
 }
@@ -1029,7 +1025,7 @@ export namespace ExecutionEngine {
   export const _default: ExecutionEngine = ExecutionEngine.Terminal;
 }
 
-export const enum JsonSchemaVersion {
+export enum JsonSchemaVersion {
   V0_1_0 = 1,
   V2_0_0 = 2,
 }
@@ -1079,7 +1075,7 @@ export class TaskSorter {
   }
 }
 
-export const enum TaskEventKind {
+export enum TaskEventKind {
   DependsOnStarted = 'dependsOnStarted',
   Start = 'start',
   ProcessStarted = 'processStarted',
@@ -1094,7 +1090,7 @@ export const enum TaskEventKind {
   End = 'end',
 }
 
-export const enum TaskRunType {
+export enum TaskRunType {
   SingleRun = 'singleRun',
   Background = 'background',
 }
@@ -1112,7 +1108,7 @@ export interface TaskEvent {
   __task?: Task;
 }
 
-export const enum TaskRunSource {
+export enum TaskRunSource {
   System,
   User,
   FolderOpen,

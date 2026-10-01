@@ -1,8 +1,13 @@
 import { ISearchOptions } from '@xterm/addon-search';
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { IEventBus, QuickPickService, TerminalClientAttachEvent, localize } from '@opensumi/ide-core-browser';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences/types';
+import {
+  IEventBus,
+  PreferenceService,
+  QuickPickService,
+  TerminalClientAttachEvent,
+  localize,
+} from '@opensumi/ide-core-browser';
 import {
   Deferred,
   Disposable,
@@ -17,12 +22,12 @@ import {
   URI,
   debounce,
 } from '@opensumi/ide-core-common';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/common';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { WorkbenchEditorService } from '@opensumi/ide-editor';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { transaction } from '@opensumi/ide-monaco/observable';
 import { IMessageService } from '@opensumi/ide-overlay';
-import { IVariableResolverService } from '@opensumi/ide-variable/lib/common';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+import { IVariableResolverService } from '@opensumi/ide-variable';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import {
   ICreateTerminalOptions,

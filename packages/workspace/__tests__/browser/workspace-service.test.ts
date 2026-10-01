@@ -1,16 +1,16 @@
 import { FILES_DEFAULTS, IClientApp, IWindowService, PreferenceService } from '@opensumi/ide-core-browser';
-import { MockedStorageProvider } from '@opensumi/ide-core-browser/__mocks__/storage';
 import { Disposable, StorageProvider, URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockFsProvider } from '@opensumi/ide-dev-tool/mocks/file-system-provider';
+import { MockedStorageProvider } from '@opensumi/ide-dev-tool/mocks/storage';
 import { DiskFileServicePath, FileStat } from '@opensumi/ide-file-service';
-import { MockFsProvider } from '@opensumi/ide-file-service/__mocks__/file-system-provider';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { WorkspaceService } from '@opensumi/ide-workspace/lib/browser/workspace-service';
 
 import { WorkspaceModule } from '../../src/browser';
 import { WorkspacePreferences } from '../../src/browser/workspace-preferences';
+import { WorkspaceService } from '../../src/browser/workspace-service';
 
 describe('WorkspaceService should be work while workspace was a single directory', () => {
   let workspaceService: WorkspaceService;
@@ -34,7 +34,7 @@ describe('WorkspaceService should be work while workspace was a single directory
           uri: uriStr,
           lastModification: new Date().getTime(),
           isDirectory: true,
-        } as FileStat),
+        }) as FileStat,
     ),
     exists: jest.fn(() => true),
     getCurrentUserHome: jest.fn(() => workspaceStat),
@@ -182,6 +182,37 @@ describe('WorkspaceService should be work while workspace was a single directory
     expect(mockWindowService.openNewWindow).toHaveBeenCalledTimes(1);
   });
 
+  it('updates the query when switching folders and keeps encoded paths across reloads', async () => {
+    expect.hasAssertions();
+    const before = window.location.href;
+    window.history.replaceState(null, '', '?workspaceDir=/old&keep=1#/stale');
+    const directory = '/workspace/中文 project';
+    mockFileSystem.getFileStat.mockResolvedValue({
+      uri: URI.file(directory).toString(),
+      isDirectory: true,
+      lastModification: 0,
+    } as never);
+    try {
+      await workspaceService.open(URI.file(directory), { preserveWindow: false });
+      const opened = new URL(mockWindowService.openNewWindow.mock.calls[0][0]);
+      expect(opened.searchParams.get('workspaceDir')).toBe(directory);
+      expect(opened.searchParams.get('keep')).toBe('1');
+      expect(opened.hash).toBe('');
+      await workspaceService.open(URI.file(directory), { preserveWindow: true });
+      expect(new URL(window.location.href).searchParams.get('workspaceDir')).toBe(directory);
+      expect(window.location.hash).toBe('');
+    } finally {
+      window.history.replaceState(null, '', before);
+    }
+  });
+
+  it('preserves the filesystem root URI when resolving a workspace', async () => {
+    expect.hasAssertions();
+    mockFileSystem.getFileStat.mockResolvedValue({ uri: 'file:///', isDirectory: true } as never);
+    await workspaceService.open(URI.file('/'), { preserveWindow: false });
+    expect(mockFileSystem.getFileStat).toHaveBeenCalledWith('file:///');
+  });
+
   it('addRoot method should be work', async () => {
     const newWorkspaceUri = workspaceUri.resolve('new_folder');
     // re-set _workspace cause the workspace would be undefined in some cases
@@ -201,7 +232,7 @@ describe('WorkspaceService should be work while workspace was a single directory
           uri: uriStr,
           lastModification: new Date().getTime(),
           isDirectory: true,
-        } as FileStat),
+        }) as FileStat,
     );
     mockFileSystem.resolveContent.mockResolvedValue({
       stat: {},

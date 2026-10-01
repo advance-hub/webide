@@ -1,6 +1,6 @@
 import { Injectable } from '@opensumi/di';
-import { Themable } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
-import { Color } from '@opensumi/ide-theme/lib/common/color';
+import { Color } from '@opensumi/ide-theme/colors';
+import { Themable } from '@opensumi/ide-theme/workbench';
 
 import { ITerminalTheme } from '../common';
 

@@ -1,8 +1,8 @@
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { ExplorerModule } from '@opensumi/ide-explorer';
-import { ExplorerContribution } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { ExplorerContribution } from '../../src/browser/explorer-contribution';
 
 describe('Explorer contribution should be work', () => {
   let injector: MockInjector;

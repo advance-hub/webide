@@ -1,4 +1,4 @@
-@import '@opensumi/ide-core-browser/lib/style/variable.less';
+@import '@opensumi/ide-core-browser/styles/variable.less';
 
 :global {
   .monaco-editor {
@@ -18,7 +18,10 @@
       z-index: 9;
       border-top: 4px solid transparent;
       border-bottom: 4px solid transparent;
-      transition: border-top-width 80ms linear, border-bottom-width 80ms linear, bottom 80ms linear;
+      transition:
+        border-top-width 80ms linear,
+        border-bottom-width 80ms linear,
+        bottom 80ms linear;
       pointer-events: none;
     }
 
@@ -28,7 +31,9 @@
       height: 100%;
       width: 0;
       left: -2px;
-      transition: width 80ms linear, left 80ms linear;
+      transition:
+        width 80ms linear,
+        left 80ms linear;
     }
 
     .dirty-diff-deleted::before {
@@ -85,7 +90,7 @@
 
     .dirty-diff-modified,
     .dirty-diff-added {
-      border-left-width: 3px;
+      border-left-width: var(--sumi-scm-diff-gutter-width, 3px);
     }
   }
 

@@ -16,6 +16,8 @@ import {
   memoize,
 } from '@opensumi/ide-core-browser';
 import { DELEGATE_COMMANDS } from '@opensumi/ide-monaco';
+import { URI } from '@opensumi/ide-monaco/api';
+import { StandaloneServices } from '@opensumi/ide-monaco/api/services';
 import {
   EditorExtensionsRegistry,
   ICommandEvent,
@@ -25,10 +27,8 @@ import {
   IMonacoCommandsRegistry,
   CommandsRegistry as MonacoCommandsRegistry,
   MonacoEditorCommandHandler,
-} from '@opensumi/ide-monaco/lib/browser/contrib/command';
-import { URI } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { StandaloneServices } from '@opensumi/ide-monaco/lib/browser/monaco-api/services';
-import { Event, ICodeEditor, IEvent } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+} from '@opensumi/ide-monaco/commands';
+import { Event, ICodeEditor, IEvent } from '@opensumi/ide-monaco/types';
 
 import { MonacoCodeService } from '../../editor.override';
 import { EditorCollectionService, WorkbenchEditorService } from '../../types';

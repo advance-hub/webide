@@ -13,7 +13,7 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { CompareResult, DIFF_SCHEME, ICompareService } from '../types';
 

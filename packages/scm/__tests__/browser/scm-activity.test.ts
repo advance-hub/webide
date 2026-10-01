@@ -1,11 +1,11 @@
 import { Injectable, Injector } from '@opensumi/di';
-import { IStatusBarService, StatusBarAlignment } from '@opensumi/ide-core-browser/lib/services';
+import { IStatusBarService, StatusBarAlignment } from '@opensumi/ide-core-browser';
 import { Emitter, Event, MaybeNull, URI, Uri } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IResource, WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { SCMModule } from '../../src/browser';
 import { SCMBadgeController, SCMStatusBarController } from '../../src/browser/scm-activity';
 import { SCMService } from '../../src/common/scm.service';

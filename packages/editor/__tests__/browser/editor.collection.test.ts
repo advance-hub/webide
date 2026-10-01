@@ -1,14 +1,11 @@
 import { Injectable } from '@opensumi/di';
 import { Emitter, MonacoService, URI } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockedMonacoService } from '@opensumi/ide-dev-tool/mocks/monaco/service';
 import { EditorCollectionService, EditorType } from '@opensumi/ide-editor';
-import { IEditorDecorationCollectionService, IEditorFeatureRegistry } from '@opensumi/ide-editor/lib/browser';
-import { BrowserCodeEditor } from '@opensumi/ide-editor/lib/browser/editor-collection.service';
-import { EditorDecorationCollectionService } from '@opensumi/ide-editor/lib/browser/editor.decoration.service';
 import * as monaco from '@opensumi/ide-monaco';
-import { MockedMonacoService } from '@opensumi/ide-monaco/__mocks__/monaco.service.mock';
-import { monaco as monacoAPI } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { monaco as monacoAPI } from '@opensumi/ide-monaco/api';
 import {
   ConfigurationTarget,
   IConfigurationChangeEvent,
@@ -16,7 +13,10 @@ import {
   IConfigurationService,
 } from '@opensumi/monaco-editor-core/esm/vs/platform/configuration/common/configuration';
 
+import { IEditorDecorationCollectionService, IEditorFeatureRegistry } from '../../src/browser';
 import { BaseMonacoEditorWrapper } from '../../src/browser/base-editor-wrapper';
+import { BrowserCodeEditor } from '../../src/browser/editor-collection.service';
+import { EditorDecorationCollectionService } from '../../src/browser/editor.decoration.service';
 
 describe('editor collection service test', () => {
   let injector: MockInjector;

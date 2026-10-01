@@ -3,26 +3,26 @@ import { ITree, ITreeNodeOrCompositeTreeNode, Tree, TreeNodeType } from '@opensu
 import {
   CancellationTokenSource,
   CommandService,
+  CorePreferences,
   Disposable,
   EDITOR_COMMANDS,
   Emitter,
   FILE_COMMANDS,
   IContextKeyService,
   ILogger,
+  LabelService,
   PreferenceService,
   URI,
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { CorePreferences } from '@opensumi/ide-core-browser/lib/core-preferences';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import {
   FileChange,
   FileChangeType,
   FileStat,
   IFileServiceClient,
   IFileServiceWatcher,
-} from '@opensumi/ide-file-service/lib/common';
+} from '@opensumi/ide-file-service';
 import { IIconService } from '@opensumi/ide-theme';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
@@ -223,9 +223,15 @@ export class FileTreeService extends Tree implements IFileTreeService {
     this.fileContextKey.initScopedContext(dom);
   }
 
-  public startWatchFileEvent() {
+  public async startWatchFileEvent() {
     this._readyToWatch = true;
-    return Promise.all(this._watchRootsQueue.map((uri) => this.watchFilesChange(uri)));
+    const roots = this._watchRootsQueue.splice(0);
+    await Promise.all(roots.map((uri) => this.watchFilesChange(uri)));
+
+    // The initial directory read intentionally does not wait for watcher startup.
+    // Reconcile once every queued watcher is active so changes made in the gap
+    // between that read and native registration cannot disappear from the tree.
+    await this.refresh();
   }
 
   async resolveChildren(parent?: Directory) {

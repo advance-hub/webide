@@ -21,9 +21,9 @@ import {
   ITaskDefinitionRegistry,
   platform,
 } from '@opensumi/ide-core-common';
-import { OutputChannel } from '@opensumi/ide-output/lib/browser/output.channel';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
-import { ITerminalClient } from '@opensumi/ide-terminal-next/lib/common/client';
+import { OutputChannel } from '@opensumi/ide-output/channel';
+import { OutputService } from '@opensumi/ide-output/service';
+import { ITerminalClient } from '@opensumi/ide-terminal-next';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { ITaskProvider, ITaskService, ITaskSummary, ITaskSystem, WorkspaceFolderTaskResult } from '../common';

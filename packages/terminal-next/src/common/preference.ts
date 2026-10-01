@@ -1,5 +1,4 @@
-import { Event, TerminalSettingsId, localize } from '@opensumi/ide-core-common';
-import { PreferenceSchema } from '@opensumi/ide-core-common/lib/preferences';
+import { Event, PreferenceSchema, TerminalSettingsId, localize } from '@opensumi/ide-core-common';
 
 import { RenderType } from './xterm';
 
@@ -39,14 +38,14 @@ export const SupportedOptionsName = {
   cursorStyle: 'cursorStyle',
 };
 
-export const enum CodeTerminalSettingPrefix {
+export enum CodeTerminalSettingPrefix {
   Shell = 'terminal.integrated.shell.',
   ShellArgs = 'terminal.integrated.shellArgs.',
   DefaultProfile = 'terminal.integrated.defaultProfile.',
   Profiles = 'terminal.integrated.profiles.',
 }
 
-export const enum CodeTerminalSettingId {
+export enum CodeTerminalSettingId {
   ShellLinux = 'terminal.integrated.shell.linux',
   ShellMacOs = 'terminal.integrated.shell.osx',
   ShellWindows = 'terminal.integrated.shell.windows',

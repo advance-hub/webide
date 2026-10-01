@@ -7,7 +7,7 @@ import {
   IMenuRegistry,
   MenuRegistryImpl,
   MenuServiceImpl,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import {
   CommandRegistry,
   CoreCommandRegistryImpl,
@@ -21,7 +21,16 @@ import {
   registerLocalizationBundle,
   setLanguageId,
 } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { IEditor } from '@opensumi/ide-editor';
+import { localizationBundle as enUSLocalizationBundle } from '@opensumi/ide-i18n/languages/en-US';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+import { EditorExtensionsRegistry } from '@opensumi/ide-monaco/commands';
+import { IMessageService } from '@opensumi/ide-overlay';
+import { SyncDescriptor } from '@opensumi/monaco-editor-core/esm/vs/platform/instantiation/common/descriptors';
+
 import {
   DragOverPosition,
   EditorGroupChangeEvent,
@@ -34,23 +43,14 @@ import {
   IEditorGroup,
   WorkbenchEditorService,
   getSplitActionFromDragDrop,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorContribution } from '@opensumi/ide-editor/lib/browser/editor.contribution';
-import { EditorFeatureRegistryImpl } from '@opensumi/ide-editor/lib/browser/feature';
-import { FormattingSelector } from '@opensumi/ide-editor/lib/browser/format/formatter-selector';
-import { EditorHistoryService } from '@opensumi/ide-editor/lib/browser/history';
-import { EditorContextMenuController } from '@opensumi/ide-editor/lib/browser/menu/editor.context';
-import { TabTitleMenuService } from '@opensumi/ide-editor/lib/browser/menu/title-context.menu';
-import { EditorTopPaddingContribution } from '@opensumi/ide-editor/lib/browser/view/topPadding';
-import { localizationBundle as enUSLocalizationBundle } from '@opensumi/ide-i18n/lib/common/en-US.lang';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
-import { EditorExtensionsRegistry } from '@opensumi/ide-monaco/lib/browser/contrib/command';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { IMessageService } from '@opensumi/ide-overlay';
-import { SyncDescriptor } from '@opensumi/monaco-editor-core/esm/vs/platform/instantiation/common/descriptors';
-
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+} from '../../src/browser';
+import { EditorContribution } from '../../src/browser/editor.contribution';
+import { EditorFeatureRegistryImpl } from '../../src/browser/feature';
+import { FormattingSelector } from '../../src/browser/format/formatter-selector';
+import { EditorHistoryService } from '../../src/browser/history';
+import { EditorContextMenuController } from '../../src/browser/menu/editor.context';
+import { TabTitleMenuService } from '../../src/browser/menu/title-context.menu';
+import { EditorTopPaddingContribution } from '../../src/browser/view/topPadding';
 
 Error.stackTraceLimit = 100;
 describe('editor status bar item test', () => {

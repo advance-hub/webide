@@ -2,8 +2,7 @@ import { Injectable } from '@opensumi/di';
 import { Disposable } from '@opensumi/ide-core-common';
 
 import { ITerminalHoverManagerService } from '../common';
-
-import { ILinkHoverTargetOptions } from './links/link-manager';
+import { ILinkHoverTargetOptions } from '../common/hover';
 
 const TIPS_OFFSET_Y = 20;
 const TIPS_OFFSET_X = 5;

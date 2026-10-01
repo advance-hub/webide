@@ -1,10 +1,10 @@
 import { Location, SymbolInformation } from 'vscode-languageserver-types';
 
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { SymbolKind as SymbolKindEnum } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '../../../../../tools/dev-tool/src/mock-injector';
 import { WorkspaceSymbolQuickOpenHandler } from '../../../src/browser/quick-open/workspace-symbol-quickopen';
 import {
   ILanguageService,

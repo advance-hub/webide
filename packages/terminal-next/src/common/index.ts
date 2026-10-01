@@ -14,3 +14,4 @@ export * from './network';
 export * from './link-computer';
 export * from './profile';
 export * from './process';
+export type { ILinkHoverTargetOptions } from './hover';

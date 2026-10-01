@@ -20,8 +20,11 @@ import {
   DidFilesChangedParams,
   Event,
   FileChangeEvent,
+  FileStat,
+  FileSystemProvider,
   IDisposable,
   IFileSystemWatcherServer,
+  RecursiveWatcherBackend,
   URI,
   Uri,
   WatchOptions,
@@ -29,17 +32,12 @@ import {
   isFunction,
   isUndefinedOrNull,
 } from '@opensumi/ide-core-common';
-import { FileStat, FileSystemProvider, RecursiveWatcherBackend } from '@opensumi/ide-core-common/lib/types/file';
 
 import type { Range } from 'vscode-languageserver-types';
-export {
-  FileSystemProviderCapabilities,
-  FileSystemProvider,
-  FileType,
-  FileStat,
-} from '@opensumi/ide-core-common/lib/types/file';
+export { FileSystemProviderCapabilities, FileType, FileStat } from '@opensumi/ide-core-common';
+export type { FileSystemProvider } from '@opensumi/ide-core-common';
 
-export * from '@opensumi/ide-core-common/lib/types/file-watch';
+export * from '@opensumi/ide-core-common/file-watch';
 
 export const IDiskFileProvider = Symbol('IDiskFileProvider');
 
@@ -233,6 +231,8 @@ export interface FileDeleteOptions {
 
 export interface FileSetContentOptions {
   encoding?: string;
+  /** Compare the current bytes before writing. Used by read-modify-write callers. */
+  expectedContent?: string | Uint8Array;
 }
 
 export interface FileCreateOptions {
@@ -271,7 +271,10 @@ export class FileSystemProviderError extends Error implements IFileSystemProvide
     });
   }
 
-  constructor(message: string, readonly code: FileSystemProviderErrorCode) {
+  constructor(
+    message: string,
+    readonly code: FileSystemProviderErrorCode,
+  ) {
     super(message);
   }
 
@@ -281,7 +284,11 @@ export class FileSystemProviderError extends Error implements IFileSystemProvide
 }
 
 export class FileOperationError extends Error {
-  constructor(message: string, public fileOperationResult: FileOperationResult, public options?: any) {
+  constructor(
+    message: string,
+    public fileOperationResult: FileOperationResult,
+    public options?: any,
+  ) {
     super(message);
   }
 
@@ -400,11 +407,18 @@ export type FileGetCurrentUserHomeFn = () => Promise<FileStat | undefined>;
  */
 export type FileGetFileTypeFn = (uri: string) => Promise<string | undefined>;
 
+export type FileWriteWithStatFn = (
+  file: FileStat,
+  content: Uint8Array,
+  options?: { encoding?: string; expectedContent?: Uint8Array },
+) => Promise<FileStat>;
+
 interface ExtendedFileFns {
   copy: FileCopyFn;
   access: FileAccessFn;
   getCurrentUserHome: FileGetCurrentUserHomeFn;
   getFileType: FileGetFileTypeFn;
+  writeFileWithStat: FileWriteWithStatFn;
 }
 
 /**
@@ -412,7 +426,7 @@ interface ExtendedFileFns {
  * @param obj object
  * @param prop string
  */
-export function containsExtraFileMethod<X extends {}, Y extends keyof ExtendedFileFns>(
+export function containsExtraFileMethod<X extends object, Y extends keyof ExtendedFileFns>(
   obj: X,
   prop: Y,
 ): obj is X & Record<Y, ExtendedFileFns[Y]> {
@@ -425,6 +439,7 @@ export interface IDiskFileProvider extends FileSystemProvider {
   access: FileAccessFn;
   getCurrentUserHome: FileGetCurrentUserHomeFn;
   getFileType: FileGetFileTypeFn;
+  writeFileWithStat: FileWriteWithStatFn;
   setWatchFileExcludes(excludes: string[]): void | Thenable<void>;
   getWatchFileExcludes(): string[] | Thenable<string[]>;
 }

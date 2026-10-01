@@ -9,24 +9,25 @@ import {
   PreferenceContribution,
   PreferenceSchema,
   SEARCH_COMMANDS,
+  TabBarToolbarContribution,
+  ToolbarRegistry,
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { SEARCH_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { SearchInputBoxFocusedKey } from '@opensumi/ide-core-browser/lib/contextkey/search';
-import { TabBarToolbarContribution, ToolbarRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { SearchInputBoxFocusedKey } from '@opensumi/ide-core-browser/contextkeys';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import {
   CommandContribution,
   CommandRegistry,
   DisposableCollection,
+  Domain,
   MessageType,
   formatLocalize,
 } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/index';
+import { SEARCH_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { MainLayoutContribution } from '@opensumi/ide-main-layout';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IDialogService } from '@opensumi/ide-overlay';
 import { IWorkspaceEditService } from '@opensumi/ide-workspace-edit';
 

@@ -1,7 +1,7 @@
 import { Type } from '@furyjs/fury';
 
-import { UriComponentsProto } from '@opensumi/ide-connection/lib/common/protocols/common';
-import { TSumiProtocol } from '@opensumi/ide-connection/lib/common/rpc';
+import { UriComponentsProto } from '@opensumi/ide-connection/protocols';
+import { TSumiProtocol } from '@opensumi/ide-connection/rpc';
 
 import { DiskFileServicePath } from '../tokens';
 

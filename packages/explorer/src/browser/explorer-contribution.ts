@@ -1,9 +1,16 @@
 import { Autowired } from '@opensumi/di';
-import { ClientAppContribution, Domain, formatLocalize, getIcon, localize } from '@opensumi/ide-core-browser';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { browserViews } from '@opensumi/ide-core-browser/lib/extensions/schema/browserViews';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
+import {
+  ClientAppContribution,
+  ComponentContribution,
+  ComponentRegistry,
+  Domain,
+  formatLocalize,
+  getIcon,
+  localize,
+} from '@opensumi/ide-core-browser';
+import { browserViews } from '@opensumi/ide-core-browser/contribution-schemas';
 import { IExtensionsSchemaService } from '@opensumi/ide-core-common';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 export { EXPLORER_CONTAINER_ID };
 

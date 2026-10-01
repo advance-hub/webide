@@ -1,6 +1,6 @@
 import { CompositeTreeNode, ITree, TreeNode } from '@opensumi/ide-components';
 import { MaybeNull, URI } from '@opensumi/ide-core-common';
-import { INormalizedDocumentSymbol } from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { INormalizedDocumentSymbol } from '@opensumi/ide-editor/document-symbols';
 
 import { OutlineTreeService } from './services/outline-tree.service';
 export class OutlineRoot extends CompositeTreeNode {

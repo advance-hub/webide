@@ -1,7 +1,6 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { IContextKeyService, PreferenceService } from '@opensumi/ide-core-browser';
-import { ResourceContextKey } from '@opensumi/ide-core-browser/lib/contextkey';
-import { MonacoService } from '@opensumi/ide-core-browser/lib/monaco';
+import { IContextKeyService, MonacoService, PreferenceService } from '@opensumi/ide-core-browser';
+import { ResourceContextKey } from '@opensumi/ide-core-browser/contextkeys';
 import {
   Emitter,
   Event,
@@ -35,10 +34,7 @@ import { BrowserMultiDiffEditor } from './multi-diff/multi-diff-editor';
 import { getConvertedMonacoOptions, isDiffEditorOption } from './preference/converter';
 import { IConvertedMonacoOptions, IEditorFeatureRegistry } from './types';
 
-import type {
-  ICodeEditor as IMonacoCodeEditor,
-  IDiffEditor as IMonacoDiffEditor,
-} from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor, IDiffEditor as IMonacoDiffEditor } from '@opensumi/ide-monaco/types';
 import type { IDiffEditorConstructionOptions } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorBrowser';
 
 @Injectable()
@@ -291,7 +287,10 @@ export class BrowserCodeEditor extends BaseMonacoEditorWrapper implements ICodeE
     return EditorType.CODE;
   }
 
-  constructor(public readonly monacoEditor: IMonacoCodeEditor, options: any = {}) {
+  constructor(
+    public readonly monacoEditor: IMonacoCodeEditor,
+    options: any = {},
+  ) {
     super(monacoEditor, EditorType.CODE);
 
     this._specialEditorOptions = options;
@@ -455,7 +454,10 @@ export class BrowserDiffEditor extends WithEventBus implements IDiffEditor {
     }
   }
 
-  constructor(public readonly monacoDiffEditor: IMonacoDiffEditor, private specialOptions: any = {}) {
+  constructor(
+    public readonly monacoDiffEditor: IMonacoDiffEditor,
+    private specialOptions: any = {},
+  ) {
     super();
     this.wrapEditors();
     this.addDispose(

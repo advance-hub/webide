@@ -2,14 +2,11 @@ import { ipcMain } from 'electron';
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { Disposable, IDisposable, getDebugLogger } from '@opensumi/ide-core-common';
-import { IElectronURLService, IURLHandler } from '@opensumi/ide-core-common/lib/electron';
+import { IElectronURLService, IURLHandler } from '@opensumi/ide-core-common/electron';
 
-import {
-  ElectronMainApiRegistry,
-  ElectronURLHandlerRegistry,
-  IElectronMainApiProvider,
-  IElectronMainApp,
-} from './types';
+import { ElectronMainApiRegistry, ElectronURLHandlerRegistry, IElectronMainApp } from './types';
+
+import type { IElectronMainApiProvider } from './types';
 
 @Injectable()
 export class ElectronMainApiRegistryImpl implements ElectronMainApiRegistry {

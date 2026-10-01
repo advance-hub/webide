@@ -32,6 +32,7 @@ export interface IPtyServiceManager {
   resume(pid: number): void;
   clear(pid: number): void;
   kill(pid: number, signal?: string): void;
+  scheduleSessionCleanup(sessionId: string, timeoutMs: number): void;
   getProcess(pid: number): Promise<string>;
   getCwd(pid: number): Promise<string | undefined>;
   checkSession(sessionId: string): Promise<boolean>;
@@ -63,10 +64,14 @@ export class PtyServiceManager implements IPtyServiceManager {
   }
 
   protected initLocal() {
-    const callback = async (callId: number, ...args) => {
+    const callback = (callId: number, ...args) => {
       const callback = this.callbackMap.get(callId);
       if (!callback) {
-        return Promise.reject(new Error(`no found callback: ${callId}`));
+        // Persistent terminals can outlive the client-owned PtyService that
+        // registered the callback. Their eventual exit may arrive after the
+        // callback has legitimately been disposed.
+        this.logger?.warn(`PtyServiceManager callback ${callId} was already disposed`);
+        return;
       }
       callback(...args);
     };
@@ -117,6 +122,17 @@ export class PtyServiceManager implements IPtyServiceManager {
     return await this.ptyServiceProxy.$getCwd(pid);
   }
 
+  private observeProxyRequest(operation: string, result: unknown, onRejected?: () => void): void {
+    // Local void methods return immediately; the remote RPC stub returns an acknowledgement.
+    if (result === undefined) {
+      return;
+    }
+    void Promise.resolve(result).catch((error) => {
+      onRejected?.();
+      this.logger?.warn(`PtyServiceManager ${operation} failed`, error);
+    });
+  }
+
   // 实现 IPty 的需要回调的逻辑接口，同时注入
   onData(pid: number, listener: (e: string) => any): pty.IDisposable {
     const monitorListener = (resString) => {
@@ -128,22 +144,22 @@ export class PtyServiceManager implements IPtyServiceManager {
       }
     };
     const { callId, disposable } = this.addNewCallback(pid, monitorListener);
-    this.ptyServiceProxy.$onData(callId, pid);
+    this.observeProxyRequest('$onData', this.ptyServiceProxy.$onData(callId, pid), () => disposable.dispose());
     return disposable;
   }
 
   onExit(pid: number, listener: (e: { exitCode: number; signal?: number }) => any): pty.IDisposable {
     const { callId, disposable } = this.addNewCallback(pid, listener);
-    this.ptyServiceProxy.$onExit(callId, pid);
+    this.observeProxyRequest('$onExit', this.ptyServiceProxy.$onExit(callId, pid), () => disposable.dispose());
     return disposable;
   }
 
   resize(pid: number, columns: number, rows: number): void {
-    this.ptyServiceProxy.$resize(pid, columns, rows);
+    this.observeProxyRequest('$resize', this.ptyServiceProxy.$resize(pid, columns, rows));
   }
 
   clear(pid: number) {
-    this.ptyServiceProxy.$clear(pid);
+    this.observeProxyRequest('$clear', this.ptyServiceProxy.$clear(pid));
   }
 
   write(pid: number, data: string): void {
@@ -152,19 +168,26 @@ export class PtyServiceManager implements IPtyServiceManager {
       // 使用 '=' 作为触发本地通信统计的标识
       timeCaptureFilter = true;
     }
-    this.ptyServiceProxy.$write(pid, data);
+    this.observeProxyRequest('$write', this.ptyServiceProxy.$write(pid, data));
   }
 
   kill(pid: number, signal?: string): void {
-    this.ptyServiceProxy.$kill(pid, signal);
+    this.observeProxyRequest('$kill', this.ptyServiceProxy.$kill(pid, signal));
+  }
+
+  scheduleSessionCleanup(sessionId: string, timeoutMs: number): void {
+    this.observeProxyRequest(
+      '$scheduleSessionCleanup',
+      this.ptyServiceProxy.$scheduleSessionCleanup(sessionId, timeoutMs),
+    );
   }
 
   pause(pid: number): void {
-    this.ptyServiceProxy.$pause(pid);
+    this.observeProxyRequest('$pause', this.ptyServiceProxy.$pause(pid));
   }
 
   resume(pid: number): void {
-    this.ptyServiceProxy.$resume(pid);
+    this.observeProxyRequest('$resume', this.ptyServiceProxy.$resume(pid));
   }
 
   async checkSession(sessionId: string): Promise<boolean> {

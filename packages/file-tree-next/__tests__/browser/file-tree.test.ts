@@ -13,8 +13,6 @@ import {
   ILogger,
   PreferenceService,
 } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
-import { MockedStorageProvider } from '@opensumi/ide-core-browser/__mocks__/storage';
 import {
   Deferred,
   Disposable,
@@ -26,24 +24,26 @@ import {
   URI,
 } from '@opensumi/ide-core-common';
 import { IDecorationsService } from '@opensumi/ide-decoration';
-import { FileDecorationsService } from '@opensumi/ide-decoration/lib/browser/decorationsService';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { FileDecorationsService } from '@opensumi/ide-decoration/service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MockedStorageProvider } from '@opensumi/ide-dev-tool/mocks/storage';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileServicePath, FileStat, IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
-import { FileService, FileSystemNodeOptions } from '@opensumi/ide-file-service/lib/node';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { FileContextKey } from '@opensumi/ide-file-tree-next/lib/browser/file-contextkey';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
+import { FileService, FileSystemNodeOptions } from '@opensumi/ide-file-service/node';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
+import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/node/watchers';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/lib/browser/command';
+import { RETRACT_PANEL_COMMAND } from '@opensumi/ide-main-layout/commands';
 import { IDialogService, IMessageService } from '@opensumi/ide-overlay';
 import { IThemeService } from '@opensumi/ide-theme';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
 
 import { FileTreeNextModule, PasteTypes } from '../../src';
+import { FileContextKey } from '../../src/browser/file-contextkey';
 import { FileTreeContribution } from '../../src/browser/file-tree-contribution';
 import styles from '../../src/browser/file-tree-node.module.less';
 import { FileTreeService } from '../../src/browser/file-tree.service';
@@ -506,19 +506,16 @@ describe('FileTree should be work while on single workspace model', () => {
       await defered.promise;
     });
 
-    it('Collapse current file node should be work', (done) => {
+    it('Collapse current file node should be work', async () => {
       const treeModel = fileTreeModelService.treeModel;
+      await treeModel.ensureReady;
       const rootNode = treeModel.root;
       const directoryNode = rootNode.getTreeNodeAtIndex(0) as Directory;
-      const dispose = directoryNode.watcher.on(TreeNodeEvent.DidChangeExpansionState, async () => {
-        fileTreeModelService.activeFileFocusedDecoration(directoryNode);
-        mockTreeHandle.collapseNode.mockClear();
-        await fileTreeModelService.collapseCurrentFile();
-        expect(mockTreeHandle.collapseNode).toHaveBeenCalledTimes(1);
-        dispose.dispose();
-        done();
-      });
-      directoryNode.setExpanded();
+      await directoryNode.setExpanded();
+      fileTreeModelService.activeFileFocusedDecoration(directoryNode);
+      mockTreeHandle.collapseNode.mockClear();
+      await fileTreeModelService.collapseCurrentFile();
+      expect(mockTreeHandle.collapseNode).toHaveBeenCalledTimes(1);
     });
 
     it('New File with root uri should be work', async () => {
@@ -688,7 +685,7 @@ describe('FileTree should be work while on single workspace model', () => {
   });
 
   describe('04 #Compact Mode should be work', () => {
-    it('Directory should be compressed while it contain single file', (done) => {
+    it('Directory should be compressed while it contain single file', async () => {
       const treeModel = fileTreeModelService.treeModel;
       const rootNode = treeModel.root;
       const directoryNode = rootNode.getTreeNodeAtIndex(0) as Directory;
@@ -701,19 +698,23 @@ describe('FileTree should be work while on single workspace model', () => {
         return true;
       });
       (fileTreeService as any)._isCompactMode = true;
+      await directoryNode.setExpanded(true);
       expect(directoryNode.expanded).toBeTruthy();
       fs.ensureDirSync(testFile);
-      const dispose = fileTreeService.onNodeRefreshed(() => {
-        dispose.dispose();
-        const directoryNode = rootNode.getTreeNodeAtIndex(0) as Directory;
-        expect(directoryNode.expanded).toBeTruthy();
-        // cause the directory was compressed, branchSize will not increase
-        expect(rootNode.branchSize).toBe(filesMap.length);
-        expect(directoryNode.name).toBe(`${preNodeName}/a/b`);
-        done();
+      const refreshed = new Promise<void>((resolve) => {
+        const dispose = fileTreeService.onNodeRefreshed(() => {
+          dispose.dispose();
+          resolve();
+        });
       });
       fileTreeService.refresh();
       jest.runAllTimers();
+      await refreshed;
+      const refreshedDirectoryNode = rootNode.getTreeNodeAtIndex(0) as Directory;
+      expect(refreshedDirectoryNode.expanded).toBeTruthy();
+      // cause the directory was compressed, branchSize will not increase
+      expect(rootNode.branchSize).toBe(filesMap.length);
+      expect(refreshedDirectoryNode.name).toBe(`${preNodeName}/a/b`);
     });
   });
 });

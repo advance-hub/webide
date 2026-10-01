@@ -1,16 +1,14 @@
-/* eslint-disable no-console */
 import { IViewportRange, Terminal } from '@xterm/xterm';
 
 import { Injector } from '@opensumi/di';
-import { LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
-import { Disposable } from '@opensumi/ide-core-common';
-import { CommandService, CommandServiceImpl } from '@opensumi/ide-core-common/lib/command';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IDialogService } from '@opensumi/ide-overlay/lib/common';
+import { LayoutState } from '@opensumi/ide-core-browser/layout';
+import { CommandService, CommandServiceImpl, Disposable } from '@opensumi/ide-core-common';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { IDialogService } from '@opensumi/ide-overlay';
 import { IStatusBarService } from '@opensumi/ide-status-bar';
-import { StatusBarService } from '@opensumi/ide-status-bar/lib/browser/status-bar.service';
+import { StatusBarService } from '@opensumi/ide-status-bar/service';
 import { ITerminalProcessPath } from '@opensumi/ide-terminal-next';
-import { IWorkspaceStorageService } from '@opensumi/ide-workspace/lib/common';
+import { IWorkspaceStorageService } from '@opensumi/ide-workspace';
 
 import { TerminalLink } from '../../lib/browser/links/link';
 import { ITerminalHoverManagerService } from '../../lib/common';

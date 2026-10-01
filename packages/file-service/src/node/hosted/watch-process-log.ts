@@ -1,12 +1,16 @@
 import { Injector } from '@opensumi/di';
-import { ILogService, IWatcherProcessLogger, LogLevel, SupportLogNamespace } from '@opensumi/ide-core-common/lib/log';
-import { LogServiceManager } from '@opensumi/ide-logs/lib/node/log-manager';
+import { ILogService, IWatcherProcessLogger, LogLevel, SupportLogNamespace } from '@opensumi/ide-core-common/log';
+import { LogServiceManager } from '@opensumi/ide-logs/node/manager';
 
 export class WatcherProcessLogger implements IWatcherProcessLogger {
   private loggerManager: LogServiceManager;
   private logger: ILogService;
 
-  constructor(private injector: Injector, private logDir: string, private logLevel: LogLevel) {
+  constructor(
+    private injector: Injector,
+    private logDir: string,
+    private logLevel: LogLevel,
+  ) {
     this.loggerManager = this.injector.get(LogServiceManager, [
       {
         logLevel: this.logLevel,

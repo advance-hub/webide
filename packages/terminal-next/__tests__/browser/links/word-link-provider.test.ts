@@ -1,7 +1,7 @@
 import { ILink, Terminal } from '@xterm/xterm';
 
 import { URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
 import { TerminalWordLinkProvider } from '../../../src/browser/links/word-link-provider';
 

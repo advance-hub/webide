@@ -8,7 +8,7 @@ import {
   electronEnv,
 } from '@opensumi/ide-core-browser';
 import { OnEvent, WithEventBus, isOSX } from '@opensumi/ide-core-common';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
 
 import { IDocPersistentCacheProvider, WorkbenchEditorService } from '../common';
 

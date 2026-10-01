@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { createMarkedRenderer, toMarkdownHtml } from '@opensumi/ide-components/lib/utils';
+import { createMarkedRenderer, toMarkdownHtml } from '@opensumi/ide-components/utils';
 import { IMarkdownString } from '@opensumi/ide-core-browser';
 
 import styles from './comments.module.less';

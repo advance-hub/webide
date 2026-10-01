@@ -2,9 +2,9 @@ import * as fse from 'fs-extra';
 import temp from 'temp';
 
 import { isMacintosh, sleep } from '@opensumi/ide-core-common';
-import { ILogServiceManager } from '@opensumi/ide-core-common/lib/log';
+import { ILogServiceManager } from '@opensumi/ide-core-common/log';
 import { FileUri } from '@opensumi/ide-core-node';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { DidFilesChangedParams, FileChangeType } from '../../src/common';
 import { RecursiveFileSystemWatcher } from '../../src/node/hosted/recursive/file-service-watcher';
@@ -315,7 +315,7 @@ const sleepTime = 1000;
     await fse.ensureFile(root.resolve('README.md').codeUri.fsPath.toString());
     await sleep(sleepTime);
 
-    expect(Array.from(addUris).some((val) => expectedAddUris.includes(val)));
+    expect(Array.from(addUris).some((val) => expectedAddUris.includes(val))).toBe(true);
     expect(Array.from(deleteUris)).toEqual(expectedDeleteUris);
     watcherServerList.push(watcherServer);
   });

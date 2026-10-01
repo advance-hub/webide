@@ -2,7 +2,7 @@ import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule } from '@opensumi/ide-core-browser';
 
 import {
-  DiskFileServicePath,
+  DiskFileServiceRuntimeBinding,
   IBrowserFileSystemRegistry,
   IDiskFileProvider,
   IFileServiceClient,
@@ -40,7 +40,7 @@ export class FileServiceClientModule extends BrowserModule {
   // 依赖 fileService 服务
   backServices = [
     {
-      servicePath: DiskFileServicePath,
+      servicePath: DiskFileServiceRuntimeBinding.servicePath,
       clientToken: IDiskFileProvider,
       protocol: DiskFileServiceProtocol,
     },

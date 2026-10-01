@@ -1,12 +1,12 @@
 import { PreferenceService, URI } from '@opensumi/ide-core-browser';
-import { useMockStorage } from '@opensumi/ide-core-browser/__mocks__/storage';
 import { Emitter } from '@opensumi/ide-core-common';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { EmptyDocCacheImpl } from '@opensumi/ide-editor/lib/browser/doc-cache';
-import { monaco as mockedMonacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { useMockStorage } from '@opensumi/ide-dev-tool/mocks/storage';
+import { monaco as mockedMonacoApi } from '@opensumi/ide-monaco/api';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
+import { EmptyDocCacheImpl } from '../../../src/browser/doc-cache';
 import {
   EditorDocumentModel,
   EditorDocumentModelContentRegistryImpl,
@@ -19,8 +19,8 @@ import {
 } from '../../../src/browser/doc-model/types';
 import { IDocPersistentCacheProvider } from '../../../src/common';
 
-jest.mock('@opensumi/ide-monaco/lib/browser/monaco-api', () => {
-  const mockMonacoHelper = require('../../../../monaco/__mocks__/monaco');
+jest.mock('@opensumi/ide-monaco/api', () => {
+  const mockMonacoHelper = require('@opensumi/ide-dev-tool/mocks/monaco');
   const mMonaco = mockMonacoHelper.createMockedMonaco();
   return {
     monaco: mMonaco,

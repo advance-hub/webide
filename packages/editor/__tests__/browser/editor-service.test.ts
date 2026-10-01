@@ -1,5 +1,23 @@
 import { CorePreferences, IContextKeyService, PreferenceService } from '@opensumi/ide-core-browser';
 import { Deferred, Disposable, IEventBus, URI, createContributionProvider } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import {
+  TestEditorDocumentProvider,
+  TestResourceComponent,
+  TestResourceProvider,
+  TestResourceResolver,
+  TestResourceResolver2,
+  doNotClose,
+} from '@opensumi/ide-dev-tool/mocks/editor-providers';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+import { MockedMonacoService } from '@opensumi/ide-dev-tool/mocks/monaco/service';
+import { useMockStorage } from '@opensumi/ide-dev-tool/mocks/storage';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
+import { MonacoService } from '@opensumi/ide-monaco';
+import { IMessageService } from '@opensumi/ide-overlay';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
+import { IConfigurationService } from '@opensumi/monaco-editor-core/esm/vs/platform/configuration/common/configuration';
+
 import {
   BrowserEditorContribution,
   CodeEditorDidVisibleEvent,
@@ -15,48 +33,29 @@ import {
   IEditorFeatureRegistry,
   ResourceDecorationNeedChangeEvent,
   ResourceOpenTypeChangedEvent,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/lib/browser/component';
-import { isEOLStack, isEditStack } from '@opensumi/ide-editor/lib/browser/doc-model/editor-is-fn';
+} from '../../src/browser';
+import { EditorComponentRegistryImpl } from '../../src/browser/component';
+import { isEOLStack, isEditStack } from '../../src/browser/doc-model/editor-is-fn';
 import {
   EditorDocumentModelContentRegistryImpl,
   EditorDocumentModelServiceImpl,
   SaveTask,
-} from '@opensumi/ide-editor/lib/browser/doc-model/main';
-import { EditorCollectionServiceImpl } from '@opensumi/ide-editor/lib/browser/editor-collection.service';
-import { EditorDecorationCollectionService } from '@opensumi/ide-editor/lib/browser/editor.decoration.service';
-import { EditorFeatureRegistryImpl } from '@opensumi/ide-editor/lib/browser/feature';
-import { SplitDirection } from '@opensumi/ide-editor/lib/browser/grid/grid.service';
-import { LanguageService } from '@opensumi/ide-editor/lib/browser/language/language.service';
-import { ResourceServiceImpl } from '@opensumi/ide-editor/lib/browser/resource.service';
-import { EditorGroup, WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+} from '../../src/browser/doc-model/main';
+import { EditorCollectionServiceImpl } from '../../src/browser/editor-collection.service';
+import { EditorDecorationCollectionService } from '../../src/browser/editor.decoration.service';
+import { EditorFeatureRegistryImpl } from '../../src/browser/feature';
+import { SplitDirection } from '../../src/browser/grid/grid.service';
+import { LanguageService } from '../../src/browser/language/language.service';
+import { ResourceServiceImpl } from '../../src/browser/resource.service';
+import { EditorGroup, WorkbenchEditorServiceImpl } from '../../src/browser/workbench-editor.service';
 import {
   EditorCollectionService,
   EditorGroupSplitAction,
   ILanguageService,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/common';
-import { IDocPersistentCacheProvider } from '@opensumi/ide-editor/lib/common';
-import { MonacoService } from '@opensumi/ide-monaco';
-import { IMessageService } from '@opensumi/ide-overlay';
-import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
-import { IConfigurationService } from '@opensumi/monaco-editor-core/esm/vs/platform/configuration/common/configuration';
-
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { useMockStorage } from '../../../core-browser/__mocks__/storage';
-import { MockContextKeyService } from '../../../monaco/__mocks__/monaco.context-key.service';
-import { MockedMonacoService } from '../../../monaco/__mocks__/monaco.service.mock';
-
-import {
-  TestEditorDocumentProvider,
-  TestResourceComponent,
-  TestResourceProvider,
-  TestResourceResolver,
-  TestResourceResolver2,
-  doNotClose,
-} from './test-providers';
+} from '../../src/common';
+import { IDocPersistentCacheProvider } from '../../src/common';
 
 const injector = createBrowserInjector([]);
 

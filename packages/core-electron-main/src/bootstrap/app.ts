@@ -10,9 +10,9 @@ import {
   asExtensionCandidate,
   createContributionProvider,
 } from '@opensumi/ide-core-common';
-import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/lib/electron';
-import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/lib/node';
-import { argv } from '@opensumi/ide-core-common/lib/node/cli';
+import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/electron';
+import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/node';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { ElectronMainModule } from '../electron-main-module';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@opensumi/di';
-import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/lib/components';
-import { HideReason } from '@opensumi/ide-core-browser/lib/quick-open';
+import { VALIDATE_TYPE } from '@opensumi/ide-core-browser/components';
+import { HideReason } from '@opensumi/ide-core-browser/quick-open';
 
 import { QuickOpenModel, QuickOpenOptions, QuickOpenService } from '../';
 

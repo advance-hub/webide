@@ -1,25 +1,21 @@
 import { act } from 'react-dom/test-utils';
 
 import { Injector } from '@opensumi/di';
-import {
-  CommentContentNode,
-  CommentFileNode,
-  CommentRoot,
-} from '@opensumi/ide-comments/lib/browser/tree/tree-node.defined';
 import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { Disposable, Emitter, URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { EditorCollectionService, IEditor, ResourceService } from '@opensumi/ide-editor';
-import { IEditorDecorationCollectionService, IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { ResourceServiceImpl } from '@opensumi/ide-editor/lib/browser/resource.service';
+import { IEditorDecorationCollectionService, IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { ResourceServiceImpl } from '@opensumi/ide-editor/resources';
 import { positionToRange } from '@opensumi/ide-monaco';
 import * as monaco from '@opensumi/ide-monaco';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import { CommentsModule } from '../../src/browser';
+import { CommentContentNode, CommentFileNode, CommentRoot } from '../../src/browser/tree/tree-node.defined';
 import { CommentMode, ICommentsService } from '../../src/common';
 
 describe('comment service test', () => {
@@ -125,7 +121,7 @@ describe('comment service test', () => {
   it('create thread', () => {
     const uri = URI.file('/test');
     const [thread] = createTestThreads(uri);
-    expect(thread.uri.isEqual(uri));
+    expect(thread.uri.isEqual(uri)).toBe(true);
     expect(thread.range.startLineNumber).toBe(1);
     expect(thread.comments.get()[0].body).toBe('Comment Text');
   });

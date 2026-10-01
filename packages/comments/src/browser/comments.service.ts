@@ -24,11 +24,11 @@ import {
   IEditorDocumentModelService,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { positionToRange } from '@opensumi/ide-monaco';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoBrowser } from '@opensumi/ide-monaco/lib/browser';
+import { monacoBrowser } from '@opensumi/ide-monaco/browser';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 import * as model from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 import * as textModel from '@opensumi/monaco-editor-core/esm/vs/editor/common/model/textModel';
@@ -1045,9 +1045,7 @@ export class CommentsService extends Disposable implements ICommentsService {
     if (handlers.length > 0) {
       for (const handler of handlers) {
         childs = handler(childs as IWriteableCommentsTreeNode[]) as (
-          | CommentFileNode
-          | CommentContentNode
-          | CommentReplyNode
+          CommentFileNode | CommentContentNode | CommentReplyNode
         )[];
       }
     }

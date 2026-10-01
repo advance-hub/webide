@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, IContextKeyService, IDisposable, ILogger } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { IEditorGroup } from '../../common';
 import { IEditorActionRegistry } from '../types';

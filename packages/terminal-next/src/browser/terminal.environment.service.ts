@@ -13,9 +13,9 @@ import {
   raceTimeout,
   toMarkdownString,
 } from '@opensumi/ide-core-common';
-import { IDialogService } from '@opensumi/ide-overlay/lib/common';
-import { IStatusBarService } from '@opensumi/ide-status-bar/lib/common';
-import { IWorkspaceStorageService } from '@opensumi/ide-workspace/lib/common';
+import { IDialogService } from '@opensumi/ide-overlay';
+import { IStatusBarService } from '@opensumi/ide-status-bar';
+import { IWorkspaceStorageService } from '@opensumi/ide-workspace';
 
 import { ITerminalProcessPath, ITerminalProcessService } from '../common';
 import {

@@ -14,7 +14,7 @@ import {
   getDebugLogger,
   localize,
 } from '@opensumi/ide-core-browser';
-import { throwNonElectronError } from '@opensumi/ide-core-common/lib/error';
+import { throwNonElectronError } from '@opensumi/ide-core-common/electron';
 import { IEditorGroup, IResource, ResourceNeedUpdateEvent, WorkbenchEditorService } from '@opensumi/ide-editor';
 import {
   EditorComponentRegistry,
@@ -22,8 +22,8 @@ import {
   EditorGroupChangeEvent,
   EditorOpenType,
   EditorPreferences,
-} from '@opensumi/ide-editor/lib/browser';
-import { getColorRegistry } from '@opensumi/ide-theme/lib/common/color-registry';
+} from '@opensumi/ide-editor/browser';
+import { getColorRegistry } from '@opensumi/ide-theme/color-registry';
 
 import { EditorWebviewComponentView } from './editor-webview';
 import { ElectronWebviewWebviewPanel } from './electron-webview-webview';
@@ -248,13 +248,16 @@ export class WebviewServiceImpl implements IWebviewService {
 
     const exportedColors = getColorRegistry()
       .getColors()
-      .reduce((colors, entry) => {
-        const color = theme.getColor(entry.id);
-        if (color) {
-          colors['vscode-' + entry.id.replace('.', '-')] = color.toString();
-        }
-        return colors;
-      }, {} as { [key: string]: string });
+      .reduce(
+        (colors, entry) => {
+          const color = theme.getColor(entry.id);
+          if (color) {
+            colors['vscode-' + entry.id.replace('.', '-')] = color.toString();
+          }
+          return colors;
+        },
+        {} as { [key: string]: string },
+      );
 
     const styles = {
       'vscode-font-family':
@@ -504,7 +507,10 @@ export class EditorWebviewComponent<T extends IWebview | IPlainWebview>
 
 @Injectable({ multiple: true })
 export class PlainWebviewComponent extends Disposable implements IPlainWebviewComponentHandle {
-  constructor(public readonly id: string, public readonly webview) {
+  constructor(
+    public readonly id: string,
+    public readonly webview,
+  ) {
     super();
     this.addDispose(this.webview);
   }

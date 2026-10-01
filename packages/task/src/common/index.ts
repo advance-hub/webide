@@ -1,15 +1,14 @@
 import { Deferred, Event, IDisposable, IJSONSchemaMap, TaskIdentifier, URI, Uri } from '@opensumi/ide-core-common';
 import { UriComponents } from '@opensumi/ide-editor';
-import { IShellLaunchConfig, ITerminalClient } from '@opensumi/ide-terminal-next/lib/common';
+import { IShellLaunchConfig, ITerminalClient } from '@opensumi/ide-terminal-next';
 
-// eslint-disable-next-line import/no-restricted-paths
 import { ConfiguringTask, ContributedTask, KeyedTaskIdentifier, Task, TaskEvent, TaskSet } from './task';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { ProblemCollector } from '../browser/problem-collector';
+import type { IProblemCollector } from './problem-collector';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface TaskMap {}
+export type { IProblemCollector } from './problem-collector';
+
+type TaskMap = TaskSet[];
 
 interface TaskFilter {
   version?: string;
@@ -68,7 +67,7 @@ export interface IActivateTaskExecutorData {
   promise: Promise<ITaskSummary>;
 }
 
-export const enum TaskExecuteKind {
+export enum TaskExecuteKind {
   Started = 1,
   Active = 2,
 }
@@ -92,15 +91,14 @@ export interface TerminateResponse {
   error?: any;
 }
 
-export const enum TerminateResponseCode {
+export enum TerminateResponseCode {
   Success = 0,
   Unknown = 1,
   AccessDenied = 2,
   ProcessNotFound = 3,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ExecutorOptions {}
+export type ExecutorOptions = Record<string, never>;
 
 export const ITaskExecutor = Symbol('ITaskExecutor');
 
@@ -113,7 +111,7 @@ export interface ITaskExecutor {
   reset(): void;
   terminate(): Promise<{ success: boolean }>;
   updateLaunchConfig(launchConfig: IShellLaunchConfig): void;
-  updateProblemCollector(collector: ProblemCollector): void;
+  updateProblemCollector(collector: IProblemCollector): void;
   onDidTerminalWidgetRemove: Event<void>;
   onDidTaskProcessExit: Event<number | undefined>;
 }
@@ -150,7 +148,7 @@ export interface ITaskService {
   runTaskCommand(): void;
   rerunLastTask(): void;
 
-  updateWorkspaceTasks(tasks: TaskMap): void;
+  updateWorkspaceTasks(tasks: TaskMap): Promise<Map<string, WorkspaceFolderTaskResult> | undefined>;
 
   registerTaskProvider(provider: ITaskProvider, type: string): IDisposable;
 

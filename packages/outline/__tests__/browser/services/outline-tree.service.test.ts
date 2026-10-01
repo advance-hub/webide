@@ -1,9 +1,9 @@
 import { IContextKeyService } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
 import { StorageProvider } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { DocumentSymbolStore } from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { DocumentSymbolStore } from '@opensumi/ide-editor/document-symbols';
 
 import { OutlineCompositeTreeNode, OutlineRoot, OutlineTreeNode } from '../../../src/browser/outline-node.define';
 import { OutlineTreeService } from '../../../src/browser/services/outline-tree.service';

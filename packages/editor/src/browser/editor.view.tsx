@@ -17,17 +17,18 @@ import {
   renderView,
   useDesignStyles,
   useDisposable,
+  useInjectable,
   usePreference,
+  useUpdateOnEventBusEvent,
 } from '@opensumi/ide-core-browser';
 import {
   IResizeHandleDelegate,
   ResizeFlexMode,
   ResizeHandleHorizontal,
   ResizeHandleVertical,
-} from '@opensumi/ide-core-browser/lib/components';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { useInjectable, useUpdateOnEventBusEvent } from '@opensumi/ide-core-browser/lib/react-hooks';
-import { monaco } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+} from '@opensumi/ide-core-browser/components';
+import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { monaco } from '@opensumi/ide-monaco/api';
 
 import { IResource, WorkbenchEditorService } from '../common';
 
@@ -558,7 +559,9 @@ export const ComponentWrapper = ({ component, resource, hidden, ...other }) => {
         div.style.height = '100%';
         componentService.perWorkbenchComponents[component.uid] = div;
         // 对于per_workbench的，resource默认为不会改变
-        ReactDOM.createRoot(div).render(
+        const root = ReactDOM.createRoot(div);
+        componentService.perWorkbenchComponentRoots[component.uid] = root;
+        root.render(
           <ConfigProvider value={context}>
             <component.component resource={resource} />
           </ConfigProvider>,

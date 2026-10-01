@@ -1,8 +1,8 @@
 import { IClipboardService, URI } from '@opensumi/ide-core-common';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../tools/dev-tool/src/mock-injector';
 import { ElectronClipboardService } from '../src/browser/clipboard';
 
 describe('clipboard service test', () => {

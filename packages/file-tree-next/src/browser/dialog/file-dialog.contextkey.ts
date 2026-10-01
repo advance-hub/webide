@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IContextKey, IContextKeyService } from '@opensumi/ide-core-browser';
-import { FileDialogViewVisibleContext } from '@opensumi/ide-core-browser/lib/contextkey';
+import { FileDialogViewVisibleContext } from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class FileDialogContextKey {

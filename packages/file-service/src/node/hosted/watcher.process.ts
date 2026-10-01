@@ -1,11 +1,10 @@
 import { createConnection } from 'net';
 
 import { Injector } from '@opensumi/di';
-import { SumiConnectionMultiplexer } from '@opensumi/ide-connection';
-import { NetSocketConnection } from '@opensumi/ide-connection/lib/common/connection/drivers';
-import { argv } from '@opensumi/ide-core-common/lib/node/cli';
-import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/lib/node/utils';
-import { CommonProcessReporter, IReporter, ReporterProcessMessage } from '@opensumi/ide-core-common/lib/types';
+import { NetSocketConnection, SumiConnectionMultiplexer } from '@opensumi/ide-connection';
+import { CommonProcessReporter, IReporter, ReporterProcessMessage } from '@opensumi/ide-core-common';
+import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/node';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 import { Emitter, isPromiseCanceledError } from '@opensumi/ide-utils';
 
 import { SUMI_WATCHER_PROCESS_SOCK_KEY, WATCHER_INIT_DATA_KEY } from '../../common/watcher';

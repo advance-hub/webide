@@ -12,8 +12,8 @@ import {
   useAutorun,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { InlineActionBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { InlineActionBar } from '@opensumi/ide-core-browser/components/actions';
+import { MenuId } from '@opensumi/ide-core-browser/menu';
 import { IEditor } from '@opensumi/ide-editor';
 import { IOptions, ResizeZoneWidget } from '@opensumi/ide-monaco-enhance';
 
@@ -185,7 +185,11 @@ export class CommentsZoneWidget extends ResizeZoneWidget implements ICommentsZon
   private _onHide = new Emitter<void>();
   public onHide: Event<void> = this._onHide.event;
 
-  constructor(editor: IEditor, public readonly thread: ICommentsThread, options?: IOptions) {
+  constructor(
+    editor: IEditor,
+    public readonly thread: ICommentsThread,
+    options?: IOptions,
+  ) {
     super(editor.monacoEditor, thread.range, {
       ...options,
       showInHiddenAreas: true,

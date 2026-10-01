@@ -11,7 +11,7 @@ import {
   electronEnv,
   isMacintosh,
 } from '@opensumi/ide-core-browser';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IDialogService, IOpenDialogOptions, ISaveDialogOptions, IWindowDialogService } from '@opensumi/ide-overlay';
 

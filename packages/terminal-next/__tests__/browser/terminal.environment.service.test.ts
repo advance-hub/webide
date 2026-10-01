@@ -1,16 +1,16 @@
-import { LayoutState } from '@opensumi/ide-core-browser/lib/layout/layout-state';
-import { CommandService, CommandServiceImpl } from '@opensumi/ide-core-common/lib/command';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IDialogService } from '@opensumi/ide-overlay/lib/common';
+import { LayoutState } from '@opensumi/ide-core-browser/layout';
+import { CommandService, CommandServiceImpl } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { IDialogService } from '@opensumi/ide-overlay';
 import { IStatusBarService } from '@opensumi/ide-status-bar';
-import { StatusBarService } from '@opensumi/ide-status-bar/lib/browser/status-bar.service';
+import { StatusBarService } from '@opensumi/ide-status-bar/service';
 import { ITerminalProcessPath } from '@opensumi/ide-terminal-next';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
-import { MergedEnvironmentVariableCollection } from '@opensumi/ide-terminal-next/lib/common/environmentVariableCollection';
-import { IWorkspaceStorageService } from '@opensumi/ide-workspace/lib/common';
+import { IWorkspaceStorageService } from '@opensumi/ide-workspace';
 
 import { TerminalEnvironmentService } from '../../src/browser/terminal.environment.service';
+import { EnvironmentVariableServiceToken } from '../../src/common/environmentVariable';
+import { MergedEnvironmentVariableCollection } from '../../src/common/environmentVariableCollection';
 
 const mockData = [
   {

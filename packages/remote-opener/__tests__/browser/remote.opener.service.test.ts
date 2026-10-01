@@ -1,8 +1,8 @@
-import { IOpenerService } from '@opensumi/ide-core-browser/lib/opener';
+import { IOpenerService } from '@opensumi/ide-core-browser';
 import { Disposable, URI, Uri } from '@opensumi/ide-core-common';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/common/editor';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { WorkbenchEditorService } from '@opensumi/ide-editor';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { RemoteOpenerBrowserServiceImpl } from '../../src/browser';
 import { IRemoteHostConverter, IRemoteOpenerBrowserService, RemoteOpenerBrowserServiceToken } from '../../src/common';
 

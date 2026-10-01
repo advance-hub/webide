@@ -1,6 +1,15 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { Disposable, Event, IDisposable, combinedDisposable, dispose, path, strings } from '@opensumi/ide-core-browser';
-import { IStatusBarService, StatusBarAlignment } from '@opensumi/ide-core-browser/lib/services';
+import {
+  Disposable,
+  Event,
+  IDisposable,
+  IStatusBarService,
+  StatusBarAlignment,
+  combinedDisposable,
+  dispose,
+  path,
+  strings,
+} from '@opensumi/ide-core-browser';
 import { Schemes, localize } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';

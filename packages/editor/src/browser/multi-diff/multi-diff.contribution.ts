@@ -8,7 +8,7 @@ import {
   URI,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { ResourceService, WorkbenchEditorService } from '../../common';
 import { IMultiDiffSourceResolverService } from '../../common/multi-diff';

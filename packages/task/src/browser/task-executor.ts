@@ -17,12 +17,12 @@ import {
   ITerminalController,
   ITerminalGroupViewService,
   ITerminalService,
-} from '@opensumi/ide-terminal-next/lib/common';
+} from '@opensumi/ide-terminal-next';
 
 import { ITaskExecutor } from '../common';
 import { ContributedTask, CustomTask, PresentationOptions, Task } from '../common/task';
 
-import { ProblemCollector } from './problem-collector';
+import type { IProblemCollector } from '../common/problem-collector';
 
 const { removeAnsiEscapeCodes } = strings;
 
@@ -107,7 +107,7 @@ export class TerminalTaskExecutor extends Disposable implements ITaskExecutor {
   constructor(
     private task: Task,
     private shellLaunchConfig: IShellLaunchConfig,
-    private collector: ProblemCollector,
+    private collector: IProblemCollector,
     public executorId: number,
   ) {
     super();
@@ -302,7 +302,7 @@ export class TerminalTaskExecutor extends Disposable implements ITaskExecutor {
     this.shellLaunchConfig = launchConfig;
   }
 
-  public updateProblemCollector(collector: ProblemCollector) {
+  public updateProblemCollector(collector: IProblemCollector) {
     this.collector = collector;
   }
 

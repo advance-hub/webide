@@ -1,8 +1,8 @@
-import { TerminalTaskSystem } from '@opensumi/ide-task/lib/browser/terminal-task-system';
-import { ITaskSystem } from '@opensumi/ide-task/lib/common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { TerminalTaskSystem } from '../../src/browser/terminal-task-system';
+import { ITaskSystem } from '../../src/common';
 
 describe('TerminalTaskSystem Test Suite', () => {
   const injector: MockInjector = createBrowserInjector([]);

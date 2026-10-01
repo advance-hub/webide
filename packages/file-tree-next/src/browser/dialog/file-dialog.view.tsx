@@ -11,7 +11,7 @@ import {
   TreeNodeType,
 } from '@opensumi/ide-components';
 import { Key, KeyCode, URI, isMacintosh, localize, path, useInjectable } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 import { IDialogService, IOpenDialogOptions, ISaveDialogOptions } from '@opensumi/ide-overlay';
 
 import { Directory, File } from '../../common/file-tree-node.define';
@@ -42,6 +42,8 @@ export const FileDialog = ({
   const [isReady, setIsReady] = useState<boolean>(false);
   const [selectPath, setSelectPath] = useState<string>('');
   const [directoryList, setDirectoryList] = useState<string[]>([]);
+  const [selectionError, setSelectionError] = useState('');
+  const submitting = useRef(false);
   const currentSaveFileName = useRef<string>((options as ISaveDialogOptions).defaultFileName || '');
 
   useEffect(() => {
@@ -69,39 +71,49 @@ export const FileDialog = ({
     }
   }, [isReady]);
 
-  const ensure = useCallback(() => {
-    const value: string[] = model.selectedFiles.map((file) => file.uri.path.toString());
-    // 如果有文件名的，说明肯定是保存文件的情况
-    if (
-      currentSaveFileName.current &&
-      (options as ISaveDialogOptions).showNameInput &&
-      (value?.length === 1 || options.defaultUri)
-    ) {
-      const filePath = value?.length === 1 ? value[0] : options.defaultUri!.path.toString();
-      if ((options as ISaveDialogOptions & { saveAs?: boolean | undefined })?.saveAs) {
-        fileService.saveAs({
-          oldFilePath: path.join(filePath!, (options as ISaveDialogOptions)?.defaultFileName || ''),
-          newFilePath: path.join(filePath!, currentSaveFileName.current),
-        });
-      }
-
-      dialogService.hide([path.join(filePath!, currentSaveFileName.current)]);
-    } else {
-      if (value.length > 0) {
-        dialogService.hide(value);
-      } else if (selectPath) {
-        dialogService.hide([selectPath]);
-      } else if (options.defaultUri) {
-        dialogService.hide([options.defaultUri!.path.toString()]);
-      } else if (model.treeModel && model.treeModel.root) {
-        dialogService.hide([(model.treeModel.root as Directory).uri.path.toString()]);
-      } else {
-        dialogService.hide([]);
-      }
+  const ensure = useCallback(async () => {
+    if (!isReady || submitting.current) {
+      return;
     }
-    setIsReady(false);
-    fileService.contextKey.fileDialogViewVisibleContext.set(false);
-  }, [isReady, dialogService, model, options, selectPath]);
+    submitting.current = true;
+    setSelectionError('');
+    try {
+      const value = model.selectedFiles.map((file) => file.uri.path.toString());
+      if (isOpenDialog) {
+        const fallback =
+          selectPath ||
+          options.defaultUri?.path.toString() ||
+          (model.treeModel?.root as Directory | undefined)?.uri.path.toString();
+        const paths = value.length ? value : fallback ? [fallback] : [];
+        dialogService.hide(await fileService.resolveOpenSelection(paths, options as IOpenDialogOptions));
+      } else if (
+        currentSaveFileName.current &&
+        (options as ISaveDialogOptions).showNameInput &&
+        (value.length === 1 || options.defaultUri)
+      ) {
+        const filePath = value.length === 1 ? value[0] : options.defaultUri!.path.toString();
+        if ((options as ISaveDialogOptions & { saveAs?: boolean }).saveAs) {
+          await fileService.saveAs({
+            oldFilePath: path.join(filePath, (options as ISaveDialogOptions).defaultFileName || ''),
+            newFilePath: path.join(filePath, currentSaveFileName.current),
+          });
+        }
+        dialogService.hide([path.join(filePath, currentSaveFileName.current)]);
+      } else {
+        const fallback =
+          selectPath ||
+          options.defaultUri?.path.toString() ||
+          (model.treeModel?.root as Directory | undefined)?.uri.path.toString();
+        dialogService.hide(value.length ? value : fallback ? [fallback] : []);
+      }
+      setIsReady(false);
+      fileService.contextKey.fileDialogViewVisibleContext.set(false);
+    } catch (error) {
+      setSelectionError(error instanceof Error ? error.message : String(error));
+    } finally {
+      submitting.current = false;
+    }
+  }, [isReady, dialogService, model, options, selectPath, isOpenDialog, fileService]);
 
   const getDefaultPath = async (model) => {
     let defaultPath = (model.treeModel.root as Directory).uri.codeUri.fsPath;
@@ -176,8 +188,8 @@ export const FileDialog = ({
       if (!item) {
         return;
       }
-      const shiftMask = hasShiftMask(event);
-      const ctrlCmdMask = hasCtrlCmdMask(event);
+      const shiftMask = hasShiftMask(ev);
+      const ctrlCmdMask = hasCtrlCmdMask(ev);
       if (shiftMask && !isSaveDialog && (options as IOpenDialogOptions).canSelectMany) {
         handleItemRangeClick(item, type);
       } else if (ctrlCmdMask && !isSaveDialog && (options as IOpenDialogOptions).canSelectMany) {
@@ -314,12 +326,17 @@ export const FileDialog = ({
     if (wrapperRef.current) {
       fileService.initContextKey(wrapperRef.current);
       fileService.contextKey.fileDialogViewVisibleContext.set(true);
-      wrapperRef.current?.addEventListener('keyup', handleKeyUp);
+      return () => fileService.contextKey.service.dispose();
     }
+  }, [fileService]);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    wrapper?.addEventListener('keyup', handleKeyUp);
     return () => {
-      wrapperRef.current?.removeEventListener('keyup', handleKeyUp);
+      wrapper?.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [handleKeyUp]);
 
   const DialogContent = useMemo(
     () => (
@@ -370,6 +387,8 @@ export const FileDialog = ({
       </div>
 
       {DialogContent}
+
+      {selectionError && <div role='alert'>{selectionError}</div>}
 
       {!isOpenDialog && (options as ISaveDialogOptions).showNameInput && (
         <div className={styles.file_dialog_file_container}>

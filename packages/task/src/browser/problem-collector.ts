@@ -20,11 +20,13 @@ import { ProblemMatch, ProblemMatcher } from '@opensumi/ide-core-common';
 
 import { AbstractLineMatcher, StartStopLineMatcher, WatchModeLineMatcher } from './problem-line-matcher';
 
+import type { IProblemCollector } from '../common/problem-collector';
+
 export function isWatchModeWatcher(matcher: ProblemMatcher): boolean {
   return !!matcher.watching;
 }
 
-export class ProblemCollector {
+export class ProblemCollector implements IProblemCollector {
   private lineMatchers: AbstractLineMatcher[] = [];
 
   constructor(public problemMatchers: ProblemMatcher[]) {

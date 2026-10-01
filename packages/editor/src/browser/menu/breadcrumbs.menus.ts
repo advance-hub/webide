@@ -1,5 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { URI } from '@opensumi/ide-core-common';
 
 import { EditorGroup } from '../workbench-editor.service';

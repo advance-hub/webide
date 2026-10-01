@@ -7,15 +7,20 @@ import WebSocket from 'ws';
 
 import { AppConfig } from '@opensumi/ide-core-browser';
 import { FileUri, OperatingSystem, URI } from '@opensumi/ide-core-common';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
+import { MockEnvironmentVariableService } from '@opensumi/ide-dev-tool/mocks/environment-variable';
+import {
+  closeTestServers,
+  createProxyServer,
+  createWsServer,
+  resetPort,
+} from '@opensumi/ide-dev-tool/mocks/terminal-proxy';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { MockEnvironmentVariableService } from '../../../extension/__tests__/hosted/__mocks__/environmentVariableService';
 import { NodePtyTerminalService } from '../../src/browser/terminal.service';
 import { IShellLaunchConfig, ITerminalService, ITerminalServicePath, TERMINAL_ID_SEPARATOR } from '../../src/common';
+import { EnvironmentVariableServiceToken } from '../../src/common/environmentVariable';
 
 import { injector } from './inject';
-import { createProxyServer, createWsServer, resetPort } from './proxy';
 
 describe('terminal service test cases', () => {
   let terminalService: ITerminalService;
@@ -86,9 +91,7 @@ describe('terminal service test cases', () => {
         },
         create2: (sessionId, cols, rows, _launchConfig) => {
           launchConfig = _launchConfig;
-          setTimeout(() => {
-            (terminalService as any)?.$processChange(sessionId, 'zsh');
-          });
+          (terminalService as any)?.$processChange(sessionId, 'zsh');
         },
         input() {
           // no-op for tests
@@ -104,8 +107,7 @@ describe('terminal service test cases', () => {
   });
 
   afterAll(async () => {
-    await server.close();
-    await proxy.close();
+    await closeTestServers(server, proxy);
     await injector.disposeAll();
   });
 
@@ -148,7 +150,8 @@ describe('terminal service test cases', () => {
     const launchConfig: IShellLaunchConfig = {
       executable: shellPath,
     };
-    terminalService.onProcessChange((e) => {
+    const disposable = terminalService.onProcessChange((e) => {
+      disposable.dispose();
       expect(e.sessionId).toBe(sessionId);
       expect(e.processName).toBe('zsh');
       done();

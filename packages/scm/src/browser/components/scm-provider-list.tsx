@@ -3,9 +3,9 @@ import React, { CSSProperties, FC, useCallback } from 'react';
 
 import { Badge } from '@opensumi/ide-components';
 import { ViewState, useInjectable } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { IStatusBarService } from '@opensumi/ide-status-bar';
-import { StatusBarItem } from '@opensumi/ide-status-bar/lib/browser/status-bar-item.view';
+import { StatusBarItem } from '@opensumi/ide-status-bar/item';
 
 import { ISCMRepository } from '../../common';
 import { getSCMRepositoryDesc } from '../scm-util';

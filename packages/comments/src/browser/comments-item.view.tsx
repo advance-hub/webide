@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Button } from '@opensumi/ide-components';
 import {
-  IContextKeyService,
   IMarkdownString,
   isString,
   isUndefined,
@@ -12,8 +11,8 @@ import {
   useAutorun,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { InlineActionBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { AbstractMenuService, IMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { InlineActionBar } from '@opensumi/ide-core-browser/components/actions';
+import { AbstractMenuService, IMenu, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import {
   CommentMode,
@@ -30,6 +29,8 @@ import { CommentReactionSwitcher, CommentReactions } from './comment-reactions.v
 import { CommentsBody } from './comments-body';
 import { CommentsTextArea } from './comments-textarea.view';
 import styles from './comments.module.less';
+
+import type { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
 
 // TODO: 更好的时间格式化组件
 const Timestamp: React.FC<{ timestamp: string }> = ({ timestamp }) => {

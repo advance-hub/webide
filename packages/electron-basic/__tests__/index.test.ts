@@ -7,13 +7,13 @@ import {
   arrays,
   electronEnv,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
+import { IMenuRegistry } from '@opensumi/ide-core-browser/menu';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { ResourceService, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorComponentRegistry } from '@opensumi/ide-editor/lib/browser';
+import { EditorComponentRegistry } from '@opensumi/ide-editor/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { createBrowserInjector } from '../../../tools/dev-tool/src/injector-helper';
 import { createElectronBasicInjector } from '../__mocks__';
 import { mockService } from '../__mocks__/utils';
 import { ElectronBasicContribution } from '../src/browser';

@@ -1,6 +1,8 @@
 import { Autowired } from '@opensumi/di';
 import {
   ClientAppContribution,
+  ComponentContribution,
+  ComponentRegistry,
   Disposable,
   PreferenceContribution,
   PreferenceService,
@@ -9,21 +11,20 @@ import {
   getExternalIcon,
   getIcon,
 } from '@opensumi/ide-core-browser';
-import { browserViews } from '@opensumi/ide-core-browser/lib/extensions/schema/browserViews';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { browserViews } from '@opensumi/ide-core-browser/contribution-schemas';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import {
   Command,
   CommandContribution,
   CommandRegistry,
+  Domain,
   IExtensionsSchemaService,
   PreferenceSchema,
   PreferenceScope,
   formatLocalize,
   localize,
 } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
-import { EditorCollectionService, IEditor, WorkbenchEditorService } from '@opensumi/ide-editor/lib/common';
+import { EditorCollectionService, IEditor, WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMainLayoutService, IViewsRegistry, MainLayoutContribution } from '@opensumi/ide-main-layout';
 
 import {
@@ -297,12 +298,14 @@ export class SCMContribution
     if (!lineChanges || lineChanges.length === 0) {
       return 0;
     }
-    let index = 0;
-    if (type === 'previous') {
-      index = diffChangesIndex - 1 < 0 ? lineChanges.length - 1 : diffChangesIndex - 1;
-    } else {
-      index = diffChangesIndex >= lineChanges.length - 1 ? 0 : diffChangesIndex + 1;
-    }
+    const index =
+      type === 'previous'
+        ? diffChangesIndex - 1 < 0
+          ? lineChanges.length - 1
+          : diffChangesIndex - 1
+        : diffChangesIndex >= lineChanges.length - 1
+          ? 0
+          : diffChangesIndex + 1;
     this.diffChangesIndex.set(uri, index);
     return lineChanges[index][2];
   }

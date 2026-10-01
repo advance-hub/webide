@@ -9,7 +9,7 @@ import {
   URI,
 } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
 
 import {
   Diagnostic,

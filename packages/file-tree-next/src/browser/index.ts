@@ -1,8 +1,9 @@
 import { Provider } from '@opensumi/di';
 import { BrowserModule, Domain, ModuleDependencies } from '@opensumi/ide-core-browser';
 import { IWindowDialogService } from '@opensumi/ide-overlay';
-import { WorkspaceModule } from '@opensumi/ide-workspace/lib/browser';
+import { WorkspaceModule } from '@opensumi/ide-workspace/browser';
 
+import pkgJson from '../../package.json';
 import { IFileTreeAPI, IFileTreeService } from '../common';
 
 import { WindowDialogServiceImpl } from './dialog/window-dialog.service';
@@ -11,8 +12,6 @@ import { FileTreeService } from './file-tree.service';
 import { FileTreeAPI } from './services/file-tree-api.service';
 import { FileTreeDecorationService } from './services/file-tree-decoration.service';
 import { FileTreeModelService } from './services/file-tree-model.service';
-
-const pkgJson = require('../../package.json');
 
 @Domain(pkgJson.name)
 @ModuleDependencies([WorkspaceModule])

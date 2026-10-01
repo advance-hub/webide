@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Disposable, IEventBus, getExternalIcon, useInjectable } from '@opensumi/ide-core-browser';
-import { Button } from '@opensumi/ide-core-browser/lib/components';
-import { InlineActionBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { AbstractMenuService, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { Button } from '@opensumi/ide-core-browser/components';
+import { InlineActionBar } from '@opensumi/ide-core-browser/components/actions';
+import { AbstractMenuService, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/menu';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 
 import {

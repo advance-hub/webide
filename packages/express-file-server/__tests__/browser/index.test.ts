@@ -1,10 +1,11 @@
-import { URI, createContributionProvider } from '@opensumi/ide-core-browser';
 import {
   StaticResourceClientAppContribution,
   StaticResourceContribution,
   StaticResourceService,
-} from '@opensumi/ide-core-browser/lib/static-resource';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+  URI,
+  createContributionProvider,
+} from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
 import { ExpressFileServerModule } from '../../src/browser';
 

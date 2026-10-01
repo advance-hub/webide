@@ -28,9 +28,9 @@ import {
   isOSX,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
-import { WelcomeView } from '@opensumi/ide-main-layout/lib/browser/welcome.view';
-import { IIconService } from '@opensumi/ide-theme/lib/common/index';
+import { Progress } from '@opensumi/ide-core-browser/progress';
+import { WelcomeView } from '@opensumi/ide-main-layout/welcome';
+import { IIconService } from '@opensumi/ide-theme';
 
 import { FILE_EXPLORER_WELCOME_ID, IFileTreeService } from '../common';
 import { Directory, File } from '../common/file-tree-node.define';
@@ -78,7 +78,7 @@ export const FileTree = ({ viewState }: PropsWithChildren<{ viewState: ViewState
     iconService.currentTheme || {
       hasFolderIcons: true,
       hasFileIcons: true,
-      hidesExplorerArrows: true,
+      hidesExplorerArrows: false,
     },
   );
 

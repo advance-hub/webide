@@ -1,8 +1,8 @@
 import { URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/lib/browser/doc-model/main';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
 import { IResourceTextEdit, IWorkspaceEdit } from '@opensumi/ide-workspace-edit';
 
 import { replaceAll } from '../../src/browser/replace';

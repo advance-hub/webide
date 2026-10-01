@@ -5,7 +5,7 @@ import {
   WorkbenchState,
   WorkspaceFolderCount,
   WorkspaceTrusted,
-} from '@opensumi/ide-core-browser/lib/contextkey';
+} from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class WorkspaceContextKey {

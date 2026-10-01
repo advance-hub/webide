@@ -1,8 +1,7 @@
 import React, { ReactChild } from 'react';
 
-import { transformLabelWithCodicon } from '@opensumi/ide-core-browser';
-import { Highlight } from '@opensumi/ide-core-browser/lib/quick-open';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
+import { transformLabelWithCodicon, useInjectable } from '@opensumi/ide-core-browser';
+import { Highlight } from '@opensumi/ide-core-browser/quick-open';
 import { IIconService } from '@opensumi/ide-theme';
 
 export interface HighlightLabelProp {
@@ -41,7 +40,6 @@ export const HighlightLabel: React.FC<HighlightLabelProp> = ({
             {transformLabelWithCodicon(substring, labelIconClassName, iconService.fromString.bind(iconService))}
           </span>,
         );
-        pos = highlight.end;
       }
       const substring = text.substring(highlight.start, highlight.end);
       children.push(

@@ -1,12 +1,9 @@
 import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { Disposable, Emitter, MarkerManager, URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import {
-  DocumentSymbolStore,
-  INormalizedDocumentSymbol,
-} from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { DocumentSymbolStore, INormalizedDocumentSymbol } from '@opensumi/ide-editor/document-symbols';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import styles from '../../../../src/browser/outline-node.module.less';
@@ -198,9 +195,8 @@ describe('OutlineTreeModelService', () => {
   it('removeNodeDecoration method should be work', () => {
     const node = outlineTreeModelService.treeModel!.root!.children![0] as OutlineTreeNode;
     outlineTreeModelService.activeNodeDecoration(node);
-    let decoration = outlineTreeModelService.decorations.getDecorations(node);
     outlineTreeModelService.removeNodeDecoration();
-    decoration = outlineTreeModelService.decorations.getDecorations(node);
+    const decoration = outlineTreeModelService.decorations.getDecorations(node);
     expect(decoration).toBeDefined();
     expect(decoration!.classlist).toEqual([]);
   });

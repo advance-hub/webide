@@ -9,13 +9,14 @@ import {
   getDebugLogger,
   isLinux,
 } from '@opensumi/ide-core-common';
-import { IReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { IReadableStream } from '@opensumi/ide-utils/stream';
 
 import {
   DidFilesChangedParams,
   DiskFileServicePath,
   FileChange,
   FileChangeEvent,
+  FileStat,
   FileSystemProvider,
   FileWatcherFailureParams,
   FileWatcherOverflowParams,
@@ -123,6 +124,17 @@ export class DiskFsProviderClient extends CoreFileServiceProviderClient implemen
     return this._capabilities;
   }
 
+  writeFileWithStat(
+    file: FileStat,
+    content: Uint8Array,
+    options?: { encoding?: string; expectedContent?: Uint8Array },
+  ) {
+    return this.fileServiceProvider.writeFileWithStat(file, Array.from(content) as any, {
+      ...options,
+      expectedContent: options?.expectedContent ? (Array.from(options.expectedContent) as any) : undefined,
+    });
+  }
+
   async initialize(clientId: string, backend?: RecursiveWatcherBackend) {
     if (this.fileServiceProvider?.initialize) {
       try {
@@ -148,7 +160,7 @@ export class DiskFsProviderClient extends CoreFileServiceProviderClient implemen
         ({
           uri: change.uri,
           type: change.type,
-        } as FileChange),
+        }) as FileChange,
     );
     this.onDidChangeFileEmitter.fire(changes);
   }

@@ -11,21 +11,20 @@ import {
   QuickOpenService,
   URI,
 } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
 import { IDecorationsService } from '@opensumi/ide-decoration';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { MockQuickOpenService } from '@opensumi/ide-dev-tool/mocks/quick-open';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileChangeType, IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMainLayoutService, IViewsRegistry } from '@opensumi/ide-main-layout';
-import { ViewsRegistry } from '@opensumi/ide-main-layout/lib/browser/views-registry';
+import { ViewsRegistry } from '@opensumi/ide-main-layout/views';
 import { IDialogService, IMessageService, IWindowDialogService } from '@opensumi/ide-overlay';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
 import { DEFAULT_WORKSPACE_SUFFIX_NAME, IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
-import { MockQuickOpenService } from '../../../quick-open/src/common/mocks/quick-open.service';
-import { FileTreeContribution } from '../../src/browser/file-tree-contribution';
 import { FileTreeService } from '../../src/browser/file-tree.service';
 import { IFileTreeAPI, IFileTreeService } from '../../src/common';
 import { Directory, File } from '../../src/common/file-tree-node.define';
@@ -225,6 +224,29 @@ describe('FileTree Service should be work alone', () => {
     await fileTreeService.flushEventQueue();
   });
 
+  it('reconciles the tree after queued watchers become active', async () => {
+    expect.assertions(3);
+    const workspaceService = injector.get(IWorkspaceService);
+    const testUri = new URI(workspaceService.workspace.uri);
+    let resolveWatcher: (watcher: typeof fileChangeWatcher) => void;
+    mockFileServiceClient.watchFileChanges.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveWatcher = resolve;
+      }),
+    );
+    const refresh = jest.spyOn(fileTreeService, 'refresh').mockResolvedValue(undefined);
+
+    await fileTreeService.watchFilesChange(testUri);
+    const start = fileTreeService.startWatchFileEvent();
+    expect(refresh).not.toHaveBeenCalled();
+
+    resolveWatcher!(fileChangeWatcher);
+    await start;
+
+    expect(mockFileServiceClient.watchFileChanges).toHaveBeenCalledWith(testUri);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
   it('Commands should be work', () => {
     const testUri = new URI('file://userhome/test.js');
     // openAndFixedFile
@@ -268,6 +290,7 @@ describe('FileTree Service should be work alone', () => {
     res = fileTreeService.sortComparator(newDirectoryByName('a'), newDirectoryByName('a'));
     expect(res).toBe(0);
     res = fileTreeService.sortComparator(newFileByName('a'), newFileByName('a'));
+    expect(res).toBe(0);
   });
 });
 

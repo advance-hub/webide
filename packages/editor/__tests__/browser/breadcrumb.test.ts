@@ -1,18 +1,14 @@
-import { IEventBus, URI } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
-import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { BreadCrumbServiceImpl } from '@opensumi/ide-editor/lib/browser/breadcrumb';
-import {
-  DocumentSymbol,
-  DocumentSymbolChangedEvent,
-} from '@opensumi/ide-editor/lib/browser/breadcrumb/document-symbol';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+import { IEventBus, LabelService, URI } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 import * as modes from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { IEditorDocumentModelService, WorkbenchEditorService } from '../../src/browser';
+import { BreadCrumbServiceImpl } from '../../src/browser/breadcrumb';
+import { DocumentSymbol, DocumentSymbolChangedEvent } from '../../src/browser/breadcrumb/document-symbol';
 
 describe('breadcrumb test', () => {
   let injector: MockInjector;

@@ -1,16 +1,16 @@
 import { Injector } from '@opensumi/di';
-import { CommentContentNode, CommentRoot } from '@opensumi/ide-comments/lib/browser/tree/tree-node.defined';
 import { IContextKeyService, URI } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector, mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { EditorCollectionService } from '@opensumi/ide-editor';
 import { positionToRange } from '@opensumi/ide-monaco';
-import { createMockedMonaco } from '@opensumi/ide-monaco/__mocks__/monaco';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import { CommentsModule } from '../../src/browser';
+import { CommentContentNode, CommentRoot } from '../../src/browser/tree/tree-node.defined';
 import { CommentMode, ICommentsFeatureRegistry, ICommentsService } from '../../src/common';
 
 describe('comment service test', () => {
@@ -44,21 +44,6 @@ describe('comment service test', () => {
 
   afterAll(() => {
     (global as any).monaco = undefined;
-  });
-
-  it('registerPanelOptions', () => {
-    const options = {
-      iconClass: 'iconClass',
-      priority: 1,
-      title: 'title',
-      hidden: false,
-      badge: 'badge',
-      initialProps: { a: 1 },
-    };
-    commentsFeatureRegistry.registerPanelOptions(options);
-    const registryOptions = commentsFeatureRegistry.getCommentsPanelOptions();
-
-    expect(registryOptions).toEqual(options);
   });
 
   it('registerPanelOptions', () => {

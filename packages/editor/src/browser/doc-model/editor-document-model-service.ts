@@ -19,9 +19,9 @@ import {
   memoize,
   serializableToMap,
 } from '@opensumi/ide-core-browser';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { EOL } from '@opensumi/ide-monaco/types';
 
 import { IEditorDocumentDescription, IEditorDocumentModel } from '../../common/editor';
 

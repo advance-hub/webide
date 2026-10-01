@@ -21,9 +21,9 @@ import {
   isUndefinedOrNull,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { URI as MonacoURI, monaco } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { EOL, EndOfLineSequence, ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { URI as MonacoURI, monaco } from '@opensumi/ide-monaco/api';
+import { EOL, EndOfLineSequence, ITextModel } from '@opensumi/ide-monaco/types';
 import { IMessageService } from '@opensumi/ide-overlay';
 import {
   EditOperation,
@@ -159,7 +159,11 @@ export class EditorDocumentModel extends Disposable implements IEditorDocumentMo
   private readonly _onDidChangeEncoding = new Emitter<void>();
   readonly onDidChangeEncoding = this._onDidChangeEncoding.event;
 
-  constructor(public readonly uri: URI, content: string, options: EditorDocumentModelConstructionOptions = {}) {
+  constructor(
+    public readonly uri: URI,
+    content: string,
+    options: EditorDocumentModelConstructionOptions = {},
+  ) {
     super();
 
     this.onDispose(() => {

@@ -8,12 +8,12 @@ import {
   IContextKeyService,
   Uri,
 } from '@opensumi/ide-core-browser';
-import { RawContextKey } from '@opensumi/ide-core-browser/lib/raw-context-key';
+import { RawContextKey } from '@opensumi/ide-core-common/contextkeys';
 import {
   CallHierarchyItem,
   CallHierarchyProviderRegistry,
   ICallHierarchyService,
-} from '@opensumi/ide-monaco/lib/browser/contrib/callHierarchy';
+} from '@opensumi/ide-monaco/hierarchy';
 import { Position } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/position';
 
 import { BrowserEditorContribution, IEditor, IEditorFeatureRegistry } from '../../types';

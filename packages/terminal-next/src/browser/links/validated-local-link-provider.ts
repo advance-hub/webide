@@ -5,10 +5,9 @@
 // Some code copied and modified from https://github.com/microsoft/vscode/blob/1.63.2/src/vs/workbench/contrib/terminal/browser/links/terminalValidatedLocalLinkProvider.ts
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { AppConfig } from '@opensumi/ide-core-browser/lib/react-providers/config-provider';
-import { IWindowService } from '@opensumi/ide-core-browser/lib/window';
+import { AppConfig, IWindowService } from '@opensumi/ide-core-browser';
 import { CommandService, FileUri, IDisposable, OperatingSystem, URI } from '@opensumi/ide-core-common';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common/workspace.interface';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import {
   ILinkInfo,

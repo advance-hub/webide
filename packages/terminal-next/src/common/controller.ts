@@ -1,8 +1,7 @@
 import { IEvent } from '@xterm/xterm';
 
-import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { Deferred, Disposable, Event, IDisposable, Uri } from '@opensumi/ide-core-common';
-import { IObservable } from '@opensumi/ide-monaco/lib/common/observable';
+import { IObservable } from '@opensumi/ide-monaco/observable';
 
 import {
   ITerminalClient,
@@ -15,8 +14,9 @@ import { ITerminalProfile } from './profile';
 import { ICreateTerminalOptions, IShellLaunchConfig, ITerminalInfo, TerminalOptions } from './pty';
 import { IWidget, IWidgetGroup } from './resize';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { ILinkHoverTargetOptions } from '../browser/links/link-manager';
+import type { ILinkHoverTargetOptions } from './hover';
+import type { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
+import type React from 'react';
 
 export interface ITerminalExternalClient {
   readonly id: string;

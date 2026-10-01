@@ -1,16 +1,16 @@
 import uniqueId from 'lodash/uniqueId';
 
 import { IEventBus, SaveTaskResponseState, URI } from '@opensumi/ide-core-browser';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { EmptyDocCacheImpl } from '@opensumi/ide-editor/lib/browser/doc-cache';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+import { EOL } from '@opensumi/ide-monaco/types';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { isLinux, isMacintosh } from '@opensumi/monaco-editor-core/esm/vs/base/common/platform';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
-import { createMockedMonaco } from '../../../../monaco/__mocks__/monaco';
+import { EmptyDocCacheImpl } from '../../../src/browser/doc-cache';
 import { EditorDocumentModel, EditorDocumentModelConstructionOptions } from '../../../src/browser/doc-model/main';
 import {
   EditorDocumentModelContentChangedEvent,

@@ -9,7 +9,7 @@ import {
   QuickPickItem,
   QuickPickOptions,
   QuickPickService,
-} from '@opensumi/ide-core-browser/lib/quick-open';
+} from '@opensumi/ide-core-browser/quick-open';
 import { Emitter, Event } from '@opensumi/ide-core-common';
 
 import { QuickTitleBar } from './quick-title-bar';

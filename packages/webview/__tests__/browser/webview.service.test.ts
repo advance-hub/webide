@@ -1,11 +1,11 @@
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { StaticResourceService } from '@opensumi/ide-core-browser';
 import { Disposable } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorComponentRegistry, EditorPreferences } from '@opensumi/ide-editor/lib/browser';
+import { EditorComponentRegistry, EditorPreferences } from '@opensumi/ide-editor/browser';
 import { ITheme, IThemeService } from '@opensumi/ide-theme';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { IWebviewService } from '../../src/browser';
 import { ElectronPlainWebview } from '../../src/browser/plain-webview';
 import { WebviewServiceImpl } from '../../src/browser/webview.service';
@@ -25,7 +25,7 @@ const providers = [
           themeData: { id: 'vs-dark' } as any,
           defines: () => false,
           getColor: () => undefined,
-        } as ITheme),
+        }) as ITheme,
     },
   },
   {

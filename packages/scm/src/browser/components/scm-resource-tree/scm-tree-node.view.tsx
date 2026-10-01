@@ -12,15 +12,15 @@ import {
 } from '@opensumi/ide-components';
 import {
   CommandService,
+  LabelService,
   MouseEventButton,
   URI,
   getIcon,
   useDesignStyles,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { IContextMenu } from '@opensumi/ide-core-browser/lib/menu/next';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { IContextMenu } from '@opensumi/ide-core-browser/menu';
 import { IIconTheme, IThemeService } from '@opensumi/ide-theme';
 
 import { ISCMResource, ISCMResourceGroup } from '../../../common';

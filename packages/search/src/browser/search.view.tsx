@@ -3,7 +3,7 @@ import React, { FormEvent, PropsWithChildren, memo, useCallback, useEffect, useM
 
 import { ValidateMessage } from '@opensumi/ide-components';
 import { DisposableCollection, Key, ViewState, localize, useInjectable } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 
 import {
   ContentSearchResult,

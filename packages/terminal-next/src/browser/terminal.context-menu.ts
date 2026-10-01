@@ -6,7 +6,7 @@ import {
   IMenu,
   MenuId,
   generateMergedCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import { Disposable } from '@opensumi/ide-core-common';
 
 import { ITerminalController } from '../common';

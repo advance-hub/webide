@@ -5,6 +5,8 @@ import {
   CommandContribution,
   CommandRegistry,
   CommandService,
+  ComponentContribution,
+  ComponentRegistry,
   CorePreferences,
   Disposable,
   Domain,
@@ -39,16 +41,19 @@ import {
   getLanguageIdFromMonaco,
   localize,
 } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { AbstractContextMenuService } from '@opensumi/ide-core-browser/lib/menu/next/menu.interface';
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/base';
-import { IRelaxedOpenMergeEditorArgs } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { IRelaxedOpenMergeEditorArgs } from '@opensumi/ide-core-browser/editor';
+import {
+  AbstractContextMenuService,
+  ICtxMenuRenderer,
+  IMenuRegistry,
+  MenuContribution,
+  MenuId,
+} from '@opensumi/ide-core-browser/menu';
 import { IDisposable, ILogger, PreferenceScope, UriComponents, isWindows } from '@opensumi/ide-core-common';
-import { MergeEditorService } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/merge-editor.service';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
-import * as monaco from '@opensumi/ide-monaco/lib/common/common';
+import * as monaco from '@opensumi/ide-monaco/language-types';
+import { MergeEditorService } from '@opensumi/ide-monaco/merge-editor';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
+import { EOL } from '@opensumi/ide-monaco/types';
 import { EditorContextKeys } from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorContextKeys';
 import { IFormattingEditProviderSelector } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/format/browser/format';
 import { ContextKeyExpr } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';

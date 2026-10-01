@@ -1,20 +1,11 @@
-import React from 'react';
-
-import {
-  BasicEvent,
-  Event,
-  IContextKeyService,
-  IDisposable,
-  IMarkdownString,
-  IRange,
-  MaybePromise,
-  URI,
-} from '@opensumi/ide-core-browser';
+import { BasicEvent, Event, IDisposable, IMarkdownString, IRange, MaybePromise, URI } from '@opensumi/ide-core-common';
 import { IEditor } from '@opensumi/ide-editor';
-import { IObservable, ISettableObservable } from '@opensumi/ide-monaco/lib/common/observable';
+import { IObservable, ISettableObservable } from '@opensumi/ide-monaco/observable';
 
 import type { ITree, ITreeNode } from '@opensumi/ide-components';
-import type { IEditorDocumentModel } from '@opensumi/ide-editor/lib/common/editor';
+import type { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
+import type { IEditorDocumentModel } from '@opensumi/ide-editor';
+import type React from 'react';
 
 export type Writable<T> = { -readonly [P in keyof T]: T[P] };
 

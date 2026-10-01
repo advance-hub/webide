@@ -1,13 +1,16 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { AppConfig, ResizeEvent, getSlotLocation } from '@opensumi/ide-core-browser';
-import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { ICtxMenuRenderer, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { generateCtxMenu } from '@opensumi/ide-core-browser/lib/menu/next/menu-util';
-import { AbstractMenuService } from '@opensumi/ide-core-browser/lib/menu/next/menu.interface';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences/types';
+import { AppConfig, PreferenceService, ResizeEvent, getSlotLocation } from '@opensumi/ide-core-browser';
+import {
+  AbstractMenuService,
+  ICtxMenuRenderer,
+  IMenuRegistry,
+  MenuId,
+  generateCtxMenu,
+} from '@opensumi/ide-core-browser/menu';
 import {
   CommandRegistry,
   Deferred,
+  Disposable,
   DisposableCollection,
   DisposableStore,
   Emitter,
@@ -21,6 +24,7 @@ import {
   replaceLocalizePlaceholder,
   withNullAsUndefined,
 } from '@opensumi/ide-core-common';
+import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IThemeService } from '@opensumi/ide-theme';
@@ -264,6 +268,7 @@ export class TerminalController extends WithEventBus implements ITerminalControl
     super();
     this._focus = false;
     this._clients = new Map();
+    this.addDispose(Disposable.create(() => this.disposeTerminalClients()));
   }
 
   private _createOneGroup(options?: IShellLaunchConfig) {

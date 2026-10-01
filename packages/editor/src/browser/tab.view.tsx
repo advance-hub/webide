@@ -31,14 +31,15 @@ import {
   getSlotLocation,
   renderView,
   useDesignStyles,
+  useInjectable,
+  useUpdateOnEventBusEvent,
 } from '@opensumi/ide-core-browser';
-import { InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { useInjectable, useUpdateOnEventBusEvent } from '@opensumi/ide-core-browser/lib/react-hooks';
+import { InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { LayoutViewSizeConfig, VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/menu';
 import { formatLocalize } from '@opensumi/ide-core-common';
 
+import editorPackage from '../../package.json';
 import {
   IEditorGroup,
   IResource,
@@ -61,7 +62,7 @@ import {
 import { useUpdateOnGroupTabChange } from './view/react-hook';
 import { EditorGroup, WorkbenchEditorServiceImpl } from './workbench-editor.service';
 
-const pkgName = require('../../package.json').name;
+const pkgName = editorPackage.name;
 
 export interface ITabsProps {
   group: EditorGroup;

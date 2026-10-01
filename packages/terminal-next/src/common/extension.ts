@@ -183,7 +183,7 @@ export enum TerminalLocation {
   Editor = 2,
 }
 
-export const enum TerminalLocationString {
+export enum TerminalLocationString {
   TerminalView = 'view',
   Editor = 'editor',
 }

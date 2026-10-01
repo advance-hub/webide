@@ -1,4 +1,4 @@
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
 import {
   IRemoteOpenerClient,

@@ -11,7 +11,7 @@ import {
   FilesExplorerFilteredContext,
   FilesExplorerFocusedContext,
   FilesExplorerInputFocusedContext,
-} from '@opensumi/ide-core-browser/lib/contextkey/explorer';
+} from '@opensumi/ide-core-browser/contextkeys';
 
 @Injectable()
 export class FileContextKey {

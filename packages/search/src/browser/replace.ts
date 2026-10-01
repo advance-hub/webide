@@ -1,6 +1,6 @@
 import { localize } from '@opensumi/ide-core-browser';
 import { MessageType, URI, formatLocalize } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
 import { IDialogService, IMessageService } from '@opensumi/ide-overlay';
 import { IResourceFileEdit, IResourceTextEdit, IWorkspaceEditService } from '@opensumi/ide-workspace-edit';
