@@ -1,7 +1,6 @@
 import { Autowired } from '@opensumi/di';
 import { getIcon } from '@opensumi/ide-components';
-import { ClientAppContribution } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { ClientAppContribution, LabelService } from '@opensumi/ide-core-browser';
 import {
   CommandContribution,
   CommandRegistry,
@@ -17,9 +16,9 @@ import {
   IResource,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser/types';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+} from '@opensumi/ide-editor/types';
+import { IconService } from '@opensumi/ide-theme/browser';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { RulesService } from './rules.service';
 import { RulesView } from './rules.view';

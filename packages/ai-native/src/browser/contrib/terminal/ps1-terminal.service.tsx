@@ -14,7 +14,7 @@ import {
   TerminalRegistryToken,
 } from '@opensumi/ide-core-common';
 import { ITerminalConnection, ITerminalController } from '@opensumi/ide-terminal-next';
-import { listenReadable } from '@opensumi/ide-utils/lib/stream';
+import { listenReadable } from '@opensumi/ide-utils/stream';
 
 import { ITerminalCommandSuggestionDesc } from '../../../common';
 

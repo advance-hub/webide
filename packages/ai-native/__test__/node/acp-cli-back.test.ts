@@ -5,7 +5,7 @@ import {
   Emitter,
 } from '@opensumi/ide-core-common';
 import { ChatReadableStream, INodeLogger } from '@opensumi/ide-core-node';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { toAgentUpdate } from '../../src/node/acp/acp-agent-update-adapter';
 import {
@@ -15,7 +15,6 @@ import {
   IAcpAgentService,
 } from '../../src/node/acp/acp-agent.service';
 import { AcpCliBackService } from '../../src/node/acp/acp-cli-back.service';
-import { AcpThreadStatusCallerService } from '../../src/node/acp/acp-thread-status-caller.service';
 import { OpenAICompatibleModel } from '../../src/node/openai-compatible/openai-compatible-language-model';
 
 // Mock dependencies

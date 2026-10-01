@@ -2,8 +2,8 @@ import debounce from 'lodash/debounce';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Emitter, localize } from '@opensumi/ide-core-browser';
-import { Input, getIcon } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Input, getIcon } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 
 import { ITerminalCommandSuggestionDesc } from '../../../../common';
 

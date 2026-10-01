@@ -9,8 +9,8 @@ import {
   getErrorMessage,
 } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { monaco as monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { MonacoTelemetryService } from '@opensumi/ide-monaco/lib/browser/telemetry.service';
+import { monaco as monacoApi } from '@opensumi/ide-monaco/api';
+import { MonacoTelemetryService } from '@opensumi/ide-monaco/runtime';
 
 import { BaseAIMonacoContribHandler } from '../base';
 

@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 
 import { Autowired, INJECTOR_TOKEN, Injector } from '@opensumi/di';
 import { AINativeConfigService, ClientAppContribution, MERGE_CONFLICT_COMMANDS } from '@opensumi/ide-core-browser';
-import { MergeConflictReportService } from '@opensumi/ide-core-browser/lib/ai-native/conflict-report.service';
+import { MergeConflictReportService } from '@opensumi/ide-core-browser/ai';
 import {
   CancelResponse,
   CancellationTokenSource,
@@ -29,16 +29,15 @@ import {
   Uri,
   localize,
 } from '@opensumi/ide-core-common';
-import { GitCommands } from '@opensumi/ide-core-common/lib/commands/git';
-import { IEditor, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import {
-  CommitType,
-  DocumentMergeConflict,
-  MergeConflictParser,
-} from '@opensumi/ide-editor/lib/browser/merge-conflict';
+import { GitCommands } from '@opensumi/ide-core-common/commands/git';
+import { IEditor, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { CommitType, DocumentMergeConflict, MergeConflictParser } from '@opensumi/ide-editor/merge-conflict';
 import * as monaco from '@opensumi/ide-monaco';
 import { ITextModel } from '@opensumi/ide-monaco';
-import { LineRange } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/model/line-range';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+import { ICodeEditor, IModelDeltaDecoration } from '@opensumi/ide-monaco/api/editor';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { LineRange } from '@opensumi/ide-monaco/merge-editor';
 import {
   ACCEPT_CURRENT_ACTIONS,
   AI_RESOLVE_REGENERATE_ACTIONS,
@@ -46,14 +45,11 @@ import {
   IConflictActionsEvent,
   IGNORE_ACTIONS,
   REVOKE_ACTIONS,
-} from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/types';
-import styles from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/view/merge-editor.module.less';
-import { IWidgetFactory, WidgetFactory } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/widget/facotry';
-import { StopWidget } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/widget/stop-widget';
-import { IMergeEditorShape } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/widget/types';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { ICodeEditor, IModelDeltaDecoration } from '@opensumi/ide-monaco/lib/browser/monaco-api/editor';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
+} from '@opensumi/ide-monaco/merge-editor';
+import { IWidgetFactory, WidgetFactory } from '@opensumi/ide-monaco/merge-editor/widgets';
+import { StopWidget } from '@opensumi/ide-monaco/merge-editor/widgets';
+import { IMergeEditorShape } from '@opensumi/ide-monaco/merge-editor/widgets';
+import styles from '@opensumi/ide-monaco/styles/merge-editor.module.less';
 
 import { DiffResolveResultWidget } from './override-resolve-result-widget';
 
@@ -377,10 +373,9 @@ export class MergeConflictContribution
 
   private updateReportData() {
     const allConflictCache = this.conflictParser.getAllConflictsByUri(this.getUri());
-    let conflictPointNum = 0;
+    const conflictPointNum = allConflictCache?.length || 0;
     let useAIConflictPointNum = 0;
     let receiveNum = 0;
-    conflictPointNum = allConflictCache?.length || 0;
     allConflictCache?.forEach((cacheConflict) => {
       if (cacheConflict.isResolved) {
         useAIConflictPointNum += 1;
@@ -654,7 +649,7 @@ export class MergeConflictContribution
 
       resolveConflictResult = await this.requestAIResolveConflict(conflictMetadata, lineRange, Boolean(previousId));
     } catch (error) {
-      throw new Error(`AI resolve conflict error: ${error.toString()}`);
+      throw new Error(`AI resolve conflict error: ${String(error)}`, { cause: error });
     } finally {
       removeSkeletonDecoration();
       this.stopWidgetManager.hideWidget(lineRange.id);

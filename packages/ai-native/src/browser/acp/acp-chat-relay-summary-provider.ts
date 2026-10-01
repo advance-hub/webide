@@ -1,6 +1,12 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AIBackSerivcePath, IACPConfigProvider, IAIBackService, ILogger } from '@opensumi/ide-core-common';
-import { ChatMessageRole, IHistoryChatMessage } from '@opensumi/ide-core-common/lib/types/ai-native';
+import {
+  AIBackSerivcePath,
+  ChatMessageRole,
+  IACPConfigProvider,
+  IAIBackService,
+  IHistoryChatMessage,
+  ILogger,
+} from '@opensumi/ide-core-common';
 
 type AcpChatRelayDigestSource = 'memory_summary' | 'background_summary' | 'empty';
 

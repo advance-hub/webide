@@ -26,7 +26,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useUpdateOnEvent: jest.fn(),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className, iconClass }: { className?: string; iconClass?: string }) =>
     require('react').createElement('span', { className: [className, iconClass].filter(Boolean).join(' ') }),
   Popover: ({ children, id, title }: { children: React.ReactNode; id?: string; title?: string }) =>
@@ -36,7 +36,7 @@ jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   EnhanceIcon: ({ ariaLabel, className, onClick }: any) =>
     require('react').createElement('button', {
       'aria-label': ariaLabel,
@@ -242,8 +242,7 @@ jest.mock('../../src/browser/chat/chat.render.registry', () => ({
   ChatRenderRegistry: class ChatRenderRegistry {},
 }));
 
-import { ChatMessageRole } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId, ChatMessageRole } from '@opensumi/ide-core-common';
 
 import { AcpChatViewHeader } from '../../src/browser/acp/components/AcpChatViewHeader';
 import { AI_CHAT_NEW_CHAT, AI_CHAT_NEW_TASK } from '../../src/browser/chat/acp-new-draft.commands';

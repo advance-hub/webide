@@ -254,6 +254,11 @@ export const aiNativePreferenceSchema: PreferenceSchema = {
       default: 'claude-agent-acp',
       description: '%preference.ai.native.agent.defaultType.description%',
     },
+    [AINativeSettingSectionsId.AgentBuiltInsEnabled]: {
+      type: 'boolean',
+      default: true,
+      description: 'Include the built-in ACP agent presets in the agent selector.',
+    },
     [AINativeSettingSectionsId.TerminalAutoRun]: {
       type: 'string',
       enum: [ETerminalAutoExecutionPolicy.off, ETerminalAutoExecutionPolicy.auto, ETerminalAutoExecutionPolicy.always],

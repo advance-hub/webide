@@ -2,8 +2,8 @@ import cls from 'classnames';
 import * as React from 'react';
 
 import { getSymbolIcon, localize, useInjectable } from '@opensumi/ide-core-browser';
-import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import { FooterButtonPosition } from '@opensumi/ide-core-common';
 import { URI } from '@opensumi/ide-utils';
 
@@ -122,8 +122,8 @@ function normalizeConfigOptions(configOptions?: AcpSessionConfigOption[]): Norma
         rawCurrentValue === undefined
           ? options[0].value
           : typeof rawCurrentValue === 'boolean'
-          ? String(rawCurrentValue)
-          : rawCurrentValue;
+            ? String(rawCurrentValue)
+            : rawCurrentValue;
       return {
         id,
         name: option.name || option.label || id,
@@ -1040,14 +1040,8 @@ const MentionInputImpl = (
           }
 
           // 计算新的历史索引
-          let newIndex = historyIndex;
-          if (e.key === 'ArrowUp') {
-            // 向上导航到较早的历史记录
-            newIndex = Math.min(history.length - 1, historyIndex + 1);
-          } else {
-            // 向下导航到较新的历史记录
-            newIndex = Math.max(-1, historyIndex - 1);
-          }
+          const newIndex =
+            e.key === 'ArrowUp' ? Math.min(history.length - 1, historyIndex + 1) : Math.max(-1, historyIndex - 1);
 
           setHistoryIndex(newIndex);
 

@@ -24,7 +24,7 @@ jest.mock('../../../src/browser/chat/get-default-agent-type', () => ({
   getDefaultAgentType: jest.fn(),
 }));
 
-jest.mock('@opensumi/ide-components/lib/modal', () => ({
+jest.mock('@opensumi/ide-components/modal', () => ({
   Modal: ({ cancelText, children, onCancel, onOk, okText, title, visible }: any) => {
     if (!visible) {
       return null;
@@ -40,7 +40,7 @@ jest.mock('@opensumi/ide-components/lib/modal', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-components/lib/popover', () => ({
+jest.mock('@opensumi/ide-components/popover', () => ({
   Popover: ({ children, id, onVisibleChange, overlay, visible }: any) => {
     const React = require('react');
     const content = typeof overlay === 'function' ? overlay() : overlay;

@@ -1,4 +1,4 @@
-import { ChatMessageRole } from '@opensumi/ide-core-common/lib/types/ai-native';
+import { ChatMessageRole } from '@opensumi/ide-core-common';
 
 import { AcpChatRelaySummaryProvider } from '../../src/browser/acp/acp-chat-relay-summary-provider';
 

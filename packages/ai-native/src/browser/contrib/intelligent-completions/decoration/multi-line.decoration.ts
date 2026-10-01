@@ -1,6 +1,6 @@
 import { isUndefined } from '@opensumi/ide-core-common';
 import { ICodeEditor, IModelDeltaDecoration, IPosition, Position, Range } from '@opensumi/ide-monaco';
-import { empty } from '@opensumi/ide-utils/lib/strings';
+import { empty } from '@opensumi/ide-utils/strings';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 import { LineDecoration } from '@opensumi/monaco-editor-core/esm/vs/editor/common/viewLayout/lineDecorations';
 

@@ -2,9 +2,8 @@ import React from 'react';
 
 import { Autowired } from '@opensumi/di';
 import { COMMON_COMMANDS, FILE_COMMANDS, getIcon } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, ISubmenuItem, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { CommandContribution, CommandRegistry, CommandService } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import { IMenuRegistry, ISubmenuItem, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { CommandContribution, CommandRegistry, CommandService, Domain } from '@opensumi/ide-core-common';
 import { ISCMProvider } from '@opensumi/ide-scm';
 
 @Domain(CommandContribution, MenuContribution)

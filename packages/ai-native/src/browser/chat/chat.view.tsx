@@ -1,4 +1,3 @@
-import debounce from 'lodash/debounce';
 import * as React from 'react';
 import { MessageList } from 'react-chat-elements';
 
@@ -10,8 +9,8 @@ import {
   useInjectable,
   useUpdateOnEvent,
 } from '@opensumi/ide-core-browser';
-import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import {
   AIServiceType,
   ActionSourceEnum,

@@ -90,14 +90,14 @@ jest.mock('@opensumi/ide-core-browser', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => {
+jest.mock('@opensumi/ide-core-browser/components', () => {
   const React = require('react');
   return {
     Icon: ({ className }: { className?: string }) => React.createElement('span', { className }),
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => {
+jest.mock('@opensumi/ide-core-browser/components/ai', () => {
   const React = require('react');
   return {
     EnhanceIcon: React.forwardRef(({ icon, onClick, children, wrapperClassName }: any, ref: any) =>
@@ -116,17 +116,14 @@ jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/layout/constants', () => ({
+jest.mock('@opensumi/ide-core-browser/layout', () => ({
   DesignLayoutConfig: class DesignLayoutConfig {},
-}));
-
-jest.mock('@opensumi/ide-core-browser/lib/layout/view-id', () => ({
   VIEW_CONTAINERS: {
     MENUBAR: 'menubar',
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/menu/next', () => ({
+jest.mock('@opensumi/ide-core-browser/menu', () => ({
   AbstractContextMenuService: class AbstractContextMenuService {},
   ICtxMenuRenderer: class ICtxMenuRenderer {},
   MenuId: {
@@ -138,7 +135,7 @@ jest.mock('@opensumi/ide-main-layout', () => ({
   IMainLayoutService: mockMainLayoutServiceToken,
 }));
 
-jest.mock('@opensumi/ide-toolbar/lib/browser/toolbar.view', () => ({
+jest.mock('@opensumi/ide-toolbar/view', () => ({
   ToolBar: () => <div data-testid='toolbar' />,
 }));
 
@@ -219,7 +216,7 @@ describe('DesignMenuBarView', () => {
   });
 
   async function renderMenuBar(): Promise<void> {
-    const { DesignMenuBarView } = await import('../../src/browser/menu-bar/menu-bar.view');
+    const { DesignMenuBarView } = require('../../src/browser/menu-bar/menu-bar.view');
 
     await act(async () => {
       root.render(<DesignMenuBarView />);

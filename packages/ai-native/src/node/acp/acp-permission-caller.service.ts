@@ -11,7 +11,7 @@ import type {
   PermissionOptionKind,
   RequestPermissionRequest,
   RequestPermissionResponse,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+} from '@opensumi/ide-core-common';
 
 export const AcpPermissionCallerServiceToken = Symbol('AcpPermissionCallerServiceToken');
 

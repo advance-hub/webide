@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { KeybindingRegistry } from '@opensumi/ide-core-browser';
-import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/ai/commands';
 import { Disposable, Emitter, Event, IDisposable } from '@opensumi/ide-core-common';
 import { ICodeEditor, Position, Selection } from '@opensumi/ide-monaco';
 

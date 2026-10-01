@@ -46,7 +46,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useInjectable: jest.fn(),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   getIcon: (name: string) => `icon-${name}`,
 }));
 

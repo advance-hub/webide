@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { ComponentContribution, ComponentRegistry, Domain, useInjectable } from '@opensumi/ide-core-browser';
-import { getIcon } from '@opensumi/ide-core-browser/lib/components';
+import { getIcon } from '@opensumi/ide-core-browser/components';
 
 import { AcpPermissionBridgeService, ShowPermissionDialogParams } from './permission-bridge.service';
 
-import type { PermissionOptionKind } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { PermissionOptionKind } from '@opensumi/ide-core-common';
 
 // Module load logging for debugging
 

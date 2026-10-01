@@ -5,8 +5,7 @@
  * permissions, because Claude Code is already running inside the ACP chat loop.
  */
 import { Injector } from '@opensumi/di';
-import { ChatServiceToken, ILogger, uuid } from '@opensumi/ide-core-common';
-import { ChatMessageRole, IHistoryChatMessage } from '@opensumi/ide-core-common/lib/types/ai-native';
+import { ChatMessageRole, ChatServiceToken, IHistoryChatMessage, ILogger, uuid } from '@opensumi/ide-core-common';
 
 import { IChatInternalService, IChatMessageStructure } from '../../../common';
 import { ChatService } from '../../chat/chat.api.service';
@@ -93,7 +92,7 @@ function toSessionSummary(session: unknown, permissionBridge?: AcpPermissionBrid
     requestCount: getRequestCount(session),
     historyMessageCount: getHistoryMessageCount(session),
     slicedMessageCount: model.slicedMessageCount ?? 0,
-    hasPendingPermission: model.sessionId ? permissionBridge?.hasPendingForSession(model.sessionId) ?? false : false,
+    hasPendingPermission: model.sessionId ? (permissionBridge?.hasPendingForSession(model.sessionId) ?? false) : false,
   };
 }
 

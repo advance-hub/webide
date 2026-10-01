@@ -1,4 +1,4 @@
-import { SessionNotification } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import { SessionNotification } from '@opensumi/ide-core-common';
 
 import type { AgentUpdate } from './acp-update-types';
 

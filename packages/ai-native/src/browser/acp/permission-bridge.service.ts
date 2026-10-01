@@ -5,7 +5,7 @@ import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { PermissionDialogProps } from './permission-dialog.view';
 import { PermissionDecision } from './permission.handler';
 
-import type { PermissionOption, PermissionOptionKind } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { PermissionOption, PermissionOptionKind } from '@opensumi/ide-core-common';
 
 export interface ShowPermissionDialogParams {
   requestId: string;

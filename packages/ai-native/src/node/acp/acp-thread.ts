@@ -12,20 +12,22 @@
  */
 
 import { ChildProcess, spawn } from 'node:child_process';
-import { EventEmitter as NodeEventEmitter } from 'node:events';
 import * as streamWeb from 'node:stream/web';
 
-import { Autowired, Injectable, Injector, Provider } from '@opensumi/di';
-import { Deferred, Disposable, Emitter, Event, ILogger, URI, uuid } from '@opensumi/ide-core-common';
+import { Injector, Provider } from '@opensumi/di';
 import {
   AcpDebugLogDirection,
   AgentCapabilities,
+  AgentProcessConfig,
   AvailableCommand,
   CancelNotification,
   CloseSessionRequest,
   CloseSessionResponse,
   ContentBlock,
+  Disposable,
+  Emitter,
   EnvVariable,
+  Event,
   ForkSessionRequest,
   ForkSessionResponse,
   InitializeRequest,
@@ -36,8 +38,6 @@ import {
   LoadSessionResponse,
   NewSessionRequest,
   NewSessionResponse,
-  PermissionOption,
-  PermissionOptionKind,
   Plan,
   PromptRequest,
   PromptResponse,
@@ -58,8 +58,8 @@ import {
   ToolCallUpdate,
   WriteTextFileRequest,
   WriteTextFileResponse,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
-import { AgentProcessConfig } from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
+  uuid,
+} from '@opensumi/ide-core-common';
 import { INodeLogger } from '@opensumi/ide-core-node';
 
 import { acpDebugLogStore } from './acp-debug-log';
@@ -100,7 +100,7 @@ async function loadSdk(): Promise<any> {
 function nodeReadableToWebStream(
   readable: NodeJS.ReadableStream,
   onChunk?: (chunk: Uint8Array | Buffer | string) => void,
-): ReadableStream<Uint8Array> {
+): streamWeb.ReadableStream<Uint8Array> {
   return new streamWeb.ReadableStream<Uint8Array>({
     start(controller) {
       readable.on('data', (chunk: Buffer) => {
@@ -123,7 +123,7 @@ function nodeReadableToWebStream(
 function nodeWritableToWebStream(
   writable: NodeJS.WritableStream,
   onChunk?: (chunk: Uint8Array | Buffer | string) => void,
-): WritableStream<Uint8Array> {
+): streamWeb.WritableStream<Uint8Array> {
   return new streamWeb.WritableStream<Uint8Array>({
     write(chunk) {
       onChunk?.(chunk);
@@ -165,6 +165,14 @@ function isConnectionClosedDuringPromptError(error: unknown): boolean {
   return error instanceof Error && error.message === ACP_AGENT_CONNECTION_CLOSED_DURING_PROMPT;
 }
 
+function isAcpThreadDisposedError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AcpThreadDisposedError';
+}
+
+function isAcpThreadInactiveSessionError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AcpThreadInactiveSessionError';
+}
+
 // ---------------------------------------------------------------------------
 // Thread status state machine
 // ---------------------------------------------------------------------------
@@ -174,13 +182,7 @@ export type ThreadStatus = 'idle' | 'working' | 'awaiting_prompt' | 'auth_requir
 // Tool call status state machine
 // ---------------------------------------------------------------------------
 export type ToolCallStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'waiting_for_confirmation'
-  | 'completed'
-  | 'failed'
-  | 'rejected'
-  | 'canceled';
+  'pending' | 'in_progress' | 'waiting_for_confirmation' | 'completed' | 'failed' | 'rejected' | 'canceled';
 
 // ---------------------------------------------------------------------------
 // Entry data types — use SDK types for content, add local tracking fields
@@ -253,6 +255,17 @@ export type AcpThreadEvent =
 // ---------------------------------------------------------------------------
 export const AcpThreadToken = Symbol('AcpThreadToken');
 
+type AcpLoadSessionResponseWithProvenance<T extends NewSessionResponse | LoadSessionResponse> = T & {
+  createdByFallback: boolean;
+};
+
+function withLoadSessionFallbackProvenance<T extends NewSessionResponse | LoadSessionResponse>(
+  response: T,
+  createdByFallback: boolean,
+): AcpLoadSessionResponseWithProvenance<T> {
+  return { ...response, createdByFallback };
+}
+
 export interface IAcpThread {
   /** Unique thread identifier */
   readonly threadId: string;
@@ -310,6 +323,7 @@ export interface IAcpThread {
   getStatus(): ThreadStatus;
   setStatus(status: ThreadStatus): void;
   setError(error: Error): void;
+  retireSession?(sessionId: string): void;
   handleNotification(notification: SessionNotification): void;
 
   // Message manipulation
@@ -422,6 +436,10 @@ export class AcpThread extends Disposable implements IAcpThread {
   private _entries: AgentThreadEntry[] = [];
   private _sessionNotifications: SessionNotification[] = [];
   private _sessionId: string = '';
+  private _sessionEpoch = 0;
+  private _acceptingNewSession = false;
+  private _sessionEpochRetired = false;
+  private _pendingNewSessionNotifications: SessionNotification[] = [];
   private _needsReset = false;
   private _agentCapabilities: AgentCapabilities | null = null;
   private _initialized = false;
@@ -437,6 +455,10 @@ export class AcpThread extends Disposable implements IAcpThread {
   // Process
   private _childProcess: ChildProcess | null = null;
   private _processRunning = false;
+  private _disposeRequested = false;
+  private _disposePromise: Promise<void> | undefined;
+  private _processStartPromise: Promise<void> | undefined;
+  private _connectionStartPromise: Promise<void> | undefined;
   private _debugLogRecorders = new Map<AcpDebugLogDirection, (chunk: Uint8Array | Buffer | string) => void>();
 
   // SDK
@@ -540,10 +562,76 @@ export class AcpThread extends Disposable implements IAcpThread {
   // -----------------------------------------------------------------------
   // Process lifecycle
   // -----------------------------------------------------------------------
-  private async startProcess(): Promise<void> {
-    if (this._childProcess && this.isProcessAlive()) {
-      return;
+  private createDisposedError(): Error {
+    const error = new Error('AcpThread is disposed');
+    error.name = 'AcpThreadDisposedError';
+    return error;
+  }
+
+  private throwIfDisposed(): void {
+    if (this._disposeRequested) {
+      throw this.createDisposedError();
     }
+  }
+
+  private createInactiveSessionError(sessionId: string): Error {
+    const error = new Error(`ACP session is no longer active on this thread: ${sessionId}`);
+    error.name = 'AcpThreadInactiveSessionError';
+    return error;
+  }
+
+  private beginSessionEpoch(sessionId = '', acceptingNewSession = false): number {
+    this._sessionEpoch += 1;
+    this._sessionId = sessionId;
+    this._acceptingNewSession = acceptingNewSession;
+    this._sessionEpochRetired = false;
+    this._pendingNewSessionNotifications = [];
+    return this._sessionEpoch;
+  }
+
+  private captureActiveSessionEpoch(sessionId: string): number {
+    this.throwIfDisposed();
+    if (!sessionId) {
+      throw this.createInactiveSessionError(sessionId);
+    }
+    // The authoritative id does not exist until newSession returns. Accepting
+    // a caller-provided id here would let a stale request claim the new epoch.
+    if (this._acceptingNewSession || this._sessionId !== sessionId) {
+      throw this.createInactiveSessionError(sessionId);
+    }
+    return this._sessionEpoch;
+  }
+
+  private assertActiveSessionEpoch(sessionId: string, epoch: number): void {
+    if (this._disposeRequested || this._sessionEpoch !== epoch || this._sessionId !== sessionId) {
+      throw this.createInactiveSessionError(sessionId);
+    }
+  }
+
+  private startProcess(): Promise<void> {
+    if (this._processStartPromise) {
+      return this._processStartPromise;
+    }
+
+    this.throwIfDisposed();
+    if (this._childProcess && this.isProcessAlive()) {
+      return Promise.resolve();
+    }
+
+    let processStart!: Promise<void>;
+    processStart = Promise.resolve()
+      .then(() => this.doStartProcess())
+      .finally(() => {
+        if (this._processStartPromise === processStart) {
+          this._processStartPromise = undefined;
+        }
+      });
+    this._processStartPromise = processStart;
+    return processStart;
+  }
+
+  private doStartProcess(): Promise<void> {
+    this.throwIfDisposed();
 
     // Clean up stale process reference
     this._childProcess = null;
@@ -563,7 +651,8 @@ export class AcpThread extends Disposable implements IAcpThread {
     });
 
     return new Promise<void>((resolve, reject) => {
-      let startupError: Error | null = null;
+      let startupSettled = false;
+      let startupTimer: ReturnType<typeof setTimeout> | undefined;
 
       const childProcess = spawn(resolved.command, resolved.args, {
         cwd: this.options.cwd,
@@ -572,11 +661,29 @@ export class AcpThread extends Disposable implements IAcpThread {
         shell: false,
         env: resolved.env,
       });
+      // A spawned child is owned immediately. In particular, dispose() must
+      // be able to terminate it during the startup grace period below.
+      this._childProcess = childProcess;
+      this._processRunning = true;
+
+      const rejectStartup = (error: Error) => {
+        if (startupSettled) {
+          return;
+        }
+        startupSettled = true;
+        if (startupTimer) {
+          clearTimeout(startupTimer);
+        }
+        if (this._childProcess === childProcess) {
+          this._childProcess = null;
+          this._processRunning = false;
+        }
+        reject(error);
+      };
 
       childProcess.on('error', (err: Error) => {
-        startupError = err;
         this.logger?.error(`[AcpThread:${this.threadId}] Failed to start process: ${err.message}`);
-        reject(this.wrapError(err, this.options.command));
+        rejectStartup(this.wrapError(err, this.options.command));
       });
 
       childProcess.stderr?.on('data', (data: Buffer) => {
@@ -586,21 +693,36 @@ export class AcpThread extends Disposable implements IAcpThread {
 
       childProcess.on('exit', (code: number | null, signal: string | null) => {
         this.logger?.log(`[AcpThread:${this.threadId}] Process exited: code=${code}, signal=${signal}`);
-        this._processRunning = false;
+        if (this._childProcess === childProcess) {
+          this._childProcess = null;
+          this._processRunning = false;
+        }
         this._connected = false;
         this.setStatus('disconnected');
         this.fireEvent({ type: 'process_stopped' } as AcpThreadEvent);
+        rejectStartup(
+          this._disposeRequested
+            ? this.createDisposedError()
+            : new Error(`Agent process exited during startup: ${this.options.command}`),
+        );
       });
 
-      setTimeout(() => {
-        if (startupError) {
+      startupTimer = setTimeout(() => {
+        if (startupSettled) {
+          return;
+        }
+        if (this._disposeRequested || this._childProcess !== childProcess) {
+          rejectStartup(this.createDisposedError());
           return;
         }
         if (!childProcess.pid) {
-          reject(new Error(`Failed to get PID for agent process: ${this.options.command}`));
+          childProcess.once('spawn', () => {
+            this.signalChildProcess(childProcess, 'SIGKILL');
+          });
+          rejectStartup(new Error(`Failed to get PID for agent process: ${this.options.command}`));
           return;
         }
-        this._childProcess = childProcess;
+        startupSettled = true;
         this._processRunning = true;
         this.recordDebugLog('system', `process started: ${resolved.command} ${resolved.args.join(' ')}`);
         this.fireEvent({ type: 'process_started' } as AcpThreadEvent);
@@ -627,48 +749,96 @@ export class AcpThread extends Disposable implements IAcpThread {
     }
   }
 
-  private async killProcess(): Promise<void> {
-    if (!this._childProcess || !this._childProcess.pid) {
+  private signalChildProcess(childProcess: ChildProcess, signal: NodeJS.Signals): boolean {
+    const pid = childProcess.pid;
+    if (!pid) {
+      return false;
+    }
+
+    (childProcess as any).killed = true;
+    try {
+      process.kill(-pid, signal);
+    } catch {
+      try {
+        process.kill(pid, signal);
+      } catch {
+        // process already dead
+      }
+    }
+    return true;
+  }
+
+  private clearOwnedChildProcess(childProcess: ChildProcess): void {
+    if (this._childProcess === childProcess) {
       this._childProcess = null;
+      this._processRunning = false;
+    }
+  }
+
+  private async killProcess(): Promise<void> {
+    if (!this._childProcess) {
       this._processRunning = false;
       return;
     }
 
-    const pid = this._childProcess.pid;
-    (this._childProcess as any).killed = true;
+    const childProcess = this._childProcess;
+    if (!childProcess.pid) {
+      const spawnOutcome = await new Promise<'spawned' | 'stopped' | 'timed-out'>((resolve) => {
+        let settled = false;
+        const finish = (outcome: 'spawned' | 'stopped' | 'timed-out') => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          childProcess.removeListener('spawn', onSpawn);
+          childProcess.removeListener('error', onStopped);
+          childProcess.removeListener('exit', onStopped);
+          resolve(outcome);
+        };
+        const onSpawn = () => finish('spawned');
+        const onStopped = () => finish('stopped');
+        const timeout = setTimeout(() => finish('timed-out'), PROCESS_CONFIG.STARTUP_TIMEOUT_MS);
+        childProcess.once('spawn', onSpawn);
+        childProcess.once('error', onStopped);
+        childProcess.once('exit', onStopped);
+      });
+
+      if (spawnOutcome === 'stopped') {
+        this.clearOwnedChildProcess(childProcess);
+        return;
+      }
+      if (spawnOutcome === 'timed-out') {
+        // Node normally exposes pid synchronously. Keep a detached one-shot
+        // kill guard anyway so a pathological late spawn cannot outlive the
+        // disposed thread after its bounded shutdown wait has completed.
+        if (!this.signalChildProcess(childProcess, 'SIGKILL')) {
+          childProcess.once('spawn', () => {
+            this.signalChildProcess(childProcess, 'SIGKILL');
+          });
+        }
+        this.clearOwnedChildProcess(childProcess);
+        return;
+      }
+    }
 
     // Try SIGTERM first
-    try {
-      process.kill(-pid, 'SIGTERM');
-    } catch {
-      try {
-        process.kill(pid, 'SIGTERM');
-      } catch {
-        // process already dead
-      }
+    if (!this.signalChildProcess(childProcess, 'SIGTERM')) {
+      this.clearOwnedChildProcess(childProcess);
+      return;
     }
 
     return new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
         // Force kill
-        try {
-          process.kill(-pid, 'SIGKILL');
-        } catch {
-          try {
-            process.kill(pid, 'SIGKILL');
-          } catch {
-            // ignore
-          }
-        }
-        this._childProcess = null;
-        this._processRunning = false;
+        this.signalChildProcess(childProcess, 'SIGKILL');
+        this.clearOwnedChildProcess(childProcess);
         resolve();
       }, PROCESS_CONFIG.GRACEFUL_SHUTDOWN_TIMEOUT_MS);
 
-      this._childProcess!.once('exit', () => {
+      childProcess.once('exit', () => {
         clearTimeout(timeout);
-        this._childProcess = null;
-        this._processRunning = false;
+        this.clearOwnedChildProcess(childProcess);
         resolve();
       });
     });
@@ -677,18 +847,44 @@ export class AcpThread extends Disposable implements IAcpThread {
   // -----------------------------------------------------------------------
   // SDK connection
   // -----------------------------------------------------------------------
-  private async ensureSdkConnection(): Promise<void> {
-    if (this._connection) {
-      return;
+  private ensureSdkConnection(): Promise<void> {
+    if (this._connectionStartPromise) {
+      return this._connectionStartPromise;
     }
 
+    this.throwIfDisposed();
+    if (this._connection) {
+      return Promise.resolve();
+    }
+
+    let connectionStart!: Promise<void>;
+    connectionStart = Promise.resolve()
+      .then(() => this.doEnsureSdkConnection())
+      .finally(() => {
+        if (this._connectionStartPromise === connectionStart) {
+          this._connectionStartPromise = undefined;
+        }
+      });
+    this._connectionStartPromise = connectionStart;
+    return connectionStart;
+  }
+
+  private async doEnsureSdkConnection(): Promise<void> {
+    this.throwIfDisposed();
+
     await this.startProcess();
+    this.throwIfDisposed();
 
     const sdk = await loadSdk();
+    this.throwIfDisposed();
     const { ClientSideConnection, ndJsonStream } = sdk;
 
-    const stdout = this._childProcess!.stdio[1] as NodeJS.ReadableStream;
-    const stdin = this._childProcess!.stdio[0] as NodeJS.WritableStream;
+    const childProcess = this._childProcess;
+    if (!childProcess || !this.isProcessAlive()) {
+      throw new Error('ACP agent process stopped before the SDK connection was created');
+    }
+    const stdout = childProcess.stdio[1] as NodeJS.ReadableStream;
+    const stdin = childProcess.stdio[0] as NodeJS.WritableStream;
 
     const webOutputStream = nodeWritableToWebStream(stdin, (chunk) => this.recordDebugLog('outgoing', chunk));
     const webInputStream = nodeReadableToWebStream(stdout, (chunk) => this.recordDebugLog('incoming', chunk));
@@ -696,7 +892,9 @@ export class AcpThread extends Disposable implements IAcpThread {
     const stream = ndJsonStream(webOutputStream, webInputStream);
 
     const clientImpl = this.createClientImpl();
-    this._connection = new ClientSideConnection((_agent: any) => clientImpl, stream);
+    const connection = new ClientSideConnection((_agent: any) => clientImpl, stream);
+    this.throwIfDisposed();
+    this._connection = connection;
 
     this._connected = true;
   }
@@ -728,10 +926,18 @@ export class AcpThread extends Disposable implements IAcpThread {
 
     return {
       async requestPermission(params: RequestPermissionRequest): Promise<RequestPermissionResponse> {
-        return self.handlePermissionRequest(params);
+        const sessionId = params.sessionId || self._sessionId;
+        const epoch = self.captureActiveSessionEpoch(sessionId);
+        const response = await self.handlePermissionRequest(params);
+        self.assertActiveSessionEpoch(sessionId, epoch);
+        return response;
       },
 
       async sessionUpdate(params: SessionNotification): Promise<void> {
+        if (self._acceptingNewSession) {
+          self._pendingNewSessionNotifications.push(self.cloneSessionNotification(params));
+          return;
+        }
         if (!self.isCurrentSessionNotification(params)) {
           return;
         }
@@ -744,25 +950,30 @@ export class AcpThread extends Disposable implements IAcpThread {
       },
 
       async readTextFile(params: ReadTextFileRequest): Promise<ReadTextFileResponse> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.fileSystemHandler.readTextFile({
           sessionId: params.sessionId,
           path: params.path,
           line: params.line ?? undefined,
           limit: params.limit ?? undefined,
         });
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         return result as unknown as ReadTextFileResponse;
       },
 
       async writeTextFile(params: WriteTextFileRequest): Promise<WriteTextFileResponse> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.fileSystemHandler.writeTextFile({
           sessionId: params.sessionId,
           path: params.path,
           content: params.content,
         });
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         return result as unknown as WriteTextFileResponse;
       },
 
       async createTerminal(params: any): Promise<any> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.terminalHandler.createTerminal({
           sessionId: params.sessionId,
           command: params.command,
@@ -770,6 +981,30 @@ export class AcpThread extends Disposable implements IAcpThread {
           env: params.env,
           cwd: params.cwd,
         });
+        try {
+          self.assertActiveSessionEpoch(params.sessionId, epoch);
+        } catch (error) {
+          if (result.terminalId) {
+            try {
+              const releaseResult = await self.options.terminalHandler.releaseTerminal(
+                result.terminalId,
+                params.sessionId,
+              );
+              if (releaseResult.error) {
+                self.logger?.warn(
+                  `[AcpThread:${self.threadId}] Failed to release a terminal created after session retirement`,
+                  new Error(releaseResult.error.message, { cause: error }),
+                );
+              }
+            } catch (releaseError) {
+              self.logger?.warn(
+                `[AcpThread:${self.threadId}] Failed to release a terminal created after session retirement`,
+                releaseError,
+              );
+            }
+          }
+          throw error;
+        }
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -777,7 +1012,9 @@ export class AcpThread extends Disposable implements IAcpThread {
       },
 
       async terminalOutput(params: any): Promise<any> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.terminalHandler.getTerminalOutput(params.terminalId, params.sessionId);
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -789,7 +1026,9 @@ export class AcpThread extends Disposable implements IAcpThread {
       },
 
       async waitForTerminalExit(params: any): Promise<any> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.terminalHandler.waitForTerminalExit(params.terminalId, params.sessionId);
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -799,7 +1038,9 @@ export class AcpThread extends Disposable implements IAcpThread {
       },
 
       async killTerminal(params: any): Promise<any> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.terminalHandler.killTerminal(params.terminalId, params.sessionId);
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -807,7 +1048,9 @@ export class AcpThread extends Disposable implements IAcpThread {
       },
 
       async releaseTerminal(params: any): Promise<any> {
+        const epoch = self.captureActiveSessionEpoch(params.sessionId);
         const result = await self.options.terminalHandler.releaseTerminal(params.terminalId, params.sessionId);
+        self.assertActiveSessionEpoch(params.sessionId, epoch);
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -819,10 +1062,12 @@ export class AcpThread extends Disposable implements IAcpThread {
   // Public API — initialize (spec: accepts AgentProcessConfig)
   // -----------------------------------------------------------------------
   async initialize(config: AgentProcessConfig): Promise<InitializeResponse> {
+    this.throwIfDisposed();
     this.logger?.log(
       `[AcpThread:${this.threadId}] initialize() — agent=${config.command || this.options.command}, cwd=${config.cwd}`,
     );
     await this.ensureSdkConnection();
+    this.throwIfDisposed();
 
     const initParams: InitializeRequest = {
       protocolVersion: ACP_PROTOCOL_VERSION,
@@ -849,6 +1094,7 @@ export class AcpThread extends Disposable implements IAcpThread {
     }
 
     const response: InitializeResponse = await this._connection.initialize(initParams);
+    this.throwIfDisposed();
 
     if (response.protocolVersion !== initParams.protocolVersion) {
       if (response.protocolVersion > ACP_PROTOCOL_VERSION) {
@@ -877,6 +1123,7 @@ export class AcpThread extends Disposable implements IAcpThread {
   // -----------------------------------------------------------------------
   async newSession(params?: Omit<NewSessionRequest, 'sessionId'>): Promise<NewSessionResponse> {
     await this.ensureInitialized();
+    const sessionEpoch = this.beginSessionEpoch('', true);
     this.logger?.log(
       `[AcpThread:${this.threadId}] newSession() — cwd=${params?.cwd ?? this.options.cwd}, mcpServers=${
         params?.mcpServers?.length ?? 0
@@ -890,11 +1137,27 @@ export class AcpThread extends Disposable implements IAcpThread {
     };
 
     const response: NewSessionResponse = await this._connection.newSession(request);
+    if (this._disposeRequested || this._sessionEpoch !== sessionEpoch) {
+      // The remote session already exists, so its ID must reach the service
+      // cleanup owner. Do not repopulate any disposed thread state here.
+      return response;
+    }
+    this._acceptingNewSession = false;
     this._sessionId = response.sessionId;
     acpDebugLogStore.setThreadSessionId(this.threadId, response.sessionId);
     this._needsReset = true;
     this.applySessionInitialState(response);
     this.setStatus('awaiting_prompt');
+    const pendingNotifications = this._pendingNewSessionNotifications;
+    this._pendingNewSessionNotifications = [];
+    for (const notification of pendingNotifications) {
+      if (notification.sessionId !== response.sessionId) {
+        continue;
+      }
+      this.recordSessionNotification(notification);
+      this.handleNotification(notification);
+      this.fireEvent({ type: 'session_notification', notification } as AcpThreadEvent);
+    }
     this.logger?.log(
       `[AcpThread:${this.threadId}] newSession() — sessionId=${response.sessionId}, status=awaiting_prompt`,
     );
@@ -905,9 +1168,11 @@ export class AcpThread extends Disposable implements IAcpThread {
     await this.ensureInitialized();
     this.logger?.log(`[AcpThread:${this.threadId}] loadSession() — sessionId=${params.sessionId}`);
 
-    this._sessionId = params.sessionId;
+    const sessionEpoch = this.beginSessionEpoch(params.sessionId);
     acpDebugLogStore.setThreadSessionId(this.threadId, params.sessionId);
     const response: LoadSessionResponse = await this._connection.loadSession(params);
+    this.throwIfDisposed();
+    this.assertActiveSessionEpoch(params.sessionId, sessionEpoch);
     this._needsReset = true;
     this.applySessionInitialState(response);
     this.setStatus('awaiting_prompt');
@@ -923,16 +1188,21 @@ export class AcpThread extends Disposable implements IAcpThread {
 
     // Try loading first; fall back to new session
     try {
-      return await this.loadSession(params);
-    } catch {
+      const response = await this.loadSession(params);
+      return withLoadSessionFallbackProvenance(response, false);
+    } catch (error) {
+      if (isAcpThreadDisposedError(error) || isAcpThreadInactiveSessionError(error)) {
+        throw error;
+      }
       // Session doesn't exist, create a new one with same cwd/mcpServers
       this.logger?.log(
         `[AcpThread:${this.threadId}] loadSessionOrNew() — session not found, falling back to newSession`,
       );
-      return await this.newSession({
+      const response = await this.newSession({
         cwd: params.cwd ?? this.options.cwd,
         mcpServers: params.mcpServers ?? [],
       });
+      return withLoadSessionFallbackProvenance(response, true);
     }
   }
 
@@ -957,6 +1227,7 @@ export class AcpThread extends Disposable implements IAcpThread {
       }
       throw error;
     }
+    this.throwIfDisposed();
 
     // After prompt completes, transition to awaiting_prompt
     if (this._status === 'working') {
@@ -985,6 +1256,7 @@ export class AcpThread extends Disposable implements IAcpThread {
     this.logger?.log(`[AcpThread:${this.threadId}] setSessionMode() — modeId=${params.modeId}`);
     await this.ensureInitialized();
     const response = await this._connection.setSessionMode(params);
+    this.throwIfDisposed();
     this._currentModeId = params.modeId;
     return response;
   }
@@ -993,6 +1265,7 @@ export class AcpThread extends Disposable implements IAcpThread {
     this.logger?.log(`[AcpThread:${this.threadId}] setSessionConfigOption()`);
     await this.ensureInitialized();
     const response = await this._connection.setSessionConfigOption(params);
+    this.throwIfDisposed();
     if (Array.isArray((response as any)?.configOptions)) {
       this._configOptions = [...(response as any).configOptions];
     } else if (this._configOptions) {
@@ -1034,6 +1307,7 @@ export class AcpThread extends Disposable implements IAcpThread {
     this.logger?.log(`[AcpThread:${this.threadId}] unstable_setSessionModel()`);
     await this.ensureInitialized();
     const response = await this._connection.unstable_setSessionModel(params);
+    this.throwIfDisposed();
     this._currentModelId = (params as any).model ?? params.modelId;
     return response;
   }
@@ -1121,6 +1395,22 @@ export class AcpThread extends Disposable implements IAcpThread {
         this._needsReset ? 'needsReset' : ''
       }`,
     );
+    this.retireSession(this._sessionId);
+  }
+
+  /**
+   * Invalidate the current session epoch before its external resources are
+   * released. Any terminal RPC already in flight is fenced by the epoch check;
+   * a late terminal creation is actively released before the call rejects.
+   */
+  retireSession(sessionId: string): void {
+    if (sessionId && this._sessionId && sessionId !== this._sessionId) {
+      return;
+    }
+    this._sessionEpoch += 1;
+    this._acceptingNewSession = false;
+    this._sessionEpochRetired = true;
+    this._pendingNewSessionNotifications = [];
     this._entries = [];
     this._sessionNotifications = [];
     this._sessionId = '';
@@ -1128,10 +1418,26 @@ export class AcpThread extends Disposable implements IAcpThread {
     this.clearSessionState();
     // NOTE: Do NOT clear _initialized — thread remains initialized and reusable
     this.resolvePendingPermissionRequestsAsCancelled();
-    this.setStatus('idle');
+    if (!this._disposeRequested) {
+      this.setStatus('idle');
+    }
   }
 
-  async dispose(): Promise<void> {
+  dispose(): Promise<void> {
+    if (!this._disposePromise) {
+      this._disposeRequested = true;
+      this._sessionEpoch += 1;
+      this._acceptingNewSession = false;
+      this._sessionEpochRetired = true;
+      this._pendingNewSessionNotifications = [];
+      this._initialized = false;
+      this._connected = false;
+      this._disposePromise = this.doDispose();
+    }
+    return this._disposePromise;
+  }
+
+  private async doDispose(): Promise<void> {
     this.logger?.log(
       `[AcpThread:${this.threadId}] dispose() — status=${this._status}, entries=${this._entries.length}`,
     );
@@ -1217,7 +1523,19 @@ export class AcpThread extends Disposable implements IAcpThread {
   }
 
   private isCurrentSessionNotification(params: SessionNotification): boolean {
-    if (!params.sessionId || !this._sessionId || params.sessionId === this._sessionId) {
+    if (!params.sessionId) {
+      return true;
+    }
+    if (this._acceptingNewSession) {
+      // A new-session response may be preceded by its own notifications, but
+      // there is no authoritative id yet. Keep them out of durable state; the
+      // response/session snapshots remain the source of truth.
+      return false;
+    }
+    if (this._sessionId && params.sessionId === this._sessionId) {
+      return true;
+    }
+    if (!this._sessionId && !this._sessionEpochRetired) {
       return true;
     }
 
@@ -1370,8 +1688,7 @@ export class AcpThread extends Disposable implements IAcpThread {
     this._entries = this._entries.filter((e) => e.type !== 'plan');
 
     const plan = (update.plan || (Array.isArray(update.entries) ? { entries: update.entries } : undefined)) as
-      | Plan
-      | undefined;
+      Plan | undefined;
     if (plan) {
       const threadEntry: AgentThreadEntry = { type: 'plan', data: plan };
       this._entries.push(threadEntry);
@@ -1584,6 +1901,7 @@ export class AcpThread extends Disposable implements IAcpThread {
   // Internal — helpers
   // -----------------------------------------------------------------------
   private async ensureInitialized(): Promise<void> {
+    this.throwIfDisposed();
     if (!this._connection) {
       throw new Error('AcpThread not initialized. Call initialize() first.');
     }

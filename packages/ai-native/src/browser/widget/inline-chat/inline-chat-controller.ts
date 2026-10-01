@@ -7,7 +7,7 @@ import {
   IChatProgress,
   ReplyResponse,
 } from '@opensumi/ide-core-common';
-import { SumiReadableStream, listenReadable } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream, listenReadable } from '@opensumi/ide-utils/stream';
 
 import { extractCodeBlocks } from '../../../common/utils';
 

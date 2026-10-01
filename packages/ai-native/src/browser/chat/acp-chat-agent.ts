@@ -2,6 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { ILogger, PreferenceService } from '@opensumi/ide-core-browser';
 import {
   AIBackSerivcePath,
+  AINativeSettingSectionsId,
   CancellationToken,
   ChatFeatureRegistryToken,
   Deferred,
@@ -11,14 +12,14 @@ import {
   IApplicationService,
   IChatProgress,
   IChatSessionState,
+  IDisposable,
   MCPConfigServiceToken,
   ThreadStatus,
   localize,
 } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
-import { MonacoCommandRegistry } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoCommandRegistry } from '@opensumi/ide-editor/commands';
 import { IMessageService } from '@opensumi/ide-overlay';
-import { listenReadable } from '@opensumi/ide-utils/lib/stream';
+import { listenReadable } from '@opensumi/ide-utils/stream';
 
 import {
   CoreMessage,
@@ -93,19 +94,18 @@ export class AcpChatAgent implements IChatAgent {
   }
 
   protected async getRequestOptions() {
-    const model = this.preferenceService.get<string>(AINativeSettingSectionsId.LLMModelSelection);
+    const model = this.preferenceService.get<string>(AINativeSettingSectionsId.LLMModelSelection) ?? 'openai';
     const modelId = this.preferenceService.get<string>(AINativeSettingSectionsId.ModelID);
-    let apiKey: string = '';
+    const apiKeySetting =
+      model === 'deepseek'
+        ? AINativeSettingSectionsId.DeepseekApiKey
+        : model === 'anthropic'
+          ? AINativeSettingSectionsId.AnthropicApiKey
+          : AINativeSettingSectionsId.OpenaiApiKey;
+    const apiKey = this.preferenceService.get<string>(apiKeySetting, '');
     let baseURL: string = '';
-    if (model === 'deepseek') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.DeepseekApiKey, '');
-    } else if (model === 'openai') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiApiKey, '');
-    } else if (model === 'anthropic') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.AnthropicApiKey, '');
-    } else {
+    if (!['deepseek', 'openai', 'anthropic'].includes(model)) {
       // openai-compatible 为兜底
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiApiKey, '');
       baseURL = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiBaseURL, '');
     }
     const maxTokens = this.preferenceService.get<number>(AINativeSettingSectionsId.MaxTokens);
@@ -184,6 +184,7 @@ export class AcpChatAgent implements IChatAgent {
       }, lastMessageRole=${lastmessage?.role ?? '(empty)'}`,
     );
 
+    let cancellationSubscription: IDisposable | undefined;
     try {
       const config = await this.configProvider.resolveConfig();
       this.logger.log(`[ACP Chat] invoke: sessionId=${sessionId}, config=${JSON.stringify(config)}`);
@@ -207,12 +208,21 @@ export class AcpChatAgent implements IChatAgent {
         }`,
       );
 
-      const stream = await this.aiBackService.requestStream(prompt, requestOptions, token);
+      if (token.isCancellationRequested) {
+        return {};
+      }
+
+      // ACP tasks outlive their browser connection. RPC cancels transported
+      // tokens on disconnect, so keep the UI token local and send an explicit
+      // session cancellation only when the user stops this request.
+      const stream = await this.aiBackService.requestStream(prompt, requestOptions);
       this.logger.log(
         `[ACP Chat] requestStream opened — sessionId=${sessionId}, requestId=${request.requestId}, historyMessages=${requestOptions.history.length}`,
       );
       let streamDataCount = 0;
       let hasLoggedFirstContent = false;
+      let streamSettled = false;
+      let cancellationRequested = false;
 
       listenReadable<IChatProgress>(stream, {
         onData: (data) => {
@@ -244,12 +254,14 @@ export class AcpChatAgent implements IChatAgent {
           }
         },
         onEnd: () => {
+          streamSettled = true;
           this.logger.log(
             `[ACP Chat] stream end — sessionId=${sessionId}, requestId=${request.requestId}, dataCount=${streamDataCount}`,
           );
           chatDeferred.resolve();
         },
         onError: (error) => {
+          streamSettled = true;
           this.logger.error(
             `[ACP Chat] stream error — sessionId=${sessionId}, requestId=${request.requestId}, error=${error.message}`,
           );
@@ -263,6 +275,31 @@ export class AcpChatAgent implements IChatAgent {
         },
       });
 
+      const cancelSession = () => {
+        if (streamSettled || cancellationRequested) {
+          return;
+        }
+        cancellationRequested = true;
+        void (async () => {
+          if (!this.aiBackService.cancelSession) {
+            throw new Error('ACP session cancellation is unavailable');
+          }
+          await this.aiBackService.cancelSession(sessionId);
+        })().then(
+          () => stream.end(),
+          (error) => {
+            chatDeferred.reject(error);
+            stream.end();
+          },
+        );
+      };
+      cancellationSubscription = token.onCancellationRequested(cancelSession);
+      // Cancellation can occur while requestStream is opening. Wait until the
+      // server has admitted the prompt before cancelling that session.
+      if (token.isCancellationRequested) {
+        cancelSession();
+      }
+
       await chatDeferred.promise;
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -273,6 +310,8 @@ export class AcpChatAgent implements IChatAgent {
       return {
         errorDetails: { message },
       };
+    } finally {
+      cancellationSubscription?.dispose();
     }
     return {};
   }

@@ -1,11 +1,11 @@
 import { Injectable } from '@opensumi/di';
 
-import type { IDisposable } from '@opensumi/ide-core-common';
 import type {
   IAcpPermissionService,
   IAcpThreadStatusService,
   IAcpWebMcpBridgeService,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+  IDisposable,
+} from '@opensumi/ide-core-common';
 
 @Injectable()
 export class AcpBrowserRpcRegistry {

@@ -12,7 +12,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { AINativeConfigService, useInjectable } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 import { AIBackSerivcePath, IAIBackService, localize } from '@opensumi/ide-core-common';
 
 import { ChatProxyServiceToken, IChatManagerService } from '../../../common';

@@ -1,12 +1,12 @@
 import path from 'path';
 
 import { Injector } from '@opensumi/di';
-import { LanguageParserService } from '@opensumi/ide-ai-native/lib/browser/languages/service';
 import { AppConfig, BrowserModule } from '@opensumi/ide-core-browser';
-import { ESupportRuntime } from '@opensumi/ide-core-browser/lib/application/runtime';
-import { RendererRuntime } from '@opensumi/ide-core-browser/lib/application/runtime/types';
+import { ESupportRuntime, RendererRuntime } from '@opensumi/ide-core-browser/runtime';
 import { Uri } from '@opensumi/ide-core-common';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+
+import { LanguageParserService } from '../../../src/browser/languages/service';
 
 class MockRendererRuntime extends RendererRuntime {
   runtimeName = 'web' as ESupportRuntime;

@@ -1,10 +1,9 @@
-import AnsiUp from 'ansi_up';
-
+import AnsiUpConstructor from './ansi-up.vendor';
 import filterEraseMultipleLine from './filterEraseMultipleLine';
 
 type LogContent = string;
 
-const ansiUp = new AnsiUp();
+const ansiUp = new AnsiUpConstructor();
 
 export function computeAnsiLogString(logs: LogContent, enableEraseLineFilter = true, hideEmptyLine = false): string {
   const splittedLogs = logs.split('\n');

@@ -2,6 +2,9 @@
 import { Autowired } from '@opensumi/di';
 import {
   ClientAppContribution,
+  ComponentContribution,
+  ComponentRegistry,
+  IStatusBarService,
   IToolbarRegistry,
   KeybindingContribution,
   KeybindingRegistry,
@@ -11,13 +14,17 @@ import {
   createToolbarActionSelect,
   getIcon,
 } from '@opensumi/ide-core-browser';
-import { ComponentContribution, ComponentRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IStatusBarService } from '@opensumi/ide-core-browser/lib/services';
-import { CommandContribution, CommandRegistry, CommandService, IEventBus, Schemes } from '@opensumi/ide-core-common';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
-import { BrowserEditorContribution, EditorComponentRegistry } from '@opensumi/ide-editor/lib/browser';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import {
+  CommandContribution,
+  CommandRegistry,
+  CommandService,
+  Domain,
+  IEventBus,
+  Schemes,
+} from '@opensumi/ide-core-common';
+import { BrowserEditorContribution, EditorComponentRegistry } from '@opensumi/ide-editor/browser';
+import { OutputService } from '@opensumi/ide-output/service';
 import { ISCMProvider } from '@opensumi/ide-scm';
 
 import { ExampleEditorBottomWidget } from './editor-bottom-example';

@@ -4,7 +4,7 @@ import {
   IMultiDiffSourceResolver,
   IResolvedMultiDiffSource,
   MultiDiffEditorItem,
-} from '@opensumi/ide-editor/lib/common/multi-diff';
+} from '@opensumi/ide-editor/multi-diff';
 import { IValueWithChangeEvent } from '@opensumi/monaco-editor-core/esm/vs/base/common/event';
 
 import { BaseApplyService } from '../mcp/base-apply.service';
@@ -36,7 +36,10 @@ const getResourceUri = (filePath: string, id: string, side: 'left' | 'right') =>
   });
 
 export class ChatMultiDiffSource implements IResolvedMultiDiffSource {
-  constructor(private readonly baseApplyService: BaseApplyService, private readonly appConfig: AppConfig) {}
+  constructor(
+    private readonly baseApplyService: BaseApplyService,
+    private readonly appConfig: AppConfig,
+  ) {}
 
   readonly resources: IValueWithChangeEvent<readonly MultiDiffEditorItem[]> = (() => {
     const applyService = this.baseApplyService;

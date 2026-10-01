@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ReactEditorComponent } from '@opensumi/ide-editor/lib/browser';
+import { ReactEditorComponent } from '@opensumi/ide-editor/browser';
 
 export const ExampleEditorTopWidget: ReactEditorComponent<any> = ({ resource }) => (
   <div

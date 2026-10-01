@@ -12,7 +12,7 @@ import {
   RunOnceScheduler,
   localize,
 } from '@opensumi/ide-core-common';
-import { EditorGroupCloseEvent } from '@opensumi/ide-editor/lib/browser';
+import { EditorGroupCloseEvent } from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
 import { ICodeEditor } from '@opensumi/ide-monaco';
 import {
@@ -20,8 +20,8 @@ import {
   ISettableObservable,
   observableFromEvent,
   observableValue,
-} from '@opensumi/ide-monaco/lib/common/observable';
-import { MessageService } from '@opensumi/ide-overlay/lib/browser/message.service';
+} from '@opensumi/ide-monaco/observable';
+import { MessageService } from '@opensumi/ide-overlay/messages';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 import { LineRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/lineRange';
 import { ModelDecorationOptions } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model/textModel';
@@ -79,10 +79,8 @@ export class InlineInputController extends BaseAIMonacoEditorController {
     this.inlineDiffController = InlineDiffController.get(this.monacoEditor)!;
 
     this.inputValue = observableValue(this, '');
-    this.modelChangeObs = observableFromEvent<monaco.editor.ITextModel>(
-      this,
-      this.monacoEditor.onDidChangeModel,
-      () => this.monacoEditor.getModel()!,
+    this.modelChangeObs = observableFromEvent<monaco.editor.ITextModel>(this, this.monacoEditor.onDidChangeModel, () =>
+      this.monacoEditor.getModel()!,
     );
     this.inlineInputWidgetStore = new Map();
 

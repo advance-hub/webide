@@ -1,4 +1,4 @@
-import type { AcpDebugLogDirection, AcpDebugLogEntry } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { AcpDebugLogDirection, AcpDebugLogEntry } from '@opensumi/ide-core-common';
 
 const MAX_ACP_DEBUG_LOG_ENTRIES = 2000;
 

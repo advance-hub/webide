@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 import { Autowired } from '@opensumi/di';
-import { getValidateInput } from '@opensumi/ide-addons/lib/browser/file-search.contribution';
+import { getValidateInput } from '@opensumi/ide-addons/file-search';
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import { Domain, URI } from '@opensumi/ide-core-common';
-import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
-import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search/lib/common';
+import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
+import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IChatInternalService } from '../../../common';

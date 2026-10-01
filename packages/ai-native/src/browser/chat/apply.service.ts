@@ -7,11 +7,11 @@ import {
   URI,
   path,
 } from '@opensumi/ide-core-browser';
-import { CommandService } from '@opensumi/ide-core-common/lib/command';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { CommandService } from '@opensumi/ide-core-common';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { CodeAction, CodeActionContext, CodeActionTriggerType, ICodeEditor } from '@opensumi/ide-monaco';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 import { Range } from '@opensumi/monaco-editor-core';
 
 import { ChatProxyServiceToken } from '../../common';

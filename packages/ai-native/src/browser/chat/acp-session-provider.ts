@@ -16,7 +16,7 @@ import {
 } from '@opensumi/ide-core-common';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { strings } from '@opensumi/ide-utils';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 import { MarkdownString } from '@opensumi/monaco-editor-core/esm/vs/base/common/htmlContent';
 
 import { AgenticTaskRegistryService } from '../acp/agentic-task-registry.service';
@@ -32,6 +32,7 @@ import {
 } from './session-provider';
 
 const DEFAULT_ACP_CHAT_AGENT_ID = 'Default_Chat_Agent';
+const EMPTY_SESSION_CACHE_TTL_MS = 1_000;
 
 function isAcpThreadPoolSaturatedError(error: unknown): error is { name: string; message?: unknown } {
   return (
@@ -85,6 +86,8 @@ export class ACPSessionProvider implements ISessionProvider {
   private loadedSessionMap: Map<string, ISessionModel> = new Map();
 
   private loadedSessionsResult: ISessionModel[] | null = null;
+
+  private loadedSessionsResultCachedAt = 0;
 
   private loadingSessionsPromise: Promise<ISessionModel[]> | null = null;
 
@@ -149,7 +152,13 @@ export class ACPSessionProvider implements ISessionProvider {
 
   async loadSessions(): Promise<ISessionModel[]> {
     if (Array.isArray(this.loadedSessionsResult)) {
-      return this.loadedSessionsResult;
+      const emptyResultExpired =
+        this.loadedSessionsResult.length === 0 &&
+        Date.now() - (this.loadedSessionsResultCachedAt || 0) >= EMPTY_SESSION_CACHE_TTL_MS;
+      if (!emptyResultExpired) {
+        return this.loadedSessionsResult;
+      }
+      this.loadedSessionsResult = null;
     }
 
     if (this.loadingSessionsPromise) {
@@ -167,11 +176,17 @@ export class ACPSessionProvider implements ISessionProvider {
   private async doLoadSessions(): Promise<ISessionModel[]> {
     if (!this.aiBackService?.listSessions) {
       this.loadedSessionsResult = [];
+      this.loadedSessionsResultCachedAt = Date.now();
       return this.loadedSessionsResult;
     }
 
     try {
-      const config = await this.configProvider.resolveConfig();
+      const config = this.configProvider.resolvePrewarmConfig
+        ? await this.configProvider.resolvePrewarmConfig()
+        : await this.configProvider.resolveConfig();
+      if (!config) {
+        return [];
+      }
       const result = await this.aiBackService!.listSessions(config);
 
       if (!result?.sessions?.length) {
@@ -182,6 +197,7 @@ export class ACPSessionProvider implements ISessionProvider {
           return [];
         }
         this.loadedSessionsResult = [];
+        this.loadedSessionsResultCachedAt = Date.now();
         return this.loadedSessionsResult;
       }
 
@@ -202,6 +218,7 @@ export class ACPSessionProvider implements ISessionProvider {
         }));
 
       this.loadedSessionsResult = sessionModels as unknown as ISessionModel[];
+      this.loadedSessionsResultCachedAt = Date.now();
       this.didRetryEmptySessionsResult = false;
 
       return this.loadedSessionsResult;

@@ -2,8 +2,8 @@ import cls from 'classnames';
 import React, { ChangeEvent, FC, FormEvent, useCallback, useEffect, useState } from 'react';
 
 import { Select } from '@opensumi/ide-components';
-import { Button } from '@opensumi/ide-components/lib/button';
-import { Modal } from '@opensumi/ide-components/lib/modal';
+import { Button } from '@opensumi/ide-components/button';
+import { Modal } from '@opensumi/ide-components/modal';
 import { useInjectable } from '@opensumi/ide-core-browser';
 import { formatLocalize, localize } from '@opensumi/ide-core-common';
 import { IMessageService } from '@opensumi/ide-overlay';
@@ -119,13 +119,16 @@ export const MCPServerForm: FC<Props> = ({ visible, initialData, onSave, onCance
         const env = envText
           .split('\n')
           .filter(Boolean)
-          .reduce((acc, line) => {
-            const [key, value] = line.split('=');
-            if (key && value) {
-              acc[key.trim()] = value.trim();
-            }
-            return acc;
-          }, {} as Record<string, string>);
+          .reduce(
+            (acc, line) => {
+              const [key, value] = line.split('=');
+              if (key && value) {
+                acc[key.trim()] = value.trim();
+              }
+              return acc;
+            },
+            {} as Record<string, string>,
+          );
         form.args = args;
         form.env = env;
       }

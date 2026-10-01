@@ -1,7 +1,7 @@
 import { CommandRegistry, SlotLocation, TERMINAL_COMMANDS } from '@opensumi/ide-core-browser';
-import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
+import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { TOGGLE_PANEL_COMMAND } from '@opensumi/ide-main-layout/lib/browser/command';
+import { TOGGLE_PANEL_COMMAND } from '@opensumi/ide-main-layout/commands';
 
 import { AIPanelLayoutService } from './panel-layout.service';
 

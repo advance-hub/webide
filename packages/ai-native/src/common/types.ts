@@ -1,4 +1,4 @@
-import { IMarker } from '@opensumi/ide-core-browser';
+import { IMarker } from '@opensumi/ide-core-common';
 import { Uri } from '@opensumi/monaco-editor-core';
 
 import { ImageCompressionOptions } from './image-compression';

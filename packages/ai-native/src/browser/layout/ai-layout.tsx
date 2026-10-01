@@ -8,8 +8,8 @@ import {
   runWhenIdle,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { BoxPanel, SplitPanel, getStorageValue } from '@opensumi/ide-core-browser/lib/components';
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { BoxPanel, SplitPanel, getStorageValue } from '@opensumi/ide-core-browser/components';
+import { DesignLayoutConfig } from '@opensumi/ide-core-browser/layout';
 import { PanelLayoutMode } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
@@ -201,8 +201,8 @@ export const AgenticShell = () => {
         aiChatLayout?.currentId
           ? aiChatLayout.size || defaultAIChatSize
           : shouldDefaultOpenAIChat
-          ? defaultAIChatSize
-          : 0
+            ? defaultAIChatSize
+            : 0
       }
       maxResize={1440}
       minResize={640}

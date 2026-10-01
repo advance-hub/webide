@@ -35,7 +35,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => {
+jest.mock('@opensumi/ide-core-browser/components/ai', () => {
   const React = require('react');
   return {
     AILogoAvatar: ({ iconClassName }: any) =>

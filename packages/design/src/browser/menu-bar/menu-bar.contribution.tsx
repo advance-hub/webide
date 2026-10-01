@@ -1,7 +1,7 @@
 import { Autowired } from '@opensumi/di';
 import { ComponentContribution, ComponentRegistry, Disposable, Domain, IDisposable } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, IMenubarItem, ISubmenuItem, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { MenubarStore } from '@opensumi/ide-menu-bar/lib/browser/menu-bar.store';
+import { IMenuRegistry, IMenubarItem, ISubmenuItem, MenuId } from '@opensumi/ide-core-browser/menu';
+import { MenubarStore } from '@opensumi/ide-menu-bar/store';
 
 import { DESIGN_MENUBAR_CONTAINER_VIEW_ID } from '../../common';
 
@@ -38,7 +38,7 @@ export class DesignMenuBarContribution extends Disposable implements ComponentCo
                 iconClass: item.iconClass,
                 group: item.group || '1_navigation',
                 order: item.order ?? 100,
-              } as ISubmenuItem),
+              }) as ISubmenuItem,
           ),
         );
       }),

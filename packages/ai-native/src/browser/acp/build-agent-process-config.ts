@@ -1,6 +1,4 @@
-import { DEFAULT_ACP_THREAD_POOL_SIZE } from '@opensumi/ide-core-common/lib/settings/ai-native';
-import { EnvVariable, McpServer } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
-import { AgentProcessConfig } from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
+import { AgentProcessConfig, DEFAULT_ACP_THREAD_POOL_SIZE, EnvVariable, McpServer } from '@opensumi/ide-core-common';
 
 /**
  * Pure function: merge agent registration defaults with user preferences

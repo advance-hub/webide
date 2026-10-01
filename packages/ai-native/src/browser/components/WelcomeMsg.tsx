@@ -1,8 +1,7 @@
 import * as React from 'react';
 
-import { useInjectable, useUpdateOnEvent } from '@opensumi/ide-core-browser';
-import { Icon, Tooltip } from '@opensumi/ide-core-browser/lib/components';
-import { withPrevented } from '@opensumi/ide-core-browser/lib/dom/event';
+import { useInjectable, useUpdateOnEvent, withPrevented } from '@opensumi/ide-core-browser';
+import { Icon, Tooltip } from '@opensumi/ide-core-browser/components';
 import {
   ActionSourceEnum,
   ActionTypeEnum,

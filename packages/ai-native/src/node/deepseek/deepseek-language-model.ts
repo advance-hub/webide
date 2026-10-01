@@ -1,8 +1,7 @@
 import { DeepSeekProvider, createDeepSeek } from '@ai-sdk/deepseek';
 
 import { Injectable } from '@opensumi/di';
-import { IAIBackServiceOption } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId, IAIBackServiceOption } from '@opensumi/ide-core-common';
 
 import { ModelInfo, deepSeekModels } from '../../common';
 import { BaseLanguageModel } from '../base-language-model';

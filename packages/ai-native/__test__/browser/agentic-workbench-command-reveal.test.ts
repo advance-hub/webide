@@ -1,6 +1,6 @@
 import { SlotLocation, TERMINAL_COMMANDS } from '@opensumi/ide-core-browser';
-import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { TOGGLE_PANEL_COMMAND } from '@opensumi/ide-main-layout/lib/browser/command';
+import { TERMINAL_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
+import { TOGGLE_PANEL_COMMAND } from '@opensumi/ide-main-layout/commands';
 
 import { registerAgenticWorkbenchRevealCommandInterceptors } from '../../src/browser/layout/agentic-workbench-command-reveal';
 

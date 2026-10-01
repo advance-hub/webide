@@ -1,22 +1,29 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { PreferenceService } from '@opensumi/ide-core-browser';
-import { AppConfig } from '@opensumi/ide-core-browser/lib/react-providers/config-provider';
-import { AINativeSettingSectionsId, IApplicationService, ILogger, RulesServiceToken } from '@opensumi/ide-core-common';
-import { WithEventBus } from '@opensumi/ide-core-common/lib/event-bus/event-decorator';
-import { MarkerSeverity } from '@opensumi/ide-core-common/lib/types/markers/markers';
-import { Emitter, OperatingSystem, URI, parseGlob } from '@opensumi/ide-core-common/lib/utils';
+import { AppConfig, PreferenceService } from '@opensumi/ide-core-browser';
+import {
+  AINativeSettingSectionsId,
+  Emitter,
+  IApplicationService,
+  ILogger,
+  MarkerSeverity,
+  OperatingSystem,
+  RulesServiceToken,
+  URI,
+  WithEventBus,
+  parseGlob,
+} from '@opensumi/ide-core-common';
 import {
   EditorDocumentModelCreationEvent,
   EditorDocumentModelRemovalEvent,
   EditorDocumentModelSavedEvent,
   IEditorDocumentModelService,
-} from '@opensumi/ide-editor/lib/browser/doc-model/types';
-import { EditorSelectionChangeEvent } from '@opensumi/ide-editor/lib/browser/types';
+} from '@opensumi/ide-editor/document-types';
+import { EditorSelectionChangeEvent } from '@opensumi/ide-editor/types';
 import { FileType, IFileServiceClient } from '@opensumi/ide-file-service';
-import { IMarkerService } from '@opensumi/ide-markers/lib/common/types';
+import { IMarkerService } from '@opensumi/ide-markers/types';
 import { Range } from '@opensumi/ide-monaco';
 import { ITerminalApiService } from '@opensumi/ide-terminal-next';
-import { isString, match } from '@opensumi/ide-utils';
+import { isString } from '@opensumi/ide-utils';
 
 import { AttachFileContext, FileContext, LLMContextService, SerializedContext } from '../../common/llm-context';
 import { ProjectRule } from '../../common/types';
@@ -438,8 +445,8 @@ ${folderStructure}`;
       this.applicationService.backendOS === OperatingSystem.Windows
         ? 'windows'
         : this.applicationService.backendOS === OperatingSystem.Linux
-        ? 'linux'
-        : 'darwin';
+          ? 'linux'
+          : 'darwin';
     const shell = this.preferenceService.get<string>('terminal.type', 'zsh');
     let shellName = shell;
     if (shell === 'default') {

@@ -1,8 +1,8 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { FileSearchQuickCommandHandler } from '@opensumi/ide-addons/lib/browser/file-search.contribution';
+import { FileSearchQuickCommandHandler } from '@opensumi/ide-addons/file-search';
 import { AppConfig } from '@opensumi/ide-core-browser';
 import { CancellationToken, URI, path } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelRef, IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelRef, IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 @Injectable()

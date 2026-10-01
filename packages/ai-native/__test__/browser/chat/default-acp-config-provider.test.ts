@@ -1,12 +1,14 @@
 import { HideReason } from '@opensumi/ide-core-browser';
-import { AINativeSettingSectionsId, URI } from '@opensumi/ide-core-common';
+import { AINativeSettingSectionsId, PreferenceScope, URI } from '@opensumi/ide-core-common';
 
 describe('DefaultACPConfigProvider', () => {
   interface ProviderFixtureOptions {
     webMcpEnabled?: boolean;
     isMultiRoot?: boolean;
     defaultAgentType?: string;
+    builtInsEnabled?: boolean;
     agentConfigs?: Record<string, { command?: string; args?: string[]; description?: string; streaming?: boolean }>;
+    agentConfigOverrides?: Record<string, { command?: string; args?: string[] }>;
     quickPickResult?: string | undefined | Promise<string | undefined>;
   }
 
@@ -17,6 +19,7 @@ describe('DefaultACPConfigProvider', () => {
     let provider!: import('../../../src/browser/chat/default-acp-config-provider').DefaultACPConfigProvider & {
       preferenceService: {
         get: jest.Mock;
+        resolve: jest.Mock;
       };
       workspaceService: {
         whenReady: Promise<void>;
@@ -38,7 +41,7 @@ describe('DefaultACPConfigProvider', () => {
     };
 
     await jest.isolateModulesAsync(async () => {
-      const { DefaultACPConfigProvider } = await import('../../../src/browser/chat/default-acp-config-provider');
+      const { DefaultACPConfigProvider } = require('../../../src/browser/chat/default-acp-config-provider');
       const isMultiRoot = options.isMultiRoot ?? false;
       const roots = [rootA, rootB].map((root) => ({ uri: URI.file(root).toString() }));
       const quickPickResult =
@@ -56,16 +59,31 @@ describe('DefaultACPConfigProvider', () => {
               if (id === AINativeSettingSectionsId.AgentConfigs) {
                 return options.agentConfigs || {};
               }
+              if (id === AINativeSettingSectionsId.AgentBuiltInsEnabled) {
+                return options.builtInsEnabled ?? true;
+              }
               if (id === 'ai-native.acp.nodePath') {
                 return '';
               }
               if (id === 'ai-native.acp.agents') {
-                return {};
+                return options.agentConfigOverrides || {};
               }
               if (id === AINativeSettingSectionsId.AcpThreadPoolSize) {
                 return fallback;
               }
               return fallback;
+            }),
+            resolve: jest.fn((id: string) => {
+              if (id === AINativeSettingSectionsId.AgentConfigsOverride) {
+                return {
+                  value: options.agentConfigOverrides || {},
+                  scope: options.agentConfigOverrides ? PreferenceScope.Workspace : PreferenceScope.Default,
+                };
+              }
+              return {
+                value: options.agentConfigs || {},
+                scope: options.agentConfigs ? PreferenceScope.User : PreferenceScope.Default,
+              };
             }),
           },
         },
@@ -130,6 +148,25 @@ describe('DefaultACPConfigProvider', () => {
     expect(config.args).toEqual([]);
   });
 
+  it('uses only the configured OpenCode agent for a cloud workspace', async () => {
+    const provider = await createProvider({
+      builtInsEnabled: false,
+      defaultAgentType: 'opencode',
+      agentConfigs: {
+        opencode: { command: 'opencode', args: ['acp'], description: 'OpenCode' },
+      },
+    });
+    const { getAvailableAgentConfigs } = require('../../../src/browser/chat/get-default-agent-type');
+
+    expect(Object.keys(getAvailableAgentConfigs((provider as any).preferenceService))).toEqual(['opencode']);
+    await expect(provider.resolveConfig()).resolves.toMatchObject({
+      agentId: 'opencode',
+      command: 'opencode',
+      args: ['acp'],
+      cwd: rootA,
+    });
+  });
+
   it('builds a config for the stored Agent and project path', async () => {
     const provider = await createProvider({
       agentConfigs: {
@@ -159,9 +196,51 @@ describe('DefaultACPConfigProvider', () => {
   });
 
   it('resolves a background warmup config for a single-root workspace without prompting', async () => {
-    const provider = await createProvider();
+    const provider = await createProvider({
+      agentConfigs: {
+        'claude-agent-acp': {
+          command: '/opt/agents/claude-agent-acp',
+          args: [],
+        },
+      },
+    });
 
-    await expect(provider.resolvePrewarmConfig()).resolves.toMatchObject({ cwd: rootA });
+    await expect(provider.resolvePrewarmConfig()).resolves.toMatchObject({
+      command: '/opt/agents/claude-agent-acp',
+      cwd: rootA,
+    });
+    expect((provider as any).quickPick.show).not.toHaveBeenCalled();
+  });
+
+  it('does not prewarm an implicit built-in agent command', async () => {
+    const provider = await createProvider({
+      agentConfigs: {
+        'claude-agent-acp': {
+          command: 'claude-agent-acp',
+          args: [],
+        },
+      },
+    });
+
+    await expect(provider.resolvePrewarmConfig()).resolves.toBeUndefined();
+    expect((provider as any).mcpConfigService.getACPServers).not.toHaveBeenCalled();
+  });
+
+  it('resolves a background config from an explicit ACP spawn command override', async () => {
+    const provider = await createProvider({
+      agentConfigOverrides: {
+        'claude-agent-acp': {
+          command: process.execPath,
+          args: ['/workspace/mock-acp-agent.ts'],
+        },
+      },
+    });
+
+    await expect(provider.resolvePrewarmConfig()).resolves.toMatchObject({
+      command: process.execPath,
+      args: ['/workspace/mock-acp-agent.ts'],
+      cwd: rootA,
+    });
     expect((provider as any).quickPick.show).not.toHaveBeenCalled();
   });
 

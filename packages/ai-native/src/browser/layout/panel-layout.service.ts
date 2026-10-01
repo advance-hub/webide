@@ -1,8 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IContextKeyService, PreferenceService, fastdom } from '@opensumi/ide-core-browser';
-import { AI_PANEL_LAYOUT_CONTEXT } from '@opensumi/ide-core-browser/lib/ai-native/command';
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { LAYOUT_STATE } from '@opensumi/ide-core-browser/lib/layout/layout-state';
+import { IContextKeyService, PreferenceService, SlotLocation, fastdom } from '@opensumi/ide-core-browser';
+import { AI_PANEL_LAYOUT_CONTEXT } from '@opensumi/ide-core-browser/ai/commands';
+import { DesignLayoutConfig, LAYOUT_STATE } from '@opensumi/ide-core-browser/layout';
 import { AINativeSettingSectionsId, Emitter, PanelLayoutMode, PreferenceScope } from '@opensumi/ide-core-common';
 import { IResourceOpenOptions, WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
@@ -251,6 +250,9 @@ export class AIPanelLayoutService {
       this.showAIChatView(mode);
       fastdom.measureAtNextFrame(() => {
         this.layoutService.setLayoutStateKey(layoutStateKey, { saveCurrent: false, forceRestore: true });
+        if (normalizePanelLayoutMode(mode) === 'classic') {
+          this.layoutService.toggleSlot(SlotLocation.view, true);
+        }
         this.showAIChatView(mode);
       });
     });

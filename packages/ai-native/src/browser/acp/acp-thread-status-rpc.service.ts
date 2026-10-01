@@ -1,5 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { RPCService } from '@opensumi/ide-connection/lib/common/rpc-service';
+import { RPCService } from '@opensumi/ide-connection';
 import { IAcpThreadStatusService } from '@opensumi/ide-core-common';
 
 import { IChatManagerService } from '../../common';

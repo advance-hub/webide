@@ -1,4 +1,3 @@
-import debounce from 'lodash/debounce';
 import * as React from 'react';
 import { MessageList } from 'react-chat-elements';
 
@@ -11,8 +10,8 @@ import {
   useInjectable,
   useUpdateOnEvent,
 } from '@opensumi/ide-core-browser';
-import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import {
   AIServiceType,
   ActionSourceEnum,
@@ -75,9 +74,7 @@ import { ChatModel, ChatRequestModel, ChatSlashCommandItemModel } from './chat-m
 import { ChatProxyService } from './chat-proxy.service';
 import { ChatService } from './chat.api.service';
 import { ChatFeatureRegistry } from './chat.feature.registry';
-import { IChatHistoryRegistry } from './chat.history.registry';
 import { ChatInputRegistry } from './chat.input.registry';
-import { ChatInternalService } from './chat.internal.service';
 import { AcpChatInternalService } from './chat.internal.service.acp';
 import styles from './chat.module.less';
 import { ChatRenderRegistry } from './chat.render.registry';
@@ -336,7 +333,7 @@ export const AIChatViewACPContent = () => {
           await queuedTurnPortCallbacksRef.current.requestCancellation(sessionId);
         } catch (error) {
           if (!active) {
-            throw new Error('ACP queued turn runtime is inactive.');
+            throw new Error('ACP queued turn runtime is inactive.', { cause: error });
           }
           // A tracked response may outlive the session's active status briefly.
           // Once the session is idle, a cancellation rejection means the response

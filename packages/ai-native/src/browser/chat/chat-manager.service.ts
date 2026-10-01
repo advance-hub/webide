@@ -4,11 +4,13 @@ import {
   AINativeSettingSectionsId,
   CancellationToken,
   CancellationTokenSource,
+  ChatFeatureRegistryToken,
   Disposable,
   DisposableMap,
   Emitter,
   IChatProgress,
   IDisposable,
+  IHistoryChatMessage,
   ILogger,
   IStorage,
   LRUCache,
@@ -16,7 +18,6 @@ import {
   StorageProvider,
   debounce,
 } from '@opensumi/ide-core-common';
-import { ChatFeatureRegistryToken, IHistoryChatMessage } from '@opensumi/ide-core-common/lib/types/ai-native';
 
 import { IChatAgentService, IChatFollowup, IChatRequestMessage, IChatResponseErrorDetails } from '../../common';
 import { MsgHistoryManager } from '../model/msg-history-manager';

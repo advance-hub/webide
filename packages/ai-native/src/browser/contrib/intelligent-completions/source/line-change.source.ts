@@ -7,7 +7,7 @@ import {
   derivedHandleChanges,
   observableFromEvent,
   onObservableChange,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 
 import { IntelligentCompletionsController } from '../intelligent-completions.controller';
 

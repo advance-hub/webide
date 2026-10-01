@@ -1,4 +1,4 @@
-import { Event, URI } from '@opensumi/ide-core-common/lib/utils';
+import { Event, URI } from '@opensumi/ide-core-common';
 
 import { ProjectRule } from './types';
 

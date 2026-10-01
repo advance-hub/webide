@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Root, createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
 
-jest.mock('@opensumi/ide-components/lib/button', () => ({
+jest.mock('@opensumi/ide-components/button', () => ({
   Button: ({ children, onClick }: any) =>
     require('react').createElement(
       'button',
@@ -14,18 +14,18 @@ jest.mock('@opensumi/ide-components/lib/button', () => ({
     ),
 }));
 
-jest.mock('@opensumi/ide-components/lib/recycle-tree', () => ({
+jest.mock('@opensumi/ide-components', () => ({
   BasicRecycleTree: () => null,
 }));
 
-jest.mock('@opensumi/ide-components/lib/recycle-tree/basic/tree-node.define', () => ({
+jest.mock('@opensumi/ide-components/tree', () => ({
   BasicCompositeTreeNode: {
     is: jest.fn(() => false),
   },
   BasicTreeNode: {},
 }));
 
-jest.mock('@opensumi/ide-components/lib/tooltip', () => ({
+jest.mock('@opensumi/ide-components/tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) =>
     require('react').createElement(React.Fragment, null, children),
 }));
@@ -58,13 +58,13 @@ jest.mock('@opensumi/ide-core-browser', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className, iconClass }: { className?: string; iconClass?: string }) =>
     require('react').createElement('span', { 'data-icon': iconClass || className }),
   getIcon: (name: string) => `icon-${name}`,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   Loading: () => require('react').createElement('span', null, 'loading'),
 }));
 

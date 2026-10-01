@@ -13,7 +13,7 @@ import {
   debounce,
 } from '@opensumi/ide-core-common';
 import { IDisposable } from '@opensumi/ide-utils';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { cleanAttachedTextWrapper } from '../../common/utils';
 import { createAcpAttachmentFailureFixture } from '../acp/acp-bdd-runtime-fixtures';
@@ -76,8 +76,7 @@ export class AcpChatManagerService extends ChatManagerService {
   private acpSessionDisplayTitleOverrides: Record<string, string> = {};
 
   private sessionAttachments:
-    | Map<string, { stream: SumiReadableStream<IChatProgress>; disposables: IDisposable[] }>
-    | undefined;
+    Map<string, { stream: SumiReadableStream<IChatProgress>; disposables: IDisposable[] }> | undefined;
   private readonly ownedBackendSessions = new Set<string>();
   private readonly sessionDisposeRequests = new Map<string, { generation: number; promise: Promise<void> }>();
   private readonly sessionLoadGenerations = new Map<string, number>();

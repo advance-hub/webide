@@ -14,7 +14,7 @@ import styles from './mcp-config.module.less';
 import { MCPServerForm, MCPServerFormData } from './mcp-server-form';
 
 import type { WebMcpGroupSummary } from '../mcp-config.service';
-import type { WebMcpProfile } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { WebMcpProfile } from '@opensumi/ide-core-common';
 
 export const MCPConfigView: React.FC = () => {
   const mcpConfigService = useInjectable<MCPConfigService>(MCPConfigServiceToken);
@@ -195,8 +195,8 @@ export const MCPConfigView: React.FC = () => {
                           (!isReady && server.name !== BUILTIN_MCP_SERVER_NAME && !server.isStarted)
                             ? 'codicon-loading kt-icon-loading'
                             : server.isStarted
-                            ? 'codicon-check'
-                            : 'codicon-circle'
+                              ? 'codicon-check'
+                              : 'codicon-circle'
                         }`}
                       />
                       <span>{localize(server.isStarted ? 'ai.native.mcp.enabled' : 'ai.native.mcp.disabled')}</span>

@@ -1,7 +1,7 @@
 import Parser from 'web-tree-sitter';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { EKnownResources, RendererRuntime } from '@opensumi/ide-core-browser/lib/application/runtime/types';
+import { EKnownResources, RendererRuntime } from '@opensumi/ide-core-browser/runtime';
 import { Deferred } from '@opensumi/ide-utils';
 
 /**

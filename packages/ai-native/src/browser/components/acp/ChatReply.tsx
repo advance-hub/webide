@@ -11,13 +11,10 @@ import React, {
   useState,
 } from 'react';
 
-import { Button } from '@opensumi/ide-components/lib/button';
-import { BasicRecycleTree, IBasicRecycleTreeHandle, IBasicTreeData } from '@opensumi/ide-components/lib/recycle-tree';
-import {
-  BasicCompositeTreeNode,
-  BasicTreeNode,
-} from '@opensumi/ide-components/lib/recycle-tree/basic/tree-node.define';
-import { Tooltip } from '@opensumi/ide-components/lib/tooltip';
+import { BasicRecycleTree, IBasicRecycleTreeHandle, IBasicTreeData } from '@opensumi/ide-components';
+import { Button } from '@opensumi/ide-components/button';
+import { Tooltip } from '@opensumi/ide-components/tooltip';
+import { BasicCompositeTreeNode, BasicTreeNode } from '@opensumi/ide-components/tree';
 import {
   CommandService,
   DisposableCollection,
@@ -26,8 +23,8 @@ import {
   LabelService,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Icon, getIcon } from '@opensumi/ide-core-browser/lib/components';
-import { Loading } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Icon, getIcon } from '@opensumi/ide-core-browser/components';
+import { Loading } from '@opensumi/ide-core-browser/components/ai';
 import {
   ActionSourceEnum,
   ActionTypeEnum,
@@ -368,7 +365,6 @@ export const ChatReply = (props: IChatReplyProps) => {
       return null;
     }
     return request.response.followups.map((item, index) => {
-      let node: React.ReactNode = null;
       if (item.kind === 'reply') {
         const a = (
           <a
@@ -385,15 +381,17 @@ export const ChatReply = (props: IChatReplyProps) => {
             {item.title || item.message}
           </a>
         );
-        node = item.tooltip ? <Tooltip title={item.tooltip}>{a}</Tooltip> : a;
-      } else {
-        if (!item.when || contextKeyService.match(item.when)) {
-          node = <Button type='default'>{item.title}</Button>;
-        } else {
-          node = null;
-        }
+        const node = item.tooltip ? <Tooltip title={item.tooltip}>{a}</Tooltip> : a;
+        return <Fragment key={index}>{node}</Fragment>;
       }
-      return node && <Fragment key={index}>{node}</Fragment>;
+      if (item.when && !contextKeyService.match(item.when)) {
+        return null;
+      }
+      return (
+        <Fragment key={index}>
+          <Button type='default'>{item.title}</Button>
+        </Fragment>
+      );
     });
   }, [request.response.followups]);
 

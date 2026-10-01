@@ -1,6 +1,5 @@
 import { PreferenceService } from '@opensumi/ide-core-browser';
-import { ACPAgentType, AgentConfig, DEFAULT_AGENT_TYPE } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { ACPAgentType, AINativeSettingSectionsId, AgentConfig, DEFAULT_AGENT_TYPE } from '@opensumi/ide-core-common';
 
 export const DEFAULT_AGENT_CONFIGS: Record<string, AgentConfig> = {
   qwen: {
@@ -34,6 +33,9 @@ export function getConfiguredAgentConfigs(preferenceService: PreferenceService):
 
 export function getAvailableAgentConfigs(preferenceService: PreferenceService): Record<string, AgentConfig> {
   const userConfigs = getUserAgentConfigs(preferenceService);
+  if (preferenceService.get<boolean>(AINativeSettingSectionsId.AgentBuiltInsEnabled, true) === false) {
+    return getConfiguredAgentConfigs(preferenceService);
+  }
   const mergedConfigs: Record<string, AgentConfig> = {};
 
   for (const [agentType, defaultConfig] of Object.entries(DEFAULT_AGENT_CONFIGS)) {
@@ -59,7 +61,10 @@ export function getAvailableAgentConfigs(preferenceService: PreferenceService): 
 export function getDefaultAgentType(preferenceService: PreferenceService): ACPAgentType {
   const agentType = preferenceService.get<ACPAgentType>(AINativeSettingSectionsId.DefaultAgentType, DEFAULT_AGENT_TYPE);
   const configs = getAvailableAgentConfigs(preferenceService);
-  return configs[agentType] ? agentType : DEFAULT_AGENT_TYPE;
+  if (configs[agentType]) {
+    return agentType;
+  }
+  return configs[DEFAULT_AGENT_TYPE] ? DEFAULT_AGENT_TYPE : Object.keys(configs)[0] || DEFAULT_AGENT_TYPE;
 }
 
 /**

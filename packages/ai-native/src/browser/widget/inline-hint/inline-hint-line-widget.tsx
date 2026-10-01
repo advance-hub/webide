@@ -1,9 +1,9 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { KeybindingRegistry } from '@opensumi/ide-core-browser';
-import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/ai/commands';
 import { Disposable, formatLocalize } from '@opensumi/ide-core-common';
 import { ICodeEditor, IPosition, Range } from '@opensumi/ide-monaco';
-import { StandaloneServices } from '@opensumi/ide-monaco/lib/browser/monaco-api/services';
+import { StandaloneServices } from '@opensumi/ide-monaco/api/services';
 import { IThemeService, getColorRegistry, inputPlaceholderForeground } from '@opensumi/ide-theme';
 import { ICodeEditorService } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/codeEditorService';
 

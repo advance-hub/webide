@@ -2,8 +2,8 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import { AINativeSettingSectionsId } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { empty } from '@opensumi/ide-utils/lib/strings';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+import { empty } from '@opensumi/ide-utils/strings';
 
 import { LanguageParserService } from '../../languages/service';
 import { ICodeBlockInfo } from '../../languages/tree-sitter/language-facts/base';

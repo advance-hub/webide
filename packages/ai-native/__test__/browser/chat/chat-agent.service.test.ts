@@ -1,7 +1,13 @@
-import { CancellationToken, Emitter, IAIReporter, ILogger } from '@opensumi/ide-core-common';
-import { ChatFeatureRegistryToken, ChatServiceToken } from '@opensumi/ide-core-common/lib/types/ai-native';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import {
+  CancellationToken,
+  ChatFeatureRegistryToken,
+  ChatServiceToken,
+  Emitter,
+  IAIReporter,
+  ILogger,
+} from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { ChatAgentService } from '../../../src/browser/chat/chat-agent.service';
 import { IChatAgent, IChatAgentMetadata, IChatAgentRequest, IChatManagerService } from '../../../src/common';

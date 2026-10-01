@@ -12,8 +12,8 @@ import {
   IMarkdownString,
   Uri,
 } from '@opensumi/ide-core-common';
-import { DESIGN_MENUBAR_CONTAINER_VIEW_ID } from '@opensumi/ide-design/lib/common/constants';
-import { IPosition, ITextModel, InlineCompletionContext } from '@opensumi/ide-monaco/lib/common';
+import { DESIGN_MENUBAR_CONTAINER_VIEW_ID } from '@opensumi/ide-design/constants';
+import { IPosition, ITextModel, InlineCompletionContext } from '@opensumi/ide-monaco';
 
 import { ImageCompressionOptions } from './image-compression';
 import { IMCPServer, MCPServerDescription } from './mcp-server-manager';

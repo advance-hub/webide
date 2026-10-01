@@ -1,5 +1,5 @@
 import { Autowired } from '@opensumi/di';
-import { AI_CODE_ACTION } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_CODE_ACTION } from '@opensumi/ide-core-browser/ai/commands';
 import { CommandContribution, CommandRegistry, Disposable, Domain, IRange } from '@opensumi/ide-core-common';
 
 import { CodeActionService } from './code-action.service';

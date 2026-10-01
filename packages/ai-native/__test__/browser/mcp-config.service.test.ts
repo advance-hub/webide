@@ -5,7 +5,7 @@ import { MCPConfigService } from '../../src/browser/mcp/config/mcp-config.servic
 import { BUILTIN_MCP_SERVER_NAME } from '../../src/common';
 import { MCPServersDisabledKey } from '../../src/common/mcp-server-manager';
 
-import type { WebMcpProfile } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { WebMcpProfile } from '@opensumi/ide-core-common';
 
 function createStorage(initial: Record<string, unknown> = {}) {
   const data = { ...initial };

@@ -18,11 +18,11 @@ import {
   EditorGroupOpenEvent,
   IEditorDocumentModelService,
   RegisterEditorSideComponentEvent,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IMarkerService } from '@opensumi/ide-markers';
 import { ICodeEditor, ITextModel, Position, Range, Selection, SelectionDirection } from '@opensumi/ide-monaco';
 import { Deferred, DisposableMap, Emitter, IDisposable, URI, path } from '@opensumi/ide-utils';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 
 import { IChatInternalService, IInlineDiffService, InlineDiffServiceToken } from '../../common';

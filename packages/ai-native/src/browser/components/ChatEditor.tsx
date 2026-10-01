@@ -3,7 +3,7 @@ import throttle from 'lodash/throttle';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Highlight from 'react-highlight';
 
-import { Image } from '@opensumi/ide-components/lib/image';
+import { Image } from '@opensumi/ide-components/image';
 import {
   EDITOR_COMMANDS,
   FILE_COMMANDS,
@@ -13,8 +13,8 @@ import {
   useInjectable,
   uuid,
 } from '@opensumi/ide-core-browser';
-import { Icon, Popover } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Icon, Popover } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import {
   ActionSourceEnum,
   ActionTypeEnum,
@@ -25,10 +25,10 @@ import {
   localize,
   runWhenIdle,
 } from '@opensumi/ide-core-common';
-import { insertSnippetWithMonacoEditor } from '@opensumi/ide-editor/lib/browser/base-editor-wrapper';
-import { MonacoCommandRegistry } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoCommandRegistry } from '@opensumi/ide-editor/commands';
+import { insertSnippetWithMonacoEditor } from '@opensumi/ide-editor/wrappers';
 import { ITheme, IThemeService } from '@opensumi/ide-theme';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
 
 import { ChatFeatureRegistry } from '../chat/chat.feature.registry';
 

@@ -1,8 +1,7 @@
 import { Injectable, Injector, Provider } from '@opensumi/di';
-import { BrowserModule, URI } from '@opensumi/ide-core-browser';
-import { ISplitPanelService } from '@opensumi/ide-core-browser/lib/components/layout/split-panel.service';
-import { IDesignStyleService } from '@opensumi/ide-core-browser/lib/design';
-import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/browser';
+import { BrowserModule, IDesignStyleService, URI } from '@opensumi/ide-core-browser';
+import { ISplitPanelService } from '@opensumi/ide-core-browser/components/layout';
+import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/menu/browser';
 import {
   AppLifeCycleServiceToken,
   Event,
@@ -10,10 +9,10 @@ import {
   LifeCyclePhase,
   Schemes,
 } from '@opensumi/ide-core-common';
-import { IEditorTabService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorTabService } from '@opensumi/ide-editor/browser';
 import { IThemeContribution, IThemeService, IThemeStore } from '@opensumi/ide-theme';
-import { ThemeStore } from '@opensumi/ide-theme/lib/browser/theme-store';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
+import { ThemeStore } from '@opensumi/ide-theme/store';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
 
 import { DesignCoreContribution } from './design.contribution';
 import { DesignMenuBarContribution } from './menu-bar/menu-bar.contribution';

@@ -7,7 +7,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useInjectable: jest.fn(),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/progress/progress-bar', () => ({
+jest.mock('@opensumi/ide-core-browser/progress', () => ({
   Progress: () => require('react').createElement('div', { 'data-testid': 'progress' }),
 }));
 

@@ -6,10 +6,10 @@ import {
   SlotRendererContribution,
   SlotRendererRegistry,
 } from '@opensumi/ide-core-browser';
-import { ConfigPriority, LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { ConfigPriority, LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
 import { Schemes } from '@opensumi/ide-core-common';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
 
 import { DesignBottomTabRenderer, DesignLeftTabRenderer, DesignRightTabRenderer } from './layout/tabbar.view';
 import { DesignThemeFileSystemProvider } from './theme/file-system.provider';

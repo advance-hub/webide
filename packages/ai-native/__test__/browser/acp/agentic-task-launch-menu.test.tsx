@@ -23,7 +23,7 @@ jest.mock('../../../src/browser/chat/get-default-agent-type', () => ({
 }));
 
 import { CommandService, KeybindingRegistry, PreferenceService, localize } from '@opensumi/ide-core-browser';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId } from '@opensumi/ide-core-common';
 
 import { AgenticWorkspaceSwitchService } from '../../../src/browser/acp/agentic-workspace-switch.service';
 import { AgenticTaskLaunchMenu } from '../../../src/browser/acp/components/AgenticTaskLaunchMenu';

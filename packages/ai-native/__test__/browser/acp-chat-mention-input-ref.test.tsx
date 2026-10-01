@@ -35,7 +35,7 @@ jest.mock('@opensumi/ide-core-common', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className }: { className?: string }) => require('react').createElement('span', { className }),
   Popover: ({ children, title }: { children: React.ReactNode; title?: string }) =>
     require('react').createElement('div', { title }, children),
@@ -45,11 +45,11 @@ jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
   getIcon: (name: string) => `icon-${name}`,
 }));
 
-jest.mock('@opensumi/ide-components/lib/image', () => ({
+jest.mock('@opensumi/ide-components/image', () => ({
   Image: ({ src }: { src: string }) => require('react').createElement('img', { src }),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   EnhanceIcon: ({ ariaLabel, onClick }: { ariaLabel?: string; onClick?: () => void }) =>
     require('react').createElement('button', { 'aria-label': ariaLabel, onClick, type: 'button' }, ariaLabel),
 }));
@@ -225,8 +225,9 @@ jest.mock('../../src/browser/components/components.module.less', () => ({
   delete_button: 'delete_button',
 }));
 
-import { localizationBundle as enUSLocalizationBundle } from '../../../i18n/src/common/en-US.lang';
-import { localizationBundle as zhCNLocalizationBundle } from '../../../i18n/src/common/zh-CN.lang';
+import { localizationBundle as enUSLocalizationBundle } from '@opensumi/ide-i18n/languages/en-US';
+import { localizationBundle as zhCNLocalizationBundle } from '@opensumi/ide-i18n/languages/zh-CN';
+
 import { AcpChatMentionInput } from '../../src/browser/acp/components/AcpChatMentionInput';
 import { AcpQueuedTurnEditor } from '../../src/browser/acp/components/AcpQueuedTurnEditor';
 import { AcpTurnEditor } from '../../src/browser/acp/components/AcpTurnEditor';

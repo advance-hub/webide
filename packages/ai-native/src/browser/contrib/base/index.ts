@@ -1,7 +1,7 @@
 import { Injector, Optional } from '@opensumi/di';
 import { CancellationTokenSource, Disposable, IDisposable, Schemes } from '@opensumi/ide-core-common';
 import { ICodeEditor } from '@opensumi/ide-monaco';
-import { URI } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { URI } from '@opensumi/ide-monaco/api';
 import { IEditorContribution } from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorCommon';
 
 export abstract class BaseAIMonacoContribHandler extends Disposable {

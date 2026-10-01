@@ -1,19 +1,20 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { AppConfig, PreferenceService } from '@opensumi/ide-core-browser';
-import { AI_INLINE_COMPLETION_REPORTER } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_INLINE_COMPLETION_REPORTER } from '@opensumi/ide-core-browser/ai/commands';
 import {
   AINativeSettingSectionsId,
+  AIServiceType,
   Disposable,
   DisposableStore,
   IAICompletionOption,
   IAICompletionResultModel,
+  IAIReporter,
   IntelligentCompletionsRegistryToken,
   URI,
   uuid,
 } from '@opensumi/ide-core-common';
-import { AIServiceType, IAIReporter } from '@opensumi/ide-core-common/lib/types/ai-native/reporter';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 import * as monaco from '@opensumi/ide-monaco';
 
 import { IIntelligentCompletionsResult } from '../../intelligent-completions';

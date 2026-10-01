@@ -1,8 +1,7 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic';
 
 import { Injectable } from '@opensumi/di';
-import { IAIBackServiceOption } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId, IAIBackServiceOption } from '@opensumi/ide-core-common';
 
 import { ModelInfo, anthropicModels } from '../../common/model';
 import { BaseLanguageModel } from '../base-language-model';

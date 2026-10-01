@@ -3,10 +3,7 @@ import { INodeLogger } from '@opensumi/ide-core-node';
 
 import { AcpPermissionCallerService, AcpPermissionCallerServiceToken } from './acp-permission-caller.service';
 
-import type {
-  RequestPermissionRequest,
-  RequestPermissionResponse,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { RequestPermissionRequest, RequestPermissionResponse } from '@opensumi/ide-core-common';
 
 export const PermissionRoutingServiceToken = Symbol('PermissionRoutingServiceToken');
 

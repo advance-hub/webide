@@ -2,9 +2,9 @@ import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule, LogServiceForClientPath } from '@opensumi/ide-core-browser';
 import { CommonServerPath, KeytarServicePath } from '@opensumi/ide-core-common';
 import { IDebugService } from '@opensumi/ide-debug';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { ExtensionNodeServiceServerPath } from '@opensumi/ide-extension/lib/common';
-import { FileSearchServicePath } from '@opensumi/ide-file-search/lib/common';
+import { DebugPreferences } from '@opensumi/ide-debug/preferences';
+import { ExtensionNodeServiceServerPath } from '@opensumi/ide-extension';
+import { FileSearchServicePath } from '@opensumi/ide-file-search';
 import { ITerminalProfileService } from '@opensumi/ide-terminal-next';
 
 import { ExtensionClientService } from './extension';

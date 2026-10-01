@@ -28,10 +28,10 @@ import {
   WaitForTerminalExitResponse,
   WriteTextFileRequest,
   WriteTextFileResponse,
-} from '@opensumi/ide-core-common/lib/types/ai-native';
+} from '@opensumi/ide-core-common';
 import { INodeLogger } from '@opensumi/ide-core-node';
 
-import { AcpPermissionCallerManagerToken, AcpPermissionCallerServiceToken } from '../../acp';
+import { AcpPermissionCallerServiceToken } from '../../acp';
 import { AcpPermissionCallerService } from '../acp-permission-caller.service';
 
 import { AcpFileSystemHandler, AcpFileSystemHandlerToken } from './file-system.handler';

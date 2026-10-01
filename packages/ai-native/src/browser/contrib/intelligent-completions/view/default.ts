@@ -1,4 +1,4 @@
-import { AI_CODE_EDITS_COMMANDS } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_CODE_EDITS_COMMANDS } from '@opensumi/ide-core-browser/ai/commands';
 import { CommandService } from '@opensumi/ide-core-common';
 import {
   InlineCompletionContext,
@@ -7,13 +7,7 @@ import {
   Position,
   Range,
 } from '@opensumi/ide-monaco';
-import {
-  IObservable,
-  asyncTransaction,
-  constObservable,
-  derived,
-  transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+import { IObservable, asyncTransaction, constObservable, derived, transaction } from '@opensumi/ide-monaco/observable';
 import { equalsIfDefined, itemEquals } from '@opensumi/monaco-editor-core/esm/vs/base/common/equals';
 import { LanguageFeatureRegistry } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languageFeatureRegistry';
 import { InlineCompletionsController } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/inlineCompletions/browser/controller/inlineCompletionsController';

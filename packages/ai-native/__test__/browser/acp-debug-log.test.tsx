@@ -18,7 +18,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useInjectable: (...args: unknown[]) => useInjectable(...args),
 }));
 
-jest.mock('@opensumi/ide-editor/lib/browser/types', () => ({
+jest.mock('@opensumi/ide-editor/types', () => ({
   BrowserEditorContribution: Symbol('BrowserEditorContribution'),
   EditorComponentRenderMode: {
     ONE_PER_WORKBENCH: 'ONE_PER_WORKBENCH',

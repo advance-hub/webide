@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { ILogger } from '@opensumi/ide-core-common';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/common/editor';
+import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { AttachFileContext, SerializedContext } from '../llm-context';

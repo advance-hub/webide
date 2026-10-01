@@ -11,12 +11,7 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import {
-  BrowserEditorContribution,
-  IResource,
-  IResourceProvider,
-  ResourceService,
-} from '@opensumi/ide-editor/lib/browser';
+import { BrowserEditorContribution, IResource, IResourceProvider, ResourceService } from '@opensumi/ide-editor/browser';
 
 import { MCPPreferencesSchema, MCPSchema, MCPSchemaUri } from './mcp-preferences';
 

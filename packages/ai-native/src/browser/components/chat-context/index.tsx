@@ -3,15 +3,12 @@ import React, { memo, useCallback, useEffect, useState } from 'react';
 
 import 'rc-collapse/assets/index.css';
 
-import { Icon } from '@opensumi/ide-components/lib/icon/icon';
-import { Popover, getIcon } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks/injectable-hooks';
-import { AppConfig } from '@opensumi/ide-core-browser/lib/react-providers/config-provider';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services/label-service';
-import { localize } from '@opensumi/ide-core-common/lib/localize';
-import { Event, URI } from '@opensumi/ide-core-common/lib/utils';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser/types';
+import { Icon } from '@opensumi/ide-components';
+import { AppConfig, LabelService, useInjectable } from '@opensumi/ide-core-browser';
+import { Popover, getIcon } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
+import { Event, URI, localize } from '@opensumi/ide-core-common';
+import { WorkbenchEditorService } from '@opensumi/ide-editor/types';
 
 import { FileContext, LLMContextService, LLMContextServiceToken } from '../../../common/llm-context';
 

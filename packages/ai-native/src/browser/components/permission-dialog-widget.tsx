@@ -2,7 +2,7 @@ import cls from 'classnames';
 import * as React from 'react';
 
 import { useInjectable } from '@opensumi/ide-core-browser';
-import { getIcon } from '@opensumi/ide-core-browser/lib/components';
+import { getIcon } from '@opensumi/ide-core-browser/components';
 
 import { ShowPermissionDialogParams } from '../acp';
 import { AcpPermissionBridgeService } from '../acp/permission-bridge.service';

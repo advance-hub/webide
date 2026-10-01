@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { getIcon, localize } from '@opensumi/ide-core-browser';
-import { Icon } from '@opensumi/ide-core-browser/lib/components';
+import { Icon } from '@opensumi/ide-core-browser/components';
 import { strings } from '@opensumi/ide-utils';
 
 import { cleanAttachedTextWrapper } from '../../common/utils';

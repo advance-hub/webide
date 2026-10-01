@@ -4,13 +4,13 @@ import React from 'react';
 import { COMMON_COMMANDS, PreferenceService, getIcon, localize, useInjectable } from '@opensumi/ide-core-browser';
 import {
   ACPAgentType,
+  AINativeSettingSectionsId,
   AgentConfig,
   ChatMessageRole,
   CommandService,
   PreferenceScope,
   URI,
 } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IChatInternalService } from '../../common';

@@ -10,19 +10,16 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useInjectable: (...args: unknown[]) => useInjectable(...args),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ iconClass }: { iconClass?: string }) => require('react').createElement('span', { 'data-icon': iconClass }),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   Loading: () => require('react').createElement('span', null, 'loading'),
 }));
 
 jest.mock('@opensumi/ide-core-common', () => ({
   uuid: () => 'uuid',
-}));
-
-jest.mock('@opensumi/ide-core-common/lib/localize', () => ({
   localize: (key: string) => key,
 }));
 

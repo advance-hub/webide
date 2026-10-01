@@ -1,7 +1,7 @@
 import { Autowired } from '@opensumi/di';
 import { ClientAppContribution } from '@opensumi/ide-core-browser';
 import { Disposable, Domain, URI } from '@opensumi/ide-core-common';
-import { Position } from '@opensumi/ide-extension/lib/common/vscode/ext-types';
+import { Position } from '@opensumi/ide-extension/vscode/types';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { ILsifService } from './lsif-service/base';

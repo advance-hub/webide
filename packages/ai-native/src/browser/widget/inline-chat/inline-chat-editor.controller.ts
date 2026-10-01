@@ -26,10 +26,10 @@ import {
 } from '@opensumi/ide-core-common';
 import { CONTEXT_IN_DEBUG_MODE_KEY } from '@opensumi/ide-debug';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 import * as monaco from '@opensumi/ide-monaco';
 import { ICodeEditor } from '@opensumi/ide-monaco';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { monacoApi } from '@opensumi/ide-monaco/api';
 
 import { AINativeContextKey } from '../../ai-core.contextkeys';
 import { BaseAIMonacoEditorController } from '../../contrib/base';

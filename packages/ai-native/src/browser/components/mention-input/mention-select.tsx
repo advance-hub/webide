@@ -1,8 +1,8 @@
 import cls from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { ClickOutside } from '@opensumi/ide-components/lib/click-outside';
-import { Icon, getIcon } from '@opensumi/ide-core-browser/lib/components';
+import { ClickOutside } from '@opensumi/ide-components/click-outside';
+import { Icon, getIcon } from '@opensumi/ide-core-browser/components';
 
 import styles from './mention-select.module.less';
 

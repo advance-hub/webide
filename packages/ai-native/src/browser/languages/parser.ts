@@ -1,7 +1,7 @@
 import Parser from 'web-tree-sitter';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import * as monaco from '@opensumi/ide-monaco/lib/common';
+import * as monaco from '@opensumi/ide-monaco';
 import { Deferred, IDisposable, LRUCache } from '@opensumi/ide-utils';
 
 import { INearestCodeBlock, NearestCodeBlockType } from '../../common/types';

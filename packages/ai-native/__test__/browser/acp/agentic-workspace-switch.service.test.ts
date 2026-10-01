@@ -1,5 +1,4 @@
-import { URI } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId, URI } from '@opensumi/ide-core-common';
 
 import { AgenticProjectRecord, AgenticTaskRecord } from '../../../src/browser/acp/agentic-task-registry.service';
 import { AgenticWorkspaceSwitchService } from '../../../src/browser/acp/agentic-workspace-switch.service';

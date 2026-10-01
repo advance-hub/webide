@@ -2,12 +2,10 @@ import cls from 'classnames';
 import { debounce } from 'lodash';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { ClickOutside } from '@opensumi/ide-components/lib/click-outside';
-import { AppConfig, LabelService } from '@opensumi/ide-core-browser';
-import { Icon, Input, Scrollbars } from '@opensumi/ide-core-browser/lib/components';
-import { RecentFilesManager } from '@opensumi/ide-core-browser/lib/quick-open/recent-files';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks/injectable-hooks';
-import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search/lib/common/file-search';
+import { ClickOutside } from '@opensumi/ide-components/click-outside';
+import { AppConfig, LabelService, RecentFilesManager, useInjectable } from '@opensumi/ide-core-browser';
+import { Icon, Input, Scrollbars } from '@opensumi/ide-core-browser/components';
+import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
 import { URI } from '@opensumi/ide-utils';
 
 import { FileContext } from '../../../common/llm-context';

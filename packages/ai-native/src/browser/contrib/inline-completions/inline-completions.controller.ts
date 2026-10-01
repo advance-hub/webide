@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
 
-import { AI_INLINE_COMPLETION_VISIBLE } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_INLINE_COMPLETION_VISIBLE } from '@opensumi/ide-core-browser/ai/commands';
 import {
   CommandService,
   CommandServiceImpl,
@@ -11,10 +11,10 @@ import {
   Sequencer,
   runWhenIdle,
 } from '@opensumi/ide-core-common';
-import { EditorSelectionChangeEvent } from '@opensumi/ide-editor/lib/browser';
+import { EditorSelectionChangeEvent } from '@opensumi/ide-editor/browser';
 import { ICodeEditor, InlineCompletions, Position, Range } from '@opensumi/ide-monaco';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { empty } from '@opensumi/ide-utils/lib/strings';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+import { empty } from '@opensumi/ide-utils/strings';
 import { InlineCompletionContextKeys } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/inlineCompletions/browser/controller/inlineCompletionContextKeys';
 
 import { IAIInlineCompletionsProvider } from '../../../common';

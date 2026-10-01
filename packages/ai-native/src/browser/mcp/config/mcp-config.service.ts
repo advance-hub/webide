@@ -1,6 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AppConfig, ILogger } from '@opensumi/ide-core-browser';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences';
+import { AppConfig, ILogger, PreferenceService } from '@opensumi/ide-core-browser';
 import {
   AINativeSettingSectionsId,
   Deferred,
@@ -10,9 +9,9 @@ import {
   PreferenceScope,
   STORAGE_NAMESPACE,
   StorageProvider,
+  WebMcpGroupRegistryToken,
   localize,
 } from '@opensumi/ide-core-common';
-import { WebMcpGroupRegistryToken } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMessageService } from '@opensumi/ide-overlay';
 
@@ -29,12 +28,7 @@ import { MCPServerProxyService } from '../mcp-server-proxy.service';
 
 import { MCPServerFormData } from './components/mcp-server-form';
 
-import type {
-  EnvVariable,
-  McpServer,
-  WebMcpGroupDef,
-  WebMcpProfile,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { EnvVariable, McpServer, WebMcpGroupDef, WebMcpProfile } from '@opensumi/ide-core-common';
 
 export const WEBMCP_PROFILE_OPTIONS: WebMcpProfile[] = ['minimal', 'default', 'interactive', 'full'];
 

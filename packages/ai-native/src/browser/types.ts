@@ -2,7 +2,7 @@ import { DataContent } from 'ai';
 import React from 'react';
 import { ZodSchema } from 'zod';
 
-import { AIActionItem } from '@opensumi/ide-core-browser/lib/components/ai-native/index';
+import { AIActionItem } from '@opensumi/ide-core-browser/components/ai';
 import {
   CancellationToken,
   ChatMessageRole,
@@ -26,7 +26,7 @@ import {
   NewSymbolNamesProvider,
   Position,
 } from '@opensumi/ide-monaco';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 import { IMarker } from '@opensumi/monaco-editor-core/esm/vs/platform/markers/common/markers';
 
 import { IChatWelcomeMessageContent, ISampleQuestions, ITerminalCommandSuggestionDesc } from '../common';
@@ -186,7 +186,7 @@ export type ChatInputRender = (props: {
   command: string;
   setCommand: (theme: string) => void;
   contextService?: LLMContextService;
-}) => React.ReactElement | React.JSX.Element;
+}) => React.ReactElement | React.JSX.Element | null;
 export type ChatViewHeaderRender = (props: {
   handleClear: () => any;
   handleCloseChatView: () => any;
@@ -522,9 +522,9 @@ export interface IAIMiddleware {
 }
 
 // Re-export ChatInput types for convenience
-export { IChatInputProps, ChatInputContribution, IChatInputRegistry } from './chat/chat.input.registry';
+export type { IChatInputProps, ChatInputContribution, IChatInputRegistry } from './chat/chat.input.registry';
 
 // Re-export ChatView and ChatHistory registry types for convenience
-export { ChatViewContribution, IChatViewRegistry } from './chat/chat.view.registry';
-export { ChatHistoryContribution, IChatHistoryRegistry } from './chat/chat.history.registry';
+export type { ChatViewContribution, IChatViewRegistry } from './chat/chat.view.registry';
+export type { ChatHistoryContribution, IChatHistoryRegistry } from './chat/chat.history.registry';
 export { ChatViewRegistryToken, ChatHistoryRegistryToken } from '@opensumi/ide-core-common';

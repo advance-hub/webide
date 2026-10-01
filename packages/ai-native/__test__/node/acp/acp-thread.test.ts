@@ -52,7 +52,7 @@ jest.mock('node-pty', () => ({
   spawn: jest.fn(),
 }));
 
-import { AgentProcessConfig } from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
+import { AgentProcessConfig } from '@opensumi/ide-core-common';
 
 import {
   AcpThread,
@@ -61,9 +61,16 @@ import {
   AcpThreadOptions,
   AcpThreadRuntimeConfig,
   AgentThreadEntry,
-  ThreadStatus,
-  ToolCallStatus,
+  IAcpThread,
 } from '../../../src/node/acp/acp-thread';
+
+import type { LoadSessionRequest, LoadSessionResponse, NewSessionResponse } from '@opensumi/ide-core-common';
+
+type AssertTrue<T extends true> = T;
+type LegacyAcpThread = Omit<IAcpThread, 'loadSessionOrNew' | 'retireSession'> & {
+  loadSessionOrNew(params: LoadSessionRequest): Promise<NewSessionResponse | LoadSessionResponse>;
+};
+const legacyAcpThreadIsCompatible: AssertTrue<LegacyAcpThread extends IAcpThread ? true : false> = true;
 
 // ---- Mock dependencies ----
 const mockLogger = {
@@ -139,6 +146,16 @@ function createTestConfig(): AgentProcessConfig {
   };
 }
 
+function createDeferred<T = void>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, reject, resolve };
+}
+
 /** Helper: extract UserMessageEntry from AgentThreadEntry */
 function getUserData(entry: AgentThreadEntry) {
   return entry.type === 'user_message' ? entry.data : null;
@@ -170,6 +187,11 @@ describe('AcpThread', () => {
 
     thread = new AcpThread(createTestOptions());
     Object.defineProperty(thread, 'logger', { value: mockLogger, writable: true });
+  });
+
+  it('keeps the legacy public thread contract source compatible', () => {
+    expect.assertions(1);
+    expect(legacyAcpThreadIsCompatible).toBe(true);
   });
 
   afterEach(async () => {
@@ -620,6 +642,322 @@ describe('AcpThread', () => {
       expect((thread as any)._childProcess).toBe(newMock);
     });
 
+    it('should share the startup grace period instead of letting a second start pass through early', async () => {
+      jest.useFakeTimers();
+      const newMock = createMockChildProcess(99998);
+      mockSpawn.mockReturnValue(newMock);
+
+      const firstStart = (thread as any).startProcess() as Promise<void>;
+      const secondStart = (thread as any).startProcess() as Promise<void>;
+
+      expect(secondStart).toBe(firstStart);
+      await Promise.resolve();
+      expect(mockSpawn).toHaveBeenCalledTimes(1);
+      expect((thread as any)._childProcess).toBe(newMock);
+
+      let settled = false;
+      void firstStart.then(() => {
+        settled = true;
+      });
+      jest.advanceTimersByTime(99);
+      await Promise.resolve();
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(1);
+      await Promise.all([firstStart, secondStart]);
+      expect(settled).toBe(true);
+      expect((thread as any)._processRunning).toBe(true);
+    });
+
+    it('should own and terminate a child spawned during the startup grace period', async () => {
+      jest.useFakeTimers();
+      const newMock = createMockChildProcess(99997);
+      mockSpawn.mockReturnValue(newMock);
+
+      const startOutcome = ((thread as any).startProcess() as Promise<void>).then(
+        () => undefined,
+        (error) => error as Error,
+      );
+      await Promise.resolve();
+      expect((thread as any)._childProcess).toBe(newMock);
+      expect((thread as any)._processRunning).toBe(true);
+
+      const disposal = thread.dispose();
+      expect(process.kill).toHaveBeenCalledWith(-99997, 'SIGTERM');
+      newMock.emit('exit', null, 'SIGTERM');
+      await disposal;
+
+      jest.advanceTimersByTime(100);
+      const startError = await startOutcome;
+      expect(startError).toBeInstanceOf(Error);
+      expect((thread as any)._childProcess).toBeNull();
+      expect((thread as any)._processRunning).toBe(false);
+      expect((thread as any)._connection).toBeNull();
+    });
+
+    it('should terminate a child whose pid appears after the bounded dispose wait', async () => {
+      jest.useFakeTimers();
+      const newMock = createMockChildProcess(99995);
+      newMock.pid = undefined;
+      mockSpawn.mockReturnValue(newMock);
+
+      const startOutcome = ((thread as any).startProcess() as Promise<void>).catch((error) => error as Error);
+      await Promise.resolve();
+      expect((thread as any)._childProcess).toBe(newMock);
+
+      const disposal = thread.dispose();
+      jest.advanceTimersByTime(100);
+      await disposal;
+      expect(await startOutcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect((thread as any)._childProcess).toBeNull();
+      expect((thread as any)._processRunning).toBe(false);
+
+      newMock.pid = 99995;
+      newMock.emit('spawn');
+
+      expect(process.kill).toHaveBeenCalledTimes(1);
+      expect(process.kill).toHaveBeenCalledWith(-99995, 'SIGKILL');
+      expect((thread as any)._childProcess).toBeNull();
+      expect((thread as any)._processRunning).toBe(false);
+    });
+
+    it('should reject initialize and clear process ownership when disposed during startup', async () => {
+      jest.useFakeTimers();
+      const newMock = createMockChildProcess(99996);
+      mockSpawn.mockReturnValue(newMock);
+
+      const initializeOutcome = thread.initialize(createTestConfig()).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mockSpawn).toHaveBeenCalledTimes(1);
+      expect((thread as any)._childProcess).toBe(newMock);
+
+      const disposal = thread.dispose();
+      newMock.emit('exit', null, 'SIGTERM');
+      await disposal;
+
+      expect(await initializeOutcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect(thread.initialized).toBe(false);
+      expect(thread.isProcessRunning).toBe(false);
+      expect(thread.isConnected).toBe(false);
+      expect((thread as any)._childProcess).toBeNull();
+      expect((thread as any)._connection).toBeNull();
+      expect(mockClientSideConnection).not.toHaveBeenCalled();
+    });
+
+    it('should reject a late initialize response and every later RPC after disposal', async () => {
+      const initializeGate = createDeferred<any>();
+      const initialize = jest.fn(() => initializeGate.promise);
+      (thread as any)._connected = true;
+      (thread as any)._connection = { initialize };
+
+      const initializeOutcome = thread.initialize(createTestConfig()).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await Promise.resolve();
+      expect(initialize).toHaveBeenCalledTimes(1);
+
+      await thread.dispose();
+      initializeGate.resolve({ protocolVersion: 1, agentCapabilities: {} });
+
+      expect(await initializeOutcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect(thread.initialized).toBe(false);
+      expect((thread as any)._connection).toBeNull();
+      await expect(thread.newSession()).rejects.toMatchObject({ name: 'AcpThreadDisposedError' });
+      await expect(thread.initialize(createTestConfig())).rejects.toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect(mockSpawn).not.toHaveBeenCalled();
+    });
+
+    it('should surface a late-created session id without restoring disposed thread state', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const newSession = jest.fn(() => newSessionGate.promise);
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { newSession };
+
+      const lateSession = thread.newSession();
+      await Promise.resolve();
+      expect(newSession).toHaveBeenCalledTimes(1);
+
+      await thread.dispose();
+      newSessionGate.resolve({ sessionId: 'late-real-session' });
+
+      await expect(lateSession).resolves.toEqual({ sessionId: 'late-real-session' });
+      expect(thread.sessionId).toBe('');
+      expect(thread.needsReset).toBe(false);
+      expect(thread.status).toBe('idle');
+      expect((thread as any)._connection).toBeNull();
+    });
+
+    it('rejects terminal requests while a new session id is still provisional', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { newSession: jest.fn(() => newSessionGate.promise) };
+      const client = (thread as any).createClientImpl();
+
+      const newSession = thread.newSession();
+      await Promise.resolve();
+      await expect(
+        client.createTerminal({ sessionId: 'stale-session', command: 'echo', args: [], cwd: '/tmp' }),
+      ).rejects.toMatchObject({ name: 'AcpThreadInactiveSessionError' });
+      expect(mockTerminalHandler.createTerminal).not.toHaveBeenCalled();
+
+      newSessionGate.resolve({ sessionId: 'real-session' });
+      await newSession;
+    });
+
+    it('releases a terminal whose creation completes after its session epoch is retired', async () => {
+      const terminalGate = createDeferred<{ terminalId: string }>();
+      const terminalStarted = createDeferred();
+      mockTerminalHandler.createTerminal.mockImplementationOnce(() => {
+        terminalStarted.resolve();
+        return terminalGate.promise;
+      });
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession: jest.fn().mockResolvedValue({ sessionId: 'active-session' }) };
+      await thread.loadSession({ sessionId: 'active-session', cwd: '/test/workspace', mcpServers: [] });
+      const client = (thread as any).createClientImpl();
+
+      const terminalOutcome = client
+        .createTerminal({ sessionId: 'active-session', command: 'echo', args: [], cwd: '/tmp' })
+        .then(
+          (result: unknown) => result,
+          (error: Error) => error,
+        );
+      await terminalStarted.promise;
+      thread.retireSession('active-session');
+      terminalGate.resolve({ terminalId: 'late-terminal' });
+
+      expect(await terminalOutcome).toMatchObject({ name: 'AcpThreadInactiveSessionError' });
+      expect(mockTerminalHandler.releaseTerminal).toHaveBeenCalledWith('late-terminal', 'active-session');
+    });
+
+    it('reports a handler-level error while compensating a late terminal creation', async () => {
+      const terminalGate = createDeferred<{ terminalId: string }>();
+      mockTerminalHandler.createTerminal.mockReturnValueOnce(terminalGate.promise);
+      mockTerminalHandler.releaseTerminal.mockResolvedValueOnce({ error: { message: 'release failed' } });
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession: jest.fn().mockResolvedValue({ sessionId: 'active-session' }) };
+      await thread.loadSession({ sessionId: 'active-session', cwd: '/test/workspace', mcpServers: [] });
+      const client = (thread as any).createClientImpl();
+
+      const terminalOutcome = client
+        .createTerminal({ sessionId: 'active-session', command: 'echo', args: [], cwd: '/tmp' })
+        .catch((error: Error) => error);
+      await Promise.resolve();
+      thread.retireSession('active-session');
+      terminalGate.resolve({ terminalId: 'late-terminal' });
+
+      expect(await terminalOutcome).toMatchObject({ name: 'AcpThreadInactiveSessionError' });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to release a terminal created after session retirement'),
+        expect.objectContaining({ message: 'release failed' }),
+      );
+    });
+
+    it('ignores a session notification delivered after that session epoch is retired', async () => {
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession: jest.fn().mockResolvedValue({ sessionId: 'retired-session' }) };
+      await thread.loadSession({ sessionId: 'retired-session', cwd: '/test/workspace', mcpServers: [] });
+      const client = (thread as any).createClientImpl();
+      const events: any[] = [];
+      thread.onEvent((event) => events.push(event));
+      thread.retireSession('retired-session');
+
+      await client.sessionUpdate({
+        sessionId: 'retired-session',
+        update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'late' } },
+      });
+
+      expect(thread.entries).toHaveLength(0);
+      expect(events.filter(({ type }) => type === 'session_notification')).toHaveLength(0);
+    });
+
+    it('rejects file and permission side effects after a session epoch is retired', async () => {
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession: jest.fn().mockResolvedValue({ sessionId: 'retired-session' }) };
+      await thread.loadSession({ sessionId: 'retired-session', cwd: '/test/workspace', mcpServers: [] });
+      const client = (thread as any).createClientImpl();
+      thread.retireSession('retired-session');
+
+      await expect(
+        client.writeTextFile({ sessionId: 'retired-session', path: '/tmp/late', content: 'late' }),
+      ).rejects.toMatchObject({ name: 'AcpThreadInactiveSessionError' });
+      await expect(
+        client.requestPermission({
+          sessionId: 'retired-session',
+          toolCall: { toolCallId: 'late-tool', title: 'late', kind: 'other' },
+          options: [],
+        }),
+      ).rejects.toMatchObject({ name: 'AcpThreadInactiveSessionError' });
+      expect(mockFileSystemHandler.writeTextFile).not.toHaveBeenCalled();
+      expect(mockPermissionRouting.routePermissionRequest).not.toHaveBeenCalled();
+    });
+
+    it('should not treat disposal during loadSession as a not-found fallback', async () => {
+      const loadSessionGate = createDeferred<{ sessionId: string }>();
+      const loadSession = jest.fn(() => loadSessionGate.promise);
+      const newSession = jest.fn().mockResolvedValue({ sessionId: 'must-not-be-created' });
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession, newSession };
+
+      const loadOutcome = thread
+        .loadSessionOrNew({ sessionId: 'existing-session', cwd: '/test/workspace', mcpServers: [] })
+        .then(
+          (result) => result,
+          (error) => error as Error,
+        );
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(loadSession).toHaveBeenCalledTimes(1);
+
+      await thread.dispose();
+      loadSessionGate.resolve({ sessionId: 'existing-session' });
+
+      expect(await loadOutcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect(newSession).not.toHaveBeenCalled();
+      expect((thread as any)._connection).toBeNull();
+    });
+
+    it('should surface a late-created fallback session id without restoring disposed thread state', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const loadSession = jest.fn().mockRejectedValue(new Error('session not found'));
+      const newSession = jest.fn(() => newSessionGate.promise);
+      (thread as any)._connected = true;
+      (thread as any)._initialized = true;
+      (thread as any)._connection = { loadSession, newSession };
+
+      const fallbackSession = thread.loadSessionOrNew({
+        sessionId: 'missing-session',
+        cwd: '/test/workspace',
+        mcpServers: [],
+      });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(loadSession).toHaveBeenCalledTimes(1);
+      expect(newSession).toHaveBeenCalledTimes(1);
+
+      await thread.dispose();
+      newSessionGate.resolve({ sessionId: 'late-fallback-session' });
+
+      await expect(fallbackSession).resolves.toEqual({
+        sessionId: 'late-fallback-session',
+        createdByFallback: true,
+      });
+      expect(thread.sessionId).toBe('');
+      expect(thread.sessionId).not.toBe('late-fallback-session');
+      expect(thread.needsReset).toBe(false);
+      expect((thread as any)._connection).toBeNull();
+    });
+
     it('should accept AgentProcessConfig in initialize()', async () => {
       (thread as any)._childProcess = mockChildProcess;
       (thread as any)._processRunning = true;
@@ -677,6 +1015,25 @@ describe('AcpThread', () => {
       expect(killSpy).toHaveBeenCalled();
       expect((thread as any)._processRunning).toBe(false);
       expect((thread as any)._childProcess).toBeNull();
+    });
+
+    it('should share one in-flight disposal and kill the process once', async () => {
+      let finishKill!: () => void;
+      const kill = new Promise<void>((resolve) => {
+        finishKill = resolve;
+      });
+      const killSpy = jest.spyOn(thread as any, 'killProcess').mockReturnValue(kill);
+
+      const firstDisposal = thread.dispose();
+      const secondDisposal = thread.dispose();
+
+      expect(secondDisposal).toBe(firstDisposal);
+      expect(killSpy).toHaveBeenCalledTimes(1);
+
+      finishKill();
+      await Promise.all([firstDisposal, secondDisposal]);
+
+      expect(killSpy).toHaveBeenCalledTimes(1);
     });
   });
 

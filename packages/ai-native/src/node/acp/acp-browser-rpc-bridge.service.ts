@@ -3,12 +3,12 @@ import { CLIENT_ID_TOKEN } from '@opensumi/ide-core-common';
 
 import { AcpBrowserRpcRegistry } from './acp-browser-rpc-registry';
 
-import type { IDisposable } from '@opensumi/ide-core-common';
 import type {
   IAcpPermissionService,
   IAcpThreadStatusService,
   IAcpWebMcpBridgeService,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+  IDisposable,
+} from '@opensumi/ide-core-common';
 
 export const AcpPermissionRpcBridgeServiceToken = Symbol('AcpPermissionRpcBridgeServiceToken');
 export const AcpThreadStatusRpcBridgeServiceToken = Symbol('AcpThreadStatusRpcBridgeServiceToken');

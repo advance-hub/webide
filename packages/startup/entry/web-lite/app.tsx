@@ -1,8 +1,8 @@
-import '@opensumi/ide-i18n/lib/browser';
+import '@opensumi/ide-i18n/browser';
 import * as React from 'react';
 
 import { SlotLocation } from '@opensumi/ide-core-browser';
-import { LOCALE_TYPES } from '@opensumi/ide-core-common/lib/const';
+import { LOCALE_TYPES } from '@opensumi/ide-core-common/const';
 
 import { SampleModule } from '../sample-modules';
 
@@ -11,7 +11,7 @@ import { WebLiteModule } from './lite-module';
 import { renderApp } from './render-app';
 
 // 引入公共样式文件
-import '@opensumi/ide-core-browser/lib/style/index.less';
+import '@opensumi/ide-core-browser/styles/index.less';
 import './styles.less';
 
 // 视图和slot插槽的对应关系

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { AgentProcessConfig } from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
+import { AgentProcessConfig } from '@opensumi/ide-core-common';
 
 /**
  * Pure function: resolve AgentProcessConfig + node-local information into
@@ -33,7 +33,9 @@ export function resolveAgentSpawnConfig(input: {
 
   // 3. Final env: process + merged env + forced NODE/PATH
   const envFromConfig: Record<string, string> = {};
-  for (const v of input.config.env ?? []) {envFromConfig[v.name] = v.value;}
+  for (const v of input.config.env ?? []) {
+    envFromConfig[v.name] = v.value;
+  }
 
   const env: Record<string, string> = {
     ...input.processEnv,

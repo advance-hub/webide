@@ -1,18 +1,9 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AINativeConfigService, PreferenceService } from '@opensumi/ide-core-browser';
-import {
-  ChatAgentViewServiceToken,
-  Disposable,
-  IApplicationService,
-  IDisposable,
-  MCPConfigServiceToken,
-} from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeConfigService } from '@opensumi/ide-core-browser';
+import { IDisposable } from '@opensumi/ide-core-common';
 
-import { DefaultChatAgentToken, IChatAgentService } from '../../common';
+import { DefaultChatAgentToken } from '../../common';
 import { ChatToolRender } from '../components/ChatToolRender';
-import { MCPConfigService } from '../mcp/config/mcp-config.service';
-import { IChatAgentViewService } from '../types';
 
 import { AcpChatAgent } from './acp-chat-agent';
 import { ChatProxyService } from './chat-proxy.service';

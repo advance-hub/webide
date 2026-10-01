@@ -2,8 +2,8 @@ import cls from 'classnames';
 import React from 'react';
 
 import { CommandService, QuickPickService, getIcon, useInjectable } from '@opensumi/ide-core-browser';
-import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Popover, PopoverPosition } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import {
   ChatMessageRole,
   DisposableCollection,

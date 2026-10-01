@@ -122,24 +122,27 @@ export class SumiMCPServerBackend extends RPCService<IMCPServerProxyService> imp
     );
 
     // 设置工具列表请求处理器
-    this.server.setRequestHandler(ListToolsRequestSchema, async (event) => {
+    (this.server.setRequestHandler as any)(ListToolsRequestSchema, async () => {
       const tools = await this.$getMCPTools();
       return { tools };
     });
 
     // 设置工具调用请求处理器
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      try {
-        const { name, arguments: args } = request.params;
-        return await this.callMCPTool(name, args);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        return {
-          content: [{ type: 'text', text: `Error: ${errorMessage}` }],
-          isError: true,
-        };
-      }
-    });
+    (this.server.setRequestHandler as any)(
+      CallToolRequestSchema,
+      async (request: { params: { name: string; arguments?: unknown } }) => {
+        try {
+          const { name, arguments: args } = request.params;
+          return await this.callMCPTool(name, args);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          return {
+            content: [{ type: 'text', text: `Error: ${errorMessage}` }],
+            isError: true,
+          };
+        }
+      },
+    );
 
     return this.server;
   }
@@ -234,7 +237,10 @@ export const TokenBuiltinMCPServer = Symbol('TokenBuiltinMCPServer');
 export class BuiltinMCPServer implements IMCPServer {
   private started: boolean = false;
 
-  constructor(private readonly sumiMCPServer: SumiMCPServerBackend, private readonly logger: ILogger) {}
+  constructor(
+    private readonly sumiMCPServer: SumiMCPServerBackend,
+    private readonly logger: ILogger,
+  ) {}
 
   isStarted(): boolean {
     return this.started;

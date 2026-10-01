@@ -12,7 +12,7 @@ import {
 } from '@opensumi/ide-core-common';
 import { ISingleEditOperation } from '@opensumi/ide-editor';
 import { ICodeEditor, IEditorDecorationsCollection, ITextModel, Position, Range } from '@opensumi/ide-monaco';
-import { StandaloneServices } from '@opensumi/ide-monaco/lib/browser/monaco-api/services';
+import { StandaloneServices } from '@opensumi/ide-monaco/api/services';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 import { LineRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/lineRange';

@@ -2,13 +2,13 @@
  * WebMCP group definition for IDE-backed search operations.
  */
 import { Injector } from '@opensumi/di';
-import { getValidateInput } from '@opensumi/ide-addons/lib/browser/file-search.contribution';
+import { getValidateInput } from '@opensumi/ide-addons/file-search';
 import { CancellationToken, CancellationTokenSource, URI } from '@opensumi/ide-core-common';
-import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
-import { ILanguageService } from '@opensumi/ide-editor/lib/common/language';
-import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search/lib/common';
-import { ContentSearchClientService } from '@opensumi/ide-search/lib/browser/search.service';
-import { ContentSearchResult, IContentSearchClientService, SEARCH_STATE } from '@opensumi/ide-search/lib/common';
+import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
+import { ILanguageService } from '@opensumi/ide-editor';
+import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
+import { ContentSearchResult, IContentSearchClientService, SEARCH_STATE } from '@opensumi/ide-search';
+import { ContentSearchClientService } from '@opensumi/ide-search/service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { WebMcpGroupRegistration } from '../webmcp-group-registry';

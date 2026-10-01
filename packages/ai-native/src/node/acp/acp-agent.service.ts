@@ -1,23 +1,25 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { Deferred, Disposable, Emitter, Event, IDisposable } from '@opensumi/ide-core-common';
-import { DEFAULT_ACP_THREAD_POOL_SIZE } from '@opensumi/ide-core-common/lib/settings/ai-native';
 import {
+  ACP_SESSION_NOT_FOUND_ERROR_NAME,
+  ACP_THREAD_POOL_SATURATED_ERROR_NAME,
   AcpDebugLogEntry,
+  AgentProcessConfig,
   AvailableCommand,
+  DEFAULT_ACP_THREAD_POOL_SIZE,
+  Deferred,
+  Disposable,
+  Emitter,
+  Event,
+  IDisposable,
   ListSessionsRequest,
   ListSessionsResponse,
   McpServer,
   OpenSumiMcpServerConnectionInfo,
   SessionInfo,
   SessionNotification,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
-import {
-  ACP_SESSION_NOT_FOUND_ERROR_NAME,
-  ACP_THREAD_POOL_SATURATED_ERROR_NAME,
-  AgentProcessConfig,
-} from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
+} from '@opensumi/ide-core-common';
 import { AppConfig, INodeLogger } from '@opensumi/ide-core-node';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { toAgentUpdate } from './acp-agent-update-adapter';
 import { acpDebugLogStore } from './acp-debug-log';
@@ -34,8 +36,8 @@ import { AcpTerminalHandler, AcpTerminalHandlerToken } from './handlers/terminal
 import { OpenSumiMcpHttpServer } from './opensumi-mcp-http-server';
 import { PermissionRoutingService, PermissionRoutingServiceToken } from './permission-routing.service';
 
-import type { AgentUpdate, AgentUpdateType, SimpleToolCall } from './acp-update-types';
-export { AgentUpdate, AgentUpdateType, SimpleToolCall } from './acp-update-types';
+import type { AgentUpdate } from './acp-update-types';
+export type { AgentUpdate, AgentUpdateType, SimpleToolCall } from './acp-update-types';
 
 // ============================================================================
 // DI Token
@@ -50,6 +52,57 @@ const WEBMCP_CAPABILITY_HINT = [
 ].join('\n');
 
 const PENDING_CREATE_SESSION_LOG_LABEL = 'pending-create-session';
+const ACP_STOP_LEASE_MS = 8000;
+
+type StopOperationKind = 'foreground' | 'thread' | 'warmup';
+
+interface BoundedSettlement<T> {
+  outcomes: Array<PromiseSettledResult<T> | undefined>;
+  timedOut: boolean;
+}
+
+function createStopTimeoutError(scope: string): Error {
+  const error = new Error(`ACP Agent service stop lease expired while waiting for ${scope}`);
+  error.name = 'AcpAgentServiceStopTimeoutError';
+  return error;
+}
+
+async function settleWithinDeadline<T>(operations: Promise<T>[], deadline: number): Promise<BoundedSettlement<T>> {
+  if (operations.length === 0) {
+    return { outcomes: [], timedOut: false };
+  }
+
+  const outcomes: Array<PromiseSettledResult<T> | undefined> = new Array(operations.length);
+  const settlement = Promise.all(
+    operations.map((operation, index) =>
+      operation.then(
+        (value) => {
+          outcomes[index] = { status: 'fulfilled', value };
+        },
+        (reason) => {
+          outcomes[index] = { status: 'rejected', reason };
+        },
+      ),
+    ),
+  ).then(() => false);
+  const remaining = Math.max(0, deadline - Date.now());
+  if (remaining === 0) {
+    return { outcomes, timedOut: true };
+  }
+
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = await Promise.race([
+    settlement,
+    new Promise<boolean>((resolve) => {
+      timeout = setTimeout(() => resolve(true), remaining);
+      timeout.unref?.();
+    }),
+  ]);
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+  return { outcomes, timedOut };
+}
 
 function mapSessionLoadError(error: unknown): unknown {
   if (error && typeof error === 'object' && (error as { code?: unknown }).code === -32002) {
@@ -59,6 +112,18 @@ function mapSessionLoadError(error: unknown): unknown {
   }
 
   return error;
+}
+
+interface AcpLoadSessionFallbackProvenance {
+  createdByFallback: boolean;
+}
+
+function hasAcpLoadSessionFallbackProvenance(value: unknown): value is AcpLoadSessionFallbackProvenance {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { createdByFallback?: unknown }).createdByFallback === 'boolean'
+  );
 }
 
 // ============================================================================
@@ -109,14 +174,49 @@ export interface AgentSessionSnapshot extends SessionLoadResult {
 }
 
 export type AgentSessionAttachmentUpdate =
-  | { type: 'snapshot'; snapshot: AgentSessionSnapshot }
-  | { type: 'update'; update: AgentUpdate };
+  { type: 'snapshot'; snapshot: AgentSessionSnapshot } | { type: 'update'; update: AgentUpdate };
 
 interface PendingSessionLoad {
   promise: Promise<SessionLoadResult>;
   refCount: number;
   thread: AcpThread;
+  boundSessionId: string;
   closeRequested: boolean;
+  terminalReleaseOwnedByStop: boolean;
+  cleanup: SessionOperationCleanup;
+}
+
+type SessionOperationKind = 'create' | 'load' | 'load-or-new';
+type SessionIdentityOrigin = 'requested' | 'created';
+type SessionCleanupOwner = 'operation' | 'disposer' | 'stop';
+
+interface SessionOperationIdentity {
+  readonly sessionId: string;
+  readonly origin: SessionIdentityOrigin;
+  owner: SessionCleanupOwner;
+  releaseGeneration?: number;
+  releasePromise?: Promise<void>;
+  terminalRetired: boolean;
+}
+
+interface SessionOperationCleanup {
+  readonly kind: SessionOperationKind;
+  readonly thread: AcpThread;
+  readonly identities: SessionOperationIdentity[];
+  owner: SessionCleanupOwner;
+  closeRequested: boolean;
+  readonly closeDeferred: Deferred<void>;
+  readonly completionDeferred: Deferred<void>;
+  forceDisposeRequested: boolean;
+}
+
+interface TerminalReleaseState {
+  requestedGeneration: number;
+  completedGeneration: number;
+  inFlight?: {
+    throughGeneration: number;
+    promise: Promise<void>;
+  };
 }
 
 type AgentThreadRuntimeConfigKey = Pick<
@@ -327,6 +427,11 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   // Threads reserved by createSession() before the real ACP sessionId is known.
   private reservedThreads = new Set<AcpThread>();
 
+  // Threads whose session identity is being retired. This reservation is
+  // independent from acquisition reservations so one operation cannot release
+  // another operation's reuse fence.
+  private retiringThreads = new Map<AcpThread, number>();
+
   // Threads that have been added to the pool but are still completing ACP
   // initialize(). They cannot be used until a caller explicitly claims them.
   private warmingThreads = new Map<AcpThread, Promise<void>>();
@@ -337,7 +442,24 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   // Service lifecycle gate. Foreground acquisition operations that started
   // before shutdown are drained before any pooled process is disposed.
   private stopping = false;
+  private terminallyDisposed = false;
+  private disposePromise: Promise<void> | undefined;
+  private stopPromise: Promise<void> | undefined;
+  private stopLeaseMs = ACP_STOP_LEASE_MS;
+  private availableCommandsWaitMs = 5000;
+  private stopTimedOut = false;
+  private ownershipRetirementFailed = false;
   private foregroundOperations = new Set<Promise<unknown>>();
+  private attachmentStreams = new Set<SumiReadableStream<AgentSessionAttachmentUpdate>>();
+  private pendingRetirementOperations = new Map<Promise<unknown>, StopOperationKind>();
+  private sessionCleanupOperations = new Set<SessionOperationCleanup>();
+  private pendingTerminalReleaseIds = new Set<string>();
+  private terminalReleaseOperations = new Map<string, Promise<void>>();
+  private terminalReleaseStates = new Map<string, TerminalReleaseState>();
+  private terminalReleaseGeneration = 0;
+  private lateTerminalReleaseIds = new Set<string>();
+  private lateTerminalCleanupOperations = new Map<string, Promise<void>>();
+  private terminalCleanupSnapshotTaken = false;
 
   // Pool limit (configurable)
   private maxPoolSize = DEFAULT_ACP_THREAD_POOL_SIZE;
@@ -442,9 +564,9 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
   private isThreadCapacityReclaimable(thread: AcpThread, sessionId = this.getBoundSessionId(thread)): boolean {
     if (
-      this.reservedThreads.has(thread) ||
+      this.isThreadReserved(thread) ||
       this.warmingThreads.has(thread) ||
-      (sessionId ? this.pendingSessionLoads.has(sessionId) : false)
+      (sessionId ? Boolean(this.getPendingSessionLoad(sessionId)) : false)
     ) {
       return false;
     }
@@ -458,19 +580,21 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   }
 
   private createServiceStoppingError(): Error {
-    const error = new Error('ACP Agent service is stopping');
-    error.name = 'AcpAgentServiceStoppingError';
+    const error = new Error(
+      this.terminallyDisposed ? 'ACP Agent service is disposed' : 'ACP Agent service is stopping',
+    );
+    error.name = this.terminallyDisposed ? 'AcpAgentServiceDisposedError' : 'AcpAgentServiceStoppingError';
     return error;
   }
 
   private throwIfStopping(): void {
-    if (this.stopping) {
+    if (this.stopping || this.terminallyDisposed) {
       throw this.createServiceStoppingError();
     }
   }
 
   private trackForegroundOperation<T>(operation: () => Promise<T>): Promise<T> {
-    if (this.stopping) {
+    if (this.stopping || this.terminallyDisposed) {
       return Promise.reject(this.createServiceStoppingError());
     }
 
@@ -485,6 +609,179 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
       });
     this.foregroundOperations.add(tracked);
     return tracked;
+  }
+
+  private trackStartedForegroundOperation<T>(operation: Promise<T>): Promise<T> {
+    let tracked!: Promise<T>;
+    tracked = operation.finally(() => {
+      this.foregroundOperations.delete(tracked);
+    });
+    this.foregroundOperations.add(tracked);
+    return tracked;
+  }
+
+  private trackRetirementOperation<T>(operation: Promise<T>, kind: StopOperationKind): Promise<T> {
+    let tracked!: Promise<T>;
+    tracked = operation.finally(() => {
+      this.pendingRetirementOperations.delete(tracked);
+    });
+    this.pendingRetirementOperations.set(tracked, kind);
+    if (kind === 'thread') {
+      void tracked.catch((error) => {
+        this.ownershipRetirementFailed = true;
+        this.logger?.warn('[AcpAgentService] A thread retirement failed after stop ownership was sealed.', error);
+      });
+    }
+    return tracked;
+  }
+
+  /**
+   * Session RPCs own terminal cleanup through an operation-scoped token. The
+   * token survives map rebinding and distinguishes a fallback-created session
+   * from the requested session even when both use the same string id.
+   */
+  private beginSessionOperation(kind: SessionOperationKind, thread: AcpThread): SessionOperationCleanup {
+    const cleanup: SessionOperationCleanup = {
+      kind,
+      thread,
+      identities: [],
+      owner: this.stopping || this.terminallyDisposed ? 'stop' : 'operation',
+      closeRequested: false,
+      closeDeferred: new Deferred<void>(),
+      completionDeferred: new Deferred<void>(),
+      forceDisposeRequested: false,
+    };
+    this.sessionCleanupOperations.add(cleanup);
+    return cleanup;
+  }
+
+  private finishSessionOperation(cleanup: SessionOperationCleanup): void {
+    this.sessionCleanupOperations.delete(cleanup);
+    cleanup.completionDeferred.resolve();
+  }
+
+  private requestSessionOperationClose(cleanup: SessionOperationCleanup): void {
+    cleanup.closeRequested = true;
+    cleanup.closeDeferred.resolve();
+  }
+
+  private throwIfSessionOperationClosed(cleanup: SessionOperationCleanup): void {
+    if (cleanup.closeRequested) {
+      throw new Error('ACP session operation was disposed before completion');
+    }
+  }
+
+  private observeSessionOperationIdentity(
+    cleanup: SessionOperationCleanup,
+    sessionId: string,
+    origin: SessionIdentityOrigin,
+  ): SessionOperationIdentity {
+    const identity: SessionOperationIdentity = {
+      sessionId,
+      origin,
+      owner: cleanup.owner,
+      terminalRetired: false,
+    };
+    cleanup.identities.push(identity);
+    if (identity.owner !== 'operation') {
+      cleanup.thread.retireSession?.(identity.sessionId);
+      this.queueSessionOperationIdentity(identity);
+    }
+    return identity;
+  }
+
+  private transferSessionOperationCleanup(
+    cleanup: SessionOperationCleanup,
+    owner: Exclude<SessionCleanupOwner, 'operation'>,
+  ): void {
+    // Stop is the terminal lifecycle owner and cannot be downgraded by a
+    // concurrent disposeSession call.
+    if (cleanup.owner === 'stop' && owner !== 'stop') {
+      return;
+    }
+    cleanup.owner = owner;
+    for (const identity of cleanup.identities) {
+      identity.owner = owner;
+      cleanup.thread.retireSession?.(identity.sessionId);
+      this.queueSessionOperationIdentity(identity);
+    }
+  }
+
+  private queueSessionOperationIdentity(identity: SessionOperationIdentity): number | undefined {
+    if (identity.terminalRetired) {
+      return undefined;
+    }
+    if (identity.releaseGeneration === undefined) {
+      identity.releaseGeneration = this.requestSessionTerminalRelease(identity.sessionId);
+    }
+    if (identity.owner === 'disposer') {
+      this.scheduleDisposerTerminalRelease(identity);
+    }
+    return identity.releaseGeneration;
+  }
+
+  private scheduleDisposerTerminalRelease(identity: SessionOperationIdentity): void {
+    void this.retireSessionOperationIdentity(identity).catch((error) => {
+      this.logger?.warn(
+        `[AcpAgentService] Failed to release terminals owned by disposeSession for ${identity.sessionId}`,
+        error,
+      );
+    });
+  }
+
+  private async retireSessionOperationIdentity(identity: SessionOperationIdentity): Promise<void> {
+    if (identity.terminalRetired) {
+      return;
+    }
+    if (identity.releaseGeneration === undefined) {
+      identity.releaseGeneration = this.requestSessionTerminalRelease(identity.sessionId);
+    }
+    const generation = identity.releaseGeneration;
+    let release = identity.releasePromise;
+    if (!release) {
+      release = this.releaseSessionTerminalsOnce(identity.sessionId, generation);
+      identity.releasePromise = release;
+    }
+    try {
+      await release;
+      identity.terminalRetired = true;
+    } catch (error) {
+      if (identity.releasePromise === release) {
+        identity.releasePromise = undefined;
+      }
+      throw error;
+    }
+  }
+
+  private async drainSessionOperationCleanup(cleanup: SessionOperationCleanup): Promise<void> {
+    const releases = cleanup.identities.map((identity) => this.retireSessionOperationIdentity(identity));
+    await Promise.all(releases);
+  }
+
+  private trackAttachmentStream(
+    stream: SumiReadableStream<AgentSessionAttachmentUpdate>,
+    disposeSubscription: () => void,
+  ): void {
+    let settle!: () => void;
+    const tracked = new Promise<void>((resolve) => {
+      settle = resolve;
+    });
+    let settled = false;
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      disposeSubscription();
+      this.attachmentStreams.delete(stream);
+      this.foregroundOperations.delete(tracked);
+      settle();
+    };
+
+    this.attachmentStreams.add(stream);
+    this.foregroundOperations.add(tracked);
+    stream.onEnd(finish);
+    stream.onError(finish);
   }
 
   private createThreadRuntimeConfigKey(config: AgentThreadRuntimeConfigKey): string {
@@ -515,10 +812,27 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     return this.threadRuntimeConfigKeys.get(thread) === this.createThreadRuntimeConfigKey(config);
   }
 
+  private isThreadReserved(thread: AcpThread): boolean {
+    return this.reservedThreads.has(thread) || this.retiringThreads.has(thread);
+  }
+
+  private retainThreadRetirement(thread: AcpThread): void {
+    this.retiringThreads.set(thread, (this.retiringThreads.get(thread) ?? 0) + 1);
+  }
+
+  private releaseThreadRetirement(thread: AcpThread): void {
+    const remaining = (this.retiringThreads.get(thread) ?? 1) - 1;
+    if (remaining > 0) {
+      this.retiringThreads.set(thread, remaining);
+    } else {
+      this.retiringThreads.delete(thread);
+    }
+  }
+
   private findReusableIdleThread(config: AgentProcessConfig): AcpThread | undefined {
     return this.threadPool.find(
       (thread) =>
-        !this.reservedThreads.has(thread) &&
+        !this.isThreadReserved(thread) &&
         !this.warmingThreads.has(thread) &&
         !this.hasActiveSession(thread) &&
         this.canReuseThreadForConfig(thread, config) &&
@@ -533,7 +847,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   private async reserveWarmingThread(config: AgentProcessConfig): Promise<AcpThread | undefined> {
     const thread = this.threadPool.find(
       (candidate) =>
-        !this.reservedThreads.has(candidate) &&
+        !this.isThreadReserved(candidate) &&
         !this.hasActiveSession(candidate) &&
         this.canReuseThreadForConfig(candidate, config) &&
         this.warmingThreads.has(candidate),
@@ -572,7 +886,22 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     return undefined;
   }
 
-  private clearSessionRuntimeState(sessionId: string): void {
+  private getPendingSessionLoad(sessionId: string): PendingSessionLoad | undefined {
+    return (
+      this.pendingSessionLoads.get(sessionId) ??
+      Array.from(this.pendingSessionLoads.values()).find((pending) => pending.boundSessionId === sessionId)
+    );
+  }
+
+  private clearSessionRuntimeState(sessionId: string, expectedThread?: AcpThread): void {
+    const currentThread = this.sessions.get(sessionId);
+    // Cleanup may await terminal/process retirement while admission remains
+    // open. Never let an older session identity erase a newer binding that
+    // reused the same ACP session-id string in that window.
+    if (expectedThread && currentThread && currentThread !== expectedThread) {
+      return;
+    }
+    (currentThread ?? expectedThread)?.retireSession?.(sessionId);
     this.permissionRouting.unregisterSession(sessionId);
     this.unregisterThreadStatusListener(sessionId);
     this.sessions.delete(sessionId);
@@ -581,8 +910,13 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   }
 
   private async releaseSessionResources(sessionId: string): Promise<void> {
-    this.clearSessionRuntimeState(sessionId);
-    await this.terminalHandler.releaseSessionTerminals(sessionId);
+    const thread = this.sessions.get(sessionId);
+    this.clearSessionRuntimeState(sessionId, thread);
+    const generation = this.requestSessionTerminalRelease(sessionId);
+    if (this.stopping || this.terminallyDisposed) {
+      return;
+    }
+    await this.releaseSessionTerminalsOnce(sessionId, generation);
   }
 
   private removeThreadFromPool(thread: AcpThread): void {
@@ -601,15 +935,32 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     thread.reset();
   }
 
-  private async cleanupFailedSessionOperation(sessionId: string | undefined, thread: AcpThread): Promise<void> {
-    if (sessionId) {
-      try {
-        await this.releaseSessionResources(sessionId);
-      } catch (error) {
-        this.logger.warn(`[AcpAgentService] Failed to release resources for unsuccessful session ${sessionId}`, error);
+  private async cleanupFailedSessionOperation(cleanup: SessionOperationCleanup, thread: AcpThread): Promise<void> {
+    this.retainThreadRetirement(thread);
+    try {
+      const operationOwnedIdentities = cleanup.identities.filter(({ owner }) => owner === 'operation');
+      // All owners may clear in-memory bindings. Only the operation owner may
+      // release terminals here; disposer/stop already own those release tokens.
+      for (const sessionId of new Set(cleanup.identities.map(({ sessionId }) => sessionId))) {
+        this.clearSessionRuntimeState(sessionId, cleanup.thread);
       }
+      const releases = operationOwnedIdentities.map(async (identity) => {
+        try {
+          await this.retireSessionOperationIdentity(identity);
+        } catch (error) {
+          this.logger.warn(
+            `[AcpAgentService] Failed to release resources for unsuccessful session ${identity.sessionId}`,
+            error,
+          );
+        }
+      });
+      await Promise.all(releases);
+      if (!cleanup.forceDisposeRequested) {
+        await this.recoverThreadAfterSessionFailure(thread);
+      }
+    } finally {
+      this.releaseThreadRetirement(thread);
     }
-    await this.recoverThreadAfterSessionFailure(thread);
   }
 
   private createReservedThread(sessionId: string | undefined, config: AgentProcessConfig): AcpThread {
@@ -686,9 +1037,9 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   private getThreadAllocationDiagnostics(thread: AcpThread, config: AgentProcessConfig) {
     const sessionId = this.getBoundSessionId(thread);
     const status = thread.getStatus();
-    const reserved = this.reservedThreads.has(thread);
+    const reserved = this.isThreadReserved(thread);
     const warming = this.warmingThreads.has(thread);
-    const pendingLoad = sessionId ? this.pendingSessionLoads.has(sessionId) : false;
+    const pendingLoad = sessionId ? Boolean(this.getPendingSessionLoad(sessionId)) : false;
     const runtimeCompatible = this.canReuseThreadForConfig(thread, config);
     const processReusable = this.isThreadProcessReusable(thread);
     const capacityReclaimable = this.isThreadCapacityReclaimable(thread, sessionId);
@@ -772,9 +1123,9 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
     for (const [sessionId, thread] of this.sessions) {
       if (
-        this.reservedThreads.has(thread) ||
+        this.isThreadReserved(thread) ||
         this.warmingThreads.has(thread) ||
-        this.pendingSessionLoads.has(sessionId) ||
+        Boolean(this.getPendingSessionLoad(sessionId)) ||
         thread.getStatus() !== 'awaiting_prompt' ||
         !this.canReuseThreadForConfig(thread, request.config)
       ) {
@@ -815,7 +1166,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
     const incompatibleWarmingThread = this.threadPool.find(
       (thread) =>
-        !this.reservedThreads.has(thread) &&
+        !this.isThreadReserved(thread) &&
         !this.hasActiveSession(thread) &&
         this.warmingThreads.has(thread) &&
         !this.canReuseThreadForConfig(thread, request.config),
@@ -935,7 +1286,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
    * of spawning another process.
    */
   async warmUpAgentPool(config: AgentProcessConfig): Promise<void> {
-    if (this.stopping) {
+    if (this.stopping || this.terminallyDisposed) {
       return;
     }
     this.syncMaxPoolSize(config);
@@ -1036,6 +1387,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   }
 
   async getOpenSumiMcpServerConnection(clientId?: string): Promise<OpenSumiMcpServerConnectionInfo> {
+    this.throwIfStopping();
     if (!this.opensumiMcpHttpServer) {
       throw new Error('[AcpAgentService] OpenSumi MCP server is not available');
     }
@@ -1070,6 +1422,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   }> {
     this.logger.log(`[AcpAgentService] createSession() — cwd=${config.cwd}, command=${config.command}`);
     const thread = await this.findOrCreateIdleThread(config);
+    const cleanup = this.beginSessionOperation('create', thread);
 
     const availableCommands: AvailableCommand[] = [];
     const deferred = new Deferred<void>();
@@ -1097,20 +1450,32 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
       }
 
       const mcpServers = await this.getSessionMcpServers(thread, config);
+      this.throwIfStopping();
       const newSessionResponse = await thread.newSession({
         cwd: config.cwd,
         mcpServers,
       } as any);
 
       realSessionId = newSessionResponse.sessionId;
+      this.observeSessionOperationIdentity(cleanup, realSessionId, 'created');
+      this.throwIfStopping();
+      this.throwIfSessionOperationClosed(cleanup);
       this.setBuiltInMcpSessionState(realSessionId, this.didAppendBuiltInMcpServer(config, mcpServers));
       await this.applyDefaultSessionOptions(realSessionId, thread, config);
+      this.throwIfStopping();
+      this.throwIfSessionOperationClosed(cleanup);
       this.bindSession(realSessionId, thread);
       this.sessionRefCounts.set(realSessionId, 1);
       this.permissionRouting.registerSession(realSessionId);
       this.registerThreadStatusListener(realSessionId, thread);
 
-      await Promise.race([deferred.promise, new Promise<void>((resolve) => setTimeout(resolve, 5000))]);
+      await Promise.race([
+        deferred.promise,
+        cleanup.closeDeferred.promise,
+        new Promise<void>((resolve) => setTimeout(resolve, this.availableCommandsWaitMs)),
+      ]);
+      this.throwIfStopping();
+      this.throwIfSessionOperationClosed(cleanup);
 
       const seen = new Set<string>();
       const deduplicated = availableCommands.filter((cmd) => {
@@ -1145,9 +1510,10 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
       };
     } catch (e) {
       this.logger.error(`[AcpAgentService] createSession() — failed: ${getAcpErrorMessage(e)}`);
-      await this.cleanupFailedSessionOperation(realSessionId, thread);
+      await this.cleanupFailedSessionOperation(cleanup, thread);
       throw e;
     } finally {
+      this.finishSessionOperation(cleanup);
       this.reservedThreads.delete(thread);
       disposable.dispose();
     }
@@ -1182,9 +1548,9 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     // 1. If a load for this session is already in flight, join it. The
     // sessions map may already contain a pre-registered thread at this point,
     // but that thread is not safe to expose until the load RPC completes.
-    const pendingLoad = this.pendingSessionLoads.get(sessionId);
+    const pendingLoad = this.getPendingSessionLoad(sessionId);
     if (pendingLoad) {
-      pendingLoad.refCount += 1;
+      this.retainPendingSessionLoad(pendingLoad);
       this.logger.log(
         `[AcpAgentService] loadSession() — joining pending load, sessionId=${sessionId}, refs=${pendingLoad.refCount}`,
       );
@@ -1222,12 +1588,12 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     // Another request for the same session may have crossed the await above
     // and started its load first. Join that request instead of creating a
     // second thread and overwriting its retained-reference count.
-    const concurrentPendingLoad = this.pendingSessionLoads.get(sessionId);
+    const concurrentPendingLoad = this.getPendingSessionLoad(sessionId);
     if (concurrentPendingLoad) {
       if (warmingThread) {
         this.reservedThreads.delete(warmingThread);
       }
-      concurrentPendingLoad.refCount += 1;
+      this.retainPendingSessionLoad(concurrentPendingLoad);
       this.logger.log(
         `[AcpAgentService] loadSession() — joining concurrent load after warmup wait, sessionId=${sessionId}, refs=${concurrentPendingLoad.refCount}`,
       );
@@ -1282,11 +1648,16 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     thread: AcpThread,
     config: AgentProcessConfig,
   ): Promise<SessionLoadResult> {
+    const cleanup = this.beginSessionOperation('load', thread);
+    this.observeSessionOperationIdentity(cleanup, sessionId, 'requested');
     const pending: PendingSessionLoad = {
       promise: Promise.resolve(null as unknown as SessionLoadResult),
       refCount: 1,
       thread,
+      boundSessionId: sessionId,
       closeRequested: false,
+      terminalReleaseOwnedByStop: this.stopping || this.terminallyDisposed,
+      cleanup,
     };
 
     const promise = this.doLoadSession(sessionId, thread, config)
@@ -1298,12 +1669,19 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
         return this.buildSessionLoadResult(sessionId, thread);
       })
       .catch(async (e) => {
-        await this.cleanupFailedSessionOperation(sessionId, thread);
+        if (pending.terminalReleaseOwnedByStop) {
+          // Consume the pending-load handoff explicitly. The requested
+          // identity was already queued by stop and must not be released by
+          // this late catch a second time.
+          this.transferSessionOperationCleanup(cleanup, 'stop');
+        }
+        await this.cleanupFailedSessionOperation(cleanup, thread);
         this.logger.error(`[AcpAgentService] loadSession() — failed: ${getAcpErrorMessage(e)}`);
         throw mapSessionLoadError(e);
       })
       .finally(() => {
         this.pendingSessionLoads.delete(sessionId);
+        this.finishSessionOperation(cleanup);
       });
 
     pending.promise = promise;
@@ -1320,13 +1698,16 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
       thread.reset();
     }
     const mcpServers = await this.getSessionMcpServers(thread, config);
+    this.throwIfStopping();
     await thread.loadSession({
       sessionId,
       cwd: config.cwd,
       mcpServers,
     } as any);
+    this.throwIfStopping();
     this.setBuiltInMcpSessionState(sessionId, this.didAppendBuiltInMcpServer(config, mcpServers));
     await this.applyDefaultSessionOptions(sessionId, thread, config);
+    this.throwIfStopping();
   }
 
   private buildSessionLoadResult(sessionId: string, thread: AcpThread): SessionLoadResult {
@@ -1469,6 +1850,12 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
   attachSession(sessionId: string): SumiReadableStream<AgentSessionAttachmentUpdate> {
     const stream = new SumiReadableStream<AgentSessionAttachmentUpdate>();
+    try {
+      this.throwIfStopping();
+    } catch (error) {
+      stream.emitError(normalizeAcpError(error));
+      return stream;
+    }
     const thread = this.sessions.get(sessionId);
     if (!thread || thread.getStatus() === 'disconnected') {
       stream.emitError(new Error(`No active session for sessionId: ${sessionId}`));
@@ -1513,9 +1900,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
       }
     });
 
-    const disposeSubscription = () => eventDisposable.dispose();
-    stream.onEnd(disposeSubscription);
-    stream.onError(disposeSubscription);
+    this.trackAttachmentStream(stream, () => eventDisposable.dispose());
 
     stream.emitData({
       type: 'snapshot',
@@ -1531,7 +1916,15 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
   sendMessage(request: AgentRequest, config: AgentProcessConfig): SumiReadableStream<AgentUpdate> {
     const stream = new SumiReadableStream<AgentUpdate>();
-    void this.startSendMessage(request, config, stream);
+    try {
+      this.throwIfStopping();
+    } catch (error) {
+      stream.emitError(normalizeAcpError(error));
+      return stream;
+    }
+    void this.trackStartedForegroundOperation(this.startSendMessage(request, config, stream)).catch((error) => {
+      stream.emitError(normalizeAcpError(error));
+    });
     return stream;
   }
 
@@ -1612,7 +2005,7 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     });
 
     // thread.prompt() -> then markAssistantComplete -> emitData('done') -> stream.end()
-    this.sendPrompt(thread, request, config, stream, disposables);
+    await this.sendPrompt(thread, request, config, stream, disposables);
   }
 
   private async sendPrompt(
@@ -1785,9 +2178,9 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     this.syncMaxPoolSize(config);
     this.logger.log(`[AcpAgentService] loadSessionOrNew() — sessionId=${sessionId}`);
 
-    const pendingLoad = this.pendingSessionLoads.get(sessionId);
+    const pendingLoad = this.getPendingSessionLoad(sessionId);
     if (pendingLoad) {
-      pendingLoad.refCount += 1;
+      this.retainPendingSessionLoad(pendingLoad);
       return pendingLoad.promise;
     }
 
@@ -1799,15 +2192,18 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     }
 
     const thread = await this.findOrCreateThread(sessionId, config);
+    const cleanup = this.beginSessionOperation('load-or-new', thread);
+    const requestedIdentity = this.observeSessionOperationIdentity(cleanup, sessionId, 'requested');
     this.permissionRouting.registerSession(sessionId);
     this.registerThreadStatusListener(sessionId, thread);
-    let boundSessionId = sessionId;
-
     const pending: PendingSessionLoad = {
       promise: Promise.resolve(null as unknown as SessionLoadResult),
       refCount: 1,
       thread,
+      boundSessionId: sessionId,
       closeRequested: false,
+      terminalReleaseOwnedByStop: this.stopping || this.terminallyDisposed,
+      cleanup,
     };
 
     const promise = Promise.resolve()
@@ -1820,39 +2216,66 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
           thread.reset();
         }
         const mcpServers = await this.getSessionMcpServers(thread, config);
+        this.throwIfStopping();
         const loadResult = await thread.loadSessionOrNew({
           sessionId,
           cwd: config.cwd,
           mcpServers,
         } as any);
         const actualSessionId = (loadResult as { sessionId?: string }).sessionId || sessionId;
+        if (!hasAcpLoadSessionFallbackProvenance(loadResult)) {
+          throw new Error('loadSessionOrNew did not report fallback provenance');
+        }
+        const createdByFallback = loadResult.createdByFallback;
+        if (!createdByFallback && actualSessionId !== sessionId) {
+          throw new Error(
+            `loadSessionOrNew returned a different session id without fallback provenance: ${actualSessionId}`,
+          );
+        }
+        if (createdByFallback) {
+          this.observeSessionOperationIdentity(cleanup, actualSessionId, 'created');
+        }
+        this.throwIfStopping();
         if (pending.closeRequested) {
           throw new Error(`Session load was disposed before completion: ${sessionId}`);
         }
-        if (actualSessionId !== sessionId) {
+        if (createdByFallback && actualSessionId !== sessionId) {
           this.sessions.delete(sessionId);
           this.sessionRefCounts.delete(sessionId);
           this.permissionRouting.unregisterSession(sessionId);
           this.builtInMcpSessionIds.delete(sessionId);
           this.unregisterThreadStatusListener(sessionId);
           this.bindSession(actualSessionId, thread);
-          boundSessionId = actualSessionId;
+          pending.boundSessionId = actualSessionId;
           this.sessionRefCounts.set(actualSessionId, pending.refCount);
           this.permissionRouting.registerSession(actualSessionId);
           this.registerThreadStatusListener(actualSessionId, thread);
         } else {
           this.sessionRefCounts.set(sessionId, pending.refCount);
         }
+        if (createdByFallback && requestedIdentity.owner === 'operation') {
+          // The requested load identity is no longer active. Retire it even
+          // when the newly-created session happens to reuse the same string.
+          await this.retireSessionOperationIdentity(requestedIdentity);
+        }
         this.setBuiltInMcpSessionState(actualSessionId, this.didAppendBuiltInMcpServer(config, mcpServers));
         await this.applyDefaultSessionOptions(actualSessionId, thread, config);
+        this.throwIfStopping();
+        if (pending.closeRequested) {
+          throw new Error(`Session load was disposed before completion: ${sessionId}`);
+        }
         return this.buildSessionLoadResult(actualSessionId, thread);
       })
       .catch(async (e) => {
-        await this.cleanupFailedSessionOperation(boundSessionId, thread);
+        if (pending.terminalReleaseOwnedByStop) {
+          this.transferSessionOperationCleanup(cleanup, 'stop');
+        }
+        await this.cleanupFailedSessionOperation(cleanup, thread);
         throw e;
       })
       .finally(() => {
         this.pendingSessionLoads.delete(sessionId);
+        this.finishSessionOperation(cleanup);
       });
 
     pending.promise = promise;
@@ -1983,59 +2406,136 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
     let thread = this.sessions.get(sessionId);
     this.logger.log(`[AcpAgentService] disposeSession() — sessionId=${sessionId}, force=${force}`);
 
-    const pendingLoad = this.pendingSessionLoads.get(sessionId);
-    if (pendingLoad) {
-      pendingLoad.closeRequested = true;
-      if (!force) {
-        pendingLoad.refCount = Math.max(0, pendingLoad.refCount - 1);
-        if (pendingLoad.refCount > 0) {
-          pendingLoad.closeRequested = false;
-          this.logger.log(
-            `[AcpAgentService] disposeSession() — pending load still retained, sessionId=${sessionId}, refs=${pendingLoad.refCount}`,
-          );
-          return;
-        }
-        try {
-          await pendingLoad.promise;
-        } catch {
-          // The pending load path owns its failure cleanup. Continue with the
-          // normal release path to keep terminal/session cleanup idempotent.
-        }
+    const liveCleanup = Array.from(this.sessionCleanupOperations).find((cleanup) =>
+      cleanup.identities.some((identity) => identity.sessionId === sessionId),
+    );
+    const pendingLoad =
+      this.getPendingSessionLoad(sessionId) ??
+      (liveCleanup
+        ? Array.from(this.pendingSessionLoads.values()).find(({ cleanup }) => cleanup === liveCleanup)
+        : undefined);
+    thread ??= pendingLoad?.thread ?? liveCleanup?.thread;
+    if (!thread && !pendingLoad && !liveCleanup) {
+      const pendingRelease = this.terminalReleaseStates.get(sessionId);
+      if (pendingRelease && !this.stopping && !this.terminallyDisposed) {
+        await this.releaseSessionTerminalsOnce(sessionId, pendingRelease.requestedGeneration);
       }
-      thread = this.sessions.get(sessionId) ?? pendingLoad.thread;
-    }
-
-    const refCount = this.sessionRefCounts.get(sessionId) ?? (thread ? 1 : 0);
-    if (!force && refCount > 1) {
-      this.sessionRefCounts.set(sessionId, refCount - 1);
-      this.logger.log(
-        `[AcpAgentService] disposeSession() — session still retained, sessionId=${sessionId}, refs=${refCount - 1}`,
-      );
       return;
     }
 
-    // Release terminals
-    await this.terminalHandler.releaseSessionTerminals(sessionId);
-
-    if (force && thread) {
-      // Force dispose: release terminals + dispose thread
-      this.logger.log(
-        `[AcpAgentService] disposeSession() — force disposing thread ${thread.threadId}, cwd=${thread.cwd}`,
-      );
-      await thread.dispose();
-      const idx = this.threadPool.indexOf(thread);
-      if (idx !== -1) {
-        this.threadPool.splice(idx, 1);
+    if (!force && pendingLoad) {
+      pendingLoad.refCount = Math.max(0, pendingLoad.refCount - 1);
+      if (this.sessions.get(pendingLoad.boundSessionId) === pendingLoad.thread) {
+        this.sessionRefCounts.set(pendingLoad.boundSessionId, pendingLoad.refCount);
+      }
+      if (pendingLoad.refCount > 0) {
+        this.logger.log(
+          `[AcpAgentService] disposeSession() — pending load still retained, sessionId=${sessionId}, refs=${pendingLoad.refCount}`,
+        );
+        return;
+      }
+    } else {
+      const refCount = this.sessionRefCounts.get(sessionId) ?? (thread ? 1 : 0);
+      if (!force && refCount > 1) {
+        this.sessionRefCounts.set(sessionId, refCount - 1);
+        this.logger.log(
+          `[AcpAgentService] disposeSession() — session still retained, sessionId=${sessionId}, refs=${refCount - 1}`,
+        );
+        return;
       }
     }
 
-    // Default: just remove from session mapping, thread returns to pool
-    this.permissionRouting.unregisterSession(sessionId);
-    this.unregisterThreadStatusListener(sessionId);
-    this.sessions.delete(sessionId);
-    this.sessionRefCounts.delete(sessionId);
-    this.logPoolStatus('after-disposeSession');
-    this.builtInMcpSessionIds.delete(sessionId);
+    if (thread) {
+      // The binding may be removed before the operation and terminal cleanup
+      // settle. Hold this independently-refcounted fence across every await so
+      // no acquisition can reuse the retiring process in between continuations.
+      this.retainThreadRetirement(thread);
+    }
+
+    let pendingCleanup: SessionOperationCleanup | undefined;
+    if (pendingLoad) {
+      pendingLoad.closeRequested = true;
+      this.requestSessionOperationClose(pendingLoad.cleanup);
+      pendingCleanup = pendingLoad.cleanup;
+      pendingCleanup.forceDisposeRequested ||= force;
+      this.transferSessionOperationCleanup(
+        pendingCleanup,
+        this.stopping || this.terminallyDisposed ? 'stop' : 'disposer',
+      );
+      if (!force) {
+        try {
+          await pendingLoad.promise;
+        } catch {
+          // The operation-scoped token is owned by this disposal (or stop), so
+          // the pending catch only retires the thread.
+        }
+      }
+      thread = this.sessions.get(sessionId) ?? pendingLoad.thread;
+    } else if (liveCleanup) {
+      pendingCleanup = liveCleanup;
+      pendingCleanup.forceDisposeRequested ||= force;
+      this.requestSessionOperationClose(liveCleanup);
+      this.transferSessionOperationCleanup(liveCleanup, this.stopping || this.terminallyDisposed ? 'stop' : 'disposer');
+    }
+
+    const cleanupErrors: unknown[] = [];
+    try {
+      if (pendingCleanup) {
+        if (pendingCleanup.owner === 'disposer') {
+          for (const identitySessionId of new Set(pendingCleanup.identities.map(({ sessionId }) => sessionId))) {
+            this.clearSessionRuntimeState(identitySessionId, pendingCleanup.thread);
+          }
+          await this.drainSessionOperationCleanup(pendingCleanup);
+        }
+      } else {
+        await this.releaseSessionResources(sessionId);
+      }
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+
+    if (pendingCleanup && !force) {
+      // A live create can be blocked in a post-session RPC that the close
+      // signal cannot cancel. Keep the retiring-thread fence until its catch
+      // has completed, otherwise that late catch could reset a replacement
+      // session that reused the same process.
+      await pendingCleanup.completionDeferred.promise;
+    }
+
+    try {
+      if (force && thread) {
+        // Force dispose: release terminals + dispose thread
+        this.logger.log(
+          `[AcpAgentService] disposeSession() — force disposing thread ${thread.threadId}, cwd=${thread.cwd}`,
+        );
+        try {
+          await thread.dispose();
+        } catch (error) {
+          cleanupErrors.push(error);
+        }
+        const idx = this.threadPool.indexOf(thread);
+        if (idx !== -1) {
+          this.threadPool.splice(idx, 1);
+        }
+      }
+
+      // Default: just remove from session mapping, thread returns to pool.
+      // Match the retired process identity so a concurrent same-id load on a
+      // replacement thread remains authoritative.
+      this.clearSessionRuntimeState(sessionId, thread);
+      this.logPoolStatus('after-disposeSession');
+    } finally {
+      if (thread) {
+        this.releaseThreadRetirement(thread);
+      }
+    }
+
+    if (cleanupErrors.length === 1) {
+      throw cleanupErrors[0];
+    }
+    if (cleanupErrors.length > 1) {
+      throw new AggregateError(cleanupErrors, `Failed to dispose ACP session ${sessionId}`);
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -2083,52 +2583,296 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
   // stopAgent — dispose all threads
   // -----------------------------------------------------------------------
 
-  async stopAgent(): Promise<void> {
+  stopAgent(): Promise<void> {
+    if (this.stopPromise) {
+      return this.stopPromise;
+    }
+
     this.stopping = true;
+    this.stopTimedOut = false;
+    this.terminalCleanupSnapshotTaken = false;
+    for (const pendingLoad of this.pendingSessionLoads.values()) {
+      pendingLoad.terminalReleaseOwnedByStop = true;
+    }
+    for (const cleanup of this.sessionCleanupOperations) {
+      this.transferSessionOperationCleanup(cleanup, 'stop');
+    }
+    let sharedStop!: Promise<void>;
+    sharedStop = Promise.resolve()
+      .then(() => this.doStopAgent())
+      .finally(() => {
+        if (this.stopPromise === sharedStop) {
+          this.stopPromise = undefined;
+        }
+        for (const sessionId of this.lateTerminalReleaseIds) {
+          this.scheduleLateTerminalRelease(sessionId);
+        }
+        if (!this.terminallyDisposed && !this.stopTimedOut && !this.ownershipRetirementFailed) {
+          this.stopping = false;
+        }
+      });
+    this.stopPromise = sharedStop;
+    return sharedStop;
+  }
+
+  private async doStopAgent(): Promise<void> {
     this.logger?.log(
       `[AcpAgentService] stopAgent() — disposing ${this.threadPool.length} threads, ${this.sessions.size} active sessions`,
     );
 
-    const warmingPromises = [...this.warmingThreads.values()];
-    const foregroundPromises = [...this.foregroundOperations];
-    if (warmingPromises.length > 0 || foregroundPromises.length > 0) {
-      await Promise.allSettled([...warmingPromises, ...foregroundPromises]);
+    const attachments = Array.from(this.attachmentStreams);
+    attachments.forEach((stream) => stream.end());
+
+    const deadline = Date.now() + this.stopLeaseMs;
+    const ownedThreads = Array.from(
+      new Set([
+        ...this.threadPool,
+        ...this.sessions.values(),
+        ...this.warmingThreads.keys(),
+        ...Array.from(this.pendingSessionLoads.values(), ({ thread }) => thread),
+      ]),
+    );
+    for (const warmup of this.warmingThreads.values()) {
+      this.trackRetirementOperation(warmup, 'warmup');
+    }
+    for (const thread of ownedThreads) {
+      let disposal: Promise<void>;
+      try {
+        disposal = thread.dispose();
+      } catch (error) {
+        disposal = Promise.reject(error);
+      }
+      this.trackRetirementOperation(disposal, 'thread');
     }
 
-    for (const thread of this.threadPool) {
-      try {
-        await thread.dispose();
-      } catch (error) {
-        this.logger?.warn(`[AcpAgentService] Error disposing thread ${thread.threadId}, cwd=${thread.cwd}:`, error);
+    const ownershipOperations = [
+      ...Array.from(this.foregroundOperations, (operation) => ({ kind: 'foreground' as const, operation })),
+      ...Array.from(this.pendingRetirementOperations, ([operation, kind]) => ({ kind, operation })),
+    ];
+    const ownershipSettlement = await settleWithinDeadline(
+      ownershipOperations.map(({ operation }) => operation),
+      deadline,
+    );
+    const stopErrors: unknown[] = [];
+    ownershipSettlement.outcomes.forEach((outcome, index) => {
+      if (outcome?.status === 'rejected' && ownershipOperations[index].kind === 'thread') {
+        stopErrors.push(outcome.reason);
+      }
+    });
+    if (ownershipSettlement.timedOut) {
+      this.stopTimedOut = true;
+      const timeoutError = createStopTimeoutError('thread, warmup, or foreground retirement');
+      stopErrors.push(timeoutError);
+      this.logger?.warn(timeoutError.message);
+    }
+
+    const operationCoveredSessionIds = new Set(
+      Array.from(this.sessionCleanupOperations).flatMap(({ identities }) =>
+        identities
+          .filter(({ releaseGeneration, terminalRetired }) => releaseGeneration !== undefined || terminalRetired)
+          .map(({ sessionId }) => sessionId),
+      ),
+    );
+    for (const sessionId of this.sessions.keys()) {
+      if (!this.pendingTerminalReleaseIds.has(sessionId) && !operationCoveredSessionIds.has(sessionId)) {
+        this.requestSessionTerminalRelease(sessionId);
       }
     }
+    this.terminalCleanupSnapshotTaken = true;
+    const terminalReleaseErrors = await this.releasePendingTerminals(Date.now() + this.stopLeaseMs);
+    stopErrors.push(...terminalReleaseErrors);
 
-    for (const sessionId of this.sessions.keys()) {
-      this.permissionRouting.unregisterSession(sessionId);
-      this.unregisterThreadStatusListener(sessionId);
+    const sessionIds = Array.from(this.sessions.keys());
+    for (const sessionId of sessionIds) {
+      this.clearSessionRuntimeState(sessionId);
     }
+
     this.threadPool = [];
     this.warmingThreads.clear();
     this.poolWarmups.clear();
     this.sessions.clear();
     this.pendingSessionLoads.clear();
     this.reservedThreads.clear();
+    this.retiringThreads.clear();
     this.sessionRefCounts.clear();
     this.lastSessionInfo = null;
     this.builtInMcpSessionIds.clear();
-    this.stopping = false;
     this.logPoolStatus('after-stopAgent');
+
+    if (stopErrors.length > 0) {
+      throw new AggregateError(stopErrors, 'ACP Agent service stop completed with cleanup failures');
+    }
+  }
+
+  private async releasePendingTerminals(
+    deadline: number,
+    candidateSessionIds?: ReadonlySet<string>,
+  ): Promise<unknown[]> {
+    let finalErrors: unknown[] = [];
+    for (
+      let attempt = 1;
+      attempt <= (this.terminallyDisposed ? 2 : 1) &&
+      Array.from(this.pendingTerminalReleaseIds).some(
+        (sessionId) => !candidateSessionIds || candidateSessionIds.has(sessionId),
+      );
+      attempt++
+    ) {
+      const sessionIds = Array.from(this.pendingTerminalReleaseIds).filter(
+        (sessionId) => !candidateSessionIds || candidateSessionIds.has(sessionId),
+      );
+      const settlement = await settleWithinDeadline(
+        sessionIds.map((sessionId) => this.releaseSessionTerminalsOnce(sessionId)),
+        deadline,
+      );
+      finalErrors = [];
+      settlement.outcomes.forEach((outcome, index) => {
+        const sessionId = sessionIds[index];
+        if (outcome?.status === 'rejected') {
+          finalErrors.push(outcome.reason);
+          this.logger?.warn(
+            `[AcpAgentService] Failed to release terminals for session ${sessionId} (attempt ${attempt})`,
+            outcome.reason,
+          );
+        }
+      });
+      if (settlement.timedOut) {
+        this.stopTimedOut = true;
+        const timeoutError = createStopTimeoutError('ACP session terminal release');
+        finalErrors.push(timeoutError);
+        this.logger?.warn(timeoutError.message);
+        break;
+      }
+    }
+    return finalErrors;
+  }
+
+  private scheduleLateTerminalRelease(sessionId: string): void {
+    if (this.lateTerminalCleanupOperations.has(sessionId) || !this.pendingTerminalReleaseIds.has(sessionId)) {
+      return;
+    }
+
+    this.logger?.log(`[AcpAgentService] Releasing terminal resources for late session ${sessionId}`);
+    const candidates = new Set([sessionId]);
+    const scheduledGeneration = this.terminalReleaseStates.get(sessionId)?.requestedGeneration ?? 0;
+    let shouldContinue = false;
+    let cleanup!: Promise<void>;
+    cleanup = this.releasePendingTerminals(Date.now() + this.stopLeaseMs, candidates)
+      .then((errors) => {
+        if (errors.length > 0) {
+          this.logger?.warn(
+            `[AcpAgentService] Late terminal cleanup failed for session ${sessionId}`,
+            new AggregateError(errors, `Late terminal cleanup failed for session ${sessionId}`),
+          );
+          shouldContinue = (this.terminalReleaseStates.get(sessionId)?.requestedGeneration ?? 0) > scheduledGeneration;
+          return;
+        }
+        if (!this.pendingTerminalReleaseIds.has(sessionId)) {
+          this.lateTerminalReleaseIds.delete(sessionId);
+        } else {
+          // Another identity generation arrived while this release was in
+          // flight. Drain it in a fresh pass after unregistering this one.
+          shouldContinue = true;
+        }
+      })
+      .finally(() => {
+        if (this.lateTerminalCleanupOperations.get(sessionId) === cleanup) {
+          this.lateTerminalCleanupOperations.delete(sessionId);
+        }
+        if (shouldContinue) {
+          this.scheduleLateTerminalRelease(sessionId);
+        }
+      });
+    this.lateTerminalCleanupOperations.set(sessionId, cleanup);
+    void cleanup.catch((error) => {
+      this.logger?.warn(`[AcpAgentService] Unexpected late terminal cleanup failure for session ${sessionId}`, error);
+    });
+  }
+
+  private requestSessionTerminalRelease(sessionId: string): number {
+    let state = this.terminalReleaseStates.get(sessionId);
+    if (!state) {
+      state = { requestedGeneration: 0, completedGeneration: 0 };
+      this.terminalReleaseStates.set(sessionId, state);
+    }
+    state.requestedGeneration = ++this.terminalReleaseGeneration;
+    this.pendingTerminalReleaseIds.add(sessionId);
+    if (this.terminalCleanupSnapshotTaken) {
+      this.lateTerminalReleaseIds.add(sessionId);
+      if (!this.stopPromise) {
+        this.scheduleLateTerminalRelease(sessionId);
+      }
+    }
+    return state.requestedGeneration;
+  }
+
+  /**
+   * Drain all cleanup generations through `targetGeneration`. Requests for
+   * the same string that arrive during an in-flight release form a later
+   * generation and therefore trigger a follow-up release instead of being
+   * mistaken for the already-retired session identity.
+   */
+  private async releaseSessionTerminalsOnce(sessionId: string, targetGeneration?: number): Promise<void> {
+    let state = this.terminalReleaseStates.get(sessionId);
+    if (!state) {
+      const generation = this.requestSessionTerminalRelease(sessionId);
+      state = this.terminalReleaseStates.get(sessionId)!;
+      targetGeneration = targetGeneration ?? generation;
+    }
+    const target = targetGeneration ?? state.requestedGeneration;
+
+    while (state.completedGeneration < target) {
+      let inFlight = state.inFlight;
+      if (!inFlight) {
+        const throughGeneration = state.requestedGeneration;
+        let release!: Promise<void>;
+        release = Promise.resolve()
+          .then(() => this.terminalHandler.releaseSessionTerminals(sessionId))
+          .then(() => {
+            state!.completedGeneration = Math.max(state!.completedGeneration, throughGeneration);
+            if (state!.completedGeneration >= state!.requestedGeneration) {
+              this.pendingTerminalReleaseIds.delete(sessionId);
+              this.lateTerminalReleaseIds.delete(sessionId);
+            }
+          })
+          .finally(() => {
+            if (state!.inFlight?.promise === release) {
+              state!.inFlight = undefined;
+            }
+            if (this.terminalReleaseOperations.get(sessionId) === release) {
+              this.terminalReleaseOperations.delete(sessionId);
+            }
+            if (!state!.inFlight && state!.completedGeneration >= state!.requestedGeneration) {
+              this.terminalReleaseStates.delete(sessionId);
+            }
+          });
+        inFlight = { throughGeneration, promise: release };
+        state.inFlight = inFlight;
+        this.terminalReleaseOperations.set(sessionId, release);
+      }
+      await inFlight.promise;
+    }
   }
 
   // -----------------------------------------------------------------------
   // dispose — clean up all resources
   // -----------------------------------------------------------------------
 
-  async dispose(): Promise<void> {
+  dispose(): Promise<void> {
+    if (!this.disposePromise) {
+      this.terminallyDisposed = true;
+      this.disposePromise = Promise.resolve().then(() => this.doDispose());
+    }
+    return this.disposePromise;
+  }
+
+  private async doDispose(): Promise<void> {
     this.logger?.log('[AcpAgentService] dispose() — pool size=' + this.threadPool.length);
-    await this.stopAgent();
-    this._onThreadStatusChange.dispose();
-    this.logger?.log('[AcpAgentService] dispose() — done');
+    try {
+      await this.stopAgent();
+    } finally {
+      this._onThreadStatusChange.dispose();
+      this.logger?.log('[AcpAgentService] dispose() — done');
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -2215,6 +2959,13 @@ export class AcpAgentService extends Disposable implements IAcpAgentService {
 
   private retainSession(sessionId: string): void {
     this.sessionRefCounts.set(sessionId, (this.sessionRefCounts.get(sessionId) ?? 1) + 1);
+  }
+
+  private retainPendingSessionLoad(pending: PendingSessionLoad): void {
+    pending.refCount += 1;
+    if (this.sessions.get(pending.boundSessionId) === pending.thread) {
+      this.sessionRefCounts.set(pending.boundSessionId, pending.refCount);
+    }
   }
 
   private buildPromptBlocks(input: string, images?: string[]): Array<{ type: string; [key: string]: unknown }> {

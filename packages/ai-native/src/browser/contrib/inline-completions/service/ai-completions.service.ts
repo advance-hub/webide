@@ -5,6 +5,7 @@ import {
   ActionSourceEnum,
   ActionTypeEnum,
   CancellationTokenSource,
+  CompletionRT,
   Disposable,
   Emitter,
   Event,
@@ -12,8 +13,8 @@ import {
   IAICompletionOption,
   IAICompletionResultModel,
   IAIReportCompletionOption,
+  IAIReporter,
 } from '@opensumi/ide-core-common';
-import { CompletionRT, IAIReporter } from '@opensumi/ide-core-common/lib/types/ai-native/reporter';
 
 import { IIntelligentCompletionsResult } from '../../intelligent-completions';
 

@@ -1,8 +1,10 @@
-import { AILayout } from '@opensumi/ide-ai-native/lib/browser/layout/ai-layout';
-import { AIModules } from '@opensumi/ide-startup/lib/browser/common-modules';
+import { AILayout } from '@opensumi/ide-ai-native/layout';
+import { compileOpenSumiProductRuntimePlan } from '@opensumi/ide-startup';
+import { AIBrowserBindings } from '@opensumi/ide-startup/browser/ai';
 
+import { SampleModule } from '../../sample-modules';
 import { DefaultLayout } from '../layout';
-import { getDefaultClientAppOpts, renderApp } from '../render-app';
+import { CommonBrowserBindings, getDefaultClientAppOpts, renderApp } from '../render-app';
 
 const queries = new URLSearchParams(window.location.search);
 const preserveAINativeE2E = queries.get('persistAiNativeE2E') === 'true';
@@ -21,10 +23,16 @@ const userPreferenceDirName =
 if (preserveAINativeE2E && userPreferenceDirName) {
   window.sessionStorage.setItem(userPreferenceDirE2ESessionKey, userPreferenceDirName);
 }
+const runtimePlan = compileOpenSumiProductRuntimePlan({
+  runtime: 'browser',
+  commonBindings: CommonBrowserBindings,
+  options: enableAINativeE2E ? [{ id: 'ai', bindings: AIBrowserBindings }] : [],
+});
 
 renderApp(
   getDefaultClientAppOpts({
-    modules: enableAINativeE2E ? AIModules : [],
+    modules: [SampleModule],
+    runtimePlan,
     opts: {
       ...(userPreferenceDirName ? { userPreferenceDirName } : {}),
       ...(enableAINativeE2E

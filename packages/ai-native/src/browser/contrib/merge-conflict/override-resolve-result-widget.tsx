@@ -1,11 +1,10 @@
 import React, { ReactNode } from 'react';
 
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { ContentWidgetContainerPanel } from '@opensumi/ide-core-browser/lib/components/ai-native/content-widget/containerPanel';
-import { IAIInlineResultIconItemsProps } from '@opensumi/ide-core-browser/lib/components/ai-native/inline-chat/result';
+import { ContentWidgetContainerPanel, IAIInlineResultIconItemsProps } from '@opensumi/ide-core-browser/components/ai';
 import { localize } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { LineRange } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/model/line-range';
+import { LineRange } from '@opensumi/ide-monaco/merge-editor';
 import {
   ACCEPT_CURRENT_ACTIONS,
   AIResolveConflictContentWidget,
@@ -13,12 +12,9 @@ import {
   IAcceptConflictActionsEvent,
   IGNORE_ACTIONS,
   REVOKE_ACTIONS,
-} from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/types';
-import { ResultCodeEditor } from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/view/editors/resultCodeEditor';
-import {
-  ResolveResultWidget,
-  WapperAIInlineResult,
-} from '@opensumi/ide-monaco/lib/browser/contrib/merge-editor/widget/resolve-result-widget';
+} from '@opensumi/ide-monaco/merge-editor';
+import { ResultCodeEditor } from '@opensumi/ide-monaco/merge-editor/widgets';
+import { ResolveResultWidget, WapperAIInlineResult } from '@opensumi/ide-monaco/merge-editor/widgets';
 
 import { InlineDiffWidget } from '../../widget/inline-diff/inline-diff-widget';
 

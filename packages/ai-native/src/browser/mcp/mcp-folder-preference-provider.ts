@@ -1,5 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/lib/browser/folder-file-preference-provider';
+import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/folder-provider';
 
 @Injectable()
 export class MCPFolderPreferenceProvider extends FolderFilePreferenceProvider {

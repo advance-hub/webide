@@ -1,8 +1,8 @@
 import cls from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { MarkdownReactParser, MarkdownReactRenderer } from '@opensumi/ide-components/lib/markdown-react';
-import { IMarkedOptions, marked } from '@opensumi/ide-components/lib/utils';
+import { MarkdownReactParser, MarkdownReactRenderer } from '@opensumi/ide-components/markdown-react';
+import { IMarkedOptions, marked } from '@opensumi/ide-components/utils';
 import { AppConfig, ConfigProvider, FILE_COMMANDS, useInjectable } from '@opensumi/ide-core-browser';
 import { CommandService, URI } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
@@ -69,14 +69,14 @@ function extractLineRange(value: string): {
       ? Number(lineRangeMatch[4])
       : startLineNumber
     : lineRangeMatch[3]
-    ? Number(lineRangeMatch[3])
-    : startLineNumber;
+      ? Number(lineRangeMatch[3])
+      : startLineNumber;
   const endColumn =
     lineColumnRangeMatch && lineRangeMatch[5]
       ? Number(lineRangeMatch[5])
       : endLineNumber === startLineNumber
-      ? startColumn
-      : 1;
+        ? startColumn
+        : 1;
   if (
     !Number.isFinite(startLineNumber) ||
     startLineNumber < 1 ||

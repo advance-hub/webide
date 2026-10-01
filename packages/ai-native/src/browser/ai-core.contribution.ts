@@ -45,17 +45,17 @@ import {
   AI_PANEL_LAYOUT_GET,
   AI_PANEL_LAYOUT_SET,
   AI_PANEL_LAYOUT_TOGGLE,
-} from '@opensumi/ide-core-browser/lib/ai-native/command';
+} from '@opensumi/ide-core-browser/ai/commands';
 import {
   InlineChatIsVisible,
   InlineDiffPartialEditsIsVisible,
   InlineHintWidgetIsVisible,
   InlineInputWidgetIsStreaming,
   InlineInputWidgetIsVisible,
-} from '@opensumi/ide-core-browser/lib/contextkey/ai-native';
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/browser';
+} from '@opensumi/ide-core-browser/contextkeys';
+import { DesignLayoutConfig } from '@opensumi/ide-core-browser/layout';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IBrowserCtxMenu } from '@opensumi/ide-core-browser/menu/browser';
 import {
   AIBackSerivcePath,
   AI_NATIVE_SETTING_GROUP_TITLE,
@@ -92,9 +92,9 @@ import {
   IEditorDocumentModelContentRegistry,
   IEditorFeatureRegistry,
   MultiDiffSourceContribution,
-} from '@opensumi/ide-editor/lib/browser';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { IMultiDiffSourceResolverService } from '@opensumi/ide-editor/lib/common/multi-diff';
+} from '@opensumi/ide-editor/browser';
+import { IMultiDiffSourceResolverService } from '@opensumi/ide-editor/multi-diff';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { ISettingRegistry, SettingContribution } from '@opensumi/ide-preferences';
@@ -125,7 +125,6 @@ import { AgenticWorkspaceSwitchService } from './acp/agentic-workspace-switch.se
 import { AcpChatInput } from './acp/components/AcpChatInput';
 import { AcpChatMentionInput } from './acp/components/AcpChatMentionInput';
 import { AcpQueuedTurnEditor } from './acp/components/AcpQueuedTurnEditor';
-import { WebMcpGroupRegistry } from './acp/webmcp-group-registry';
 import { createAcpChatGroup } from './acp/webmcp-groups/acp-chat.webmcp-group';
 import { createDiagnosticsGroup } from './acp/webmcp-groups/diagnostics.webmcp-group';
 import { createEditorGroup } from './acp/webmcp-groups/editor.webmcp-group';

@@ -1,6 +1,6 @@
 import { Injectable } from '@opensumi/di';
-import { AI_CODE_ACTION } from '@opensumi/ide-core-browser/lib/ai-native/command';
-import { AIActionItem } from '@opensumi/ide-core-browser/lib/components/ai-native/index';
+import { AI_CODE_ACTION } from '@opensumi/ide-core-browser/ai/commands';
+import { AIActionItem } from '@opensumi/ide-core-browser/components/ai';
 import { Disposable, Emitter, IRange } from '@opensumi/ide-core-common';
 import { CodeAction } from '@opensumi/ide-monaco';
 

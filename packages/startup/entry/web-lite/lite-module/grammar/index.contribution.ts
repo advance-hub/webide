@@ -2,7 +2,7 @@
 import { Autowired } from '@opensumi/di';
 import { ClientAppContribution } from '@opensumi/ide-core-browser';
 import { Disposable, Domain } from '@opensumi/ide-core-common';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
 import { getLanguageById } from '@opensumi/textmate-languages/es/utils';
 
 // NOTE: 默认启用的语法，可以按需修改

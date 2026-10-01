@@ -15,7 +15,7 @@ import {
 } from '@opensumi/ide-core-browser';
 import * as monaco from '@opensumi/ide-monaco';
 import { ICodeEditor } from '@opensumi/ide-monaco';
-import { IDiffEditorOptions } from '@opensumi/ide-monaco/lib/browser/monaco-api/editor';
+import { IDiffEditorOptions } from '@opensumi/ide-monaco/api/editor';
 import { ILanguageSelection } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages/language';
 import { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 import { IModelService } from '@opensumi/monaco-editor-core/esm/vs/editor/common/services/model';

@@ -5,8 +5,8 @@ import {
   IChatSessionSnapshot,
   IHistoryChatMessage,
   ThreadStatus,
-} from '@opensumi/ide-core-common/lib/types/ai-native';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+} from '@opensumi/ide-core-common';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { IChatFollowup, IChatRequestMessage, IChatResponseErrorDetails } from '../../common';
 

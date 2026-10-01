@@ -5,7 +5,7 @@ import {
   KeybindingScope,
   PreferenceService,
 } from '@opensumi/ide-core-browser';
-import { CodeEditsIsVisible } from '@opensumi/ide-core-browser/lib/contextkey/ai-native';
+import { CodeEditsIsVisible } from '@opensumi/ide-core-browser/contextkeys';
 import {
   AINativeSettingSectionsId,
   CodeEditsRT,
@@ -29,7 +29,7 @@ import {
   observableFromEvent,
   observableValue,
   transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 import { EditorContextKeys } from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorContextKeys';
 import { inlineSuggestCommitId } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/inlineCompletions/browser/controller/commandIds';
 import { InlineCompletionContextKeys } from '@opensumi/monaco-editor-core/esm/vs/editor/contrib/inlineCompletions/browser/controller/inlineCompletionContextKeys';
@@ -246,13 +246,11 @@ export class IntelligentCompletionsController extends BaseAIMonacoEditorControll
 
       const lastVisibleTime = changeSummary.lastVisibleTime;
       const report = this.reportData.read(reader);
-      let isValid = false;
+      const isValid = Boolean(lastVisibleTime && Date.now() - lastVisibleTime > VALID_TIME);
 
-      if (lastVisibleTime && Date.now() - lastVisibleTime > VALID_TIME) {
-        isValid = true;
+      if (isValid) {
         report?.('isDrop');
       } else {
-        isValid = false;
         report?.('isValid', false);
       }
 

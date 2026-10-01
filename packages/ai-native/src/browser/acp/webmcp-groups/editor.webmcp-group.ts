@@ -10,7 +10,7 @@ import { Injector } from '@opensumi/di';
 import { AppConfig } from '@opensumi/ide-core-browser';
 import { CommandService, URI } from '@opensumi/ide-core-common';
 import { IEditor, IEditorDocumentModel, IResourceOpenOptions, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/doc-model/types';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { WebMcpGroupRegistration } from '../webmcp-group-registry';

@@ -3,11 +3,7 @@ import { RPCService } from '@opensumi/ide-connection';
 
 import { AcpBrowserRpcRegistry } from './acp-browser-rpc-registry';
 
-import type {
-  IAcpWebMcpBridgeService,
-  WebMcpGroupDef,
-  WebMcpToolResult,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { IAcpWebMcpBridgeService, WebMcpGroupDef, WebMcpToolResult } from '@opensumi/ide-core-common';
 
 interface WebMcpGroupDefinitionOptions {
   includeAllTools?: boolean;

@@ -11,9 +11,9 @@ import {
 } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { QuickInputService } from '@opensumi/ide-quick-open/lib/browser/quick-input-service';
-import { WorkspaceService } from '@opensumi/ide-workspace/lib/browser/workspace-service';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+import { QuickInputService } from '@opensumi/ide-quick-open/input-service';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
+import { WorkspaceService } from '@opensumi/ide-workspace/service';
 
 import { IMDCContent, IMDCParseResult, parseMDC, serializeMDC } from '../../common';
 import { ProjectRule } from '../../common/types';
@@ -123,6 +123,8 @@ export class RulesService extends Disposable {
       value: '',
       placeHolder: localize('ai.native.rules.projectRules.newRule.placeholder'),
       validateInput: async (value) => {
+        // File names must reject the ASCII control-character range.
+        // eslint-disable-next-line no-control-regex
         const invalidCharsRegex = /[<>:"/\\|?*\x00-\x1F]/;
         value = value.trim();
         if (value === '') {

@@ -4,11 +4,11 @@ import React, { ReactNode, useMemo } from 'react';
 import { Injectable } from '@opensumi/di';
 import { Icon } from '@opensumi/ide-components';
 import { strings, transformLabelWithCodicon, useInjectable } from '@opensumi/ide-core-browser';
-import { MenuNode } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IBrowserCtxMenu, IMenuRenderProps } from '@opensumi/ide-core-browser/lib/menu/next/renderer/ctxmenu/browser';
-import { BrowserCtxMenuService } from '@opensumi/ide-overlay/lib/browser/ctx-menu/ctx-menu.service';
+import { MenuNode } from '@opensumi/ide-core-browser/menu';
+import { IBrowserCtxMenu, IMenuRenderProps } from '@opensumi/ide-core-browser/menu/browser';
+import { BrowserCtxMenuService } from '@opensumi/ide-overlay/context-menu';
 import { IIconService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import styles from '../style/design.module.less';
 

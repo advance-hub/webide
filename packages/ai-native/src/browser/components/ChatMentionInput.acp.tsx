@@ -1,7 +1,7 @@
 import { DataContent } from 'ai';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Image } from '@opensumi/ide-components/lib/image';
+import { Image } from '@opensumi/ide-components/image';
 import {
   AINativeConfigService,
   LabelService,
@@ -10,29 +10,28 @@ import {
   getSymbolIcon,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Icon, getIcon } from '@opensumi/ide-core-browser/lib/components';
+import { Icon, getIcon } from '@opensumi/ide-core-browser/components';
 import {
   AINativeSettingSectionsId,
   ChatFeatureRegistryToken,
+  CommandService,
   RulesServiceToken,
   URI,
   localize,
 } from '@opensumi/ide-core-common';
-import { CommandService } from '@opensumi/ide-core-common/lib/command';
-import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
+import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
-import { OutlineCompositeTreeNode, OutlineTreeNode } from '@opensumi/ide-outline/lib/browser/outline-node.define';
-import { OutlineTreeService } from '@opensumi/ide-outline/lib/browser/services/outline-tree.service';
+import { OutlineCompositeTreeNode, OutlineTreeNode } from '@opensumi/ide-outline/nodes';
+import { OutlineTreeService } from '@opensumi/ide-outline/tree';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { IconType } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IChatInternalService } from '../../common';
 import { LLMContextService } from '../../common/llm-context';
 import { ChatFeatureRegistry } from '../chat/chat.feature.registry';
-import { ChatInternalService } from '../chat/chat.internal.service';
 import { AcpChatInternalService } from '../chat/chat.internal.service.acp';
 import { MCPConfigCommands } from '../mcp/config/mcp-config.constants';
 import { RulesCommands } from '../rules/rules.contribution';
@@ -130,8 +129,7 @@ export const ChatMentionInputACP = (props: IChatMentionInputProps) => {
         parent = (await outlineTreeService.resolveChildren())[0] as OutlineCompositeTreeNode;
       }
       const children = (await outlineTreeService.resolveChildren(parent)) as (
-        | OutlineTreeNode
-        | OutlineCompositeTreeNode
+        OutlineTreeNode | OutlineCompositeTreeNode
       )[];
       for (const child of children) {
         symbols.push(child);
@@ -290,7 +288,7 @@ export const ChatMentionInputACP = (props: IChatMentionInputProps) => {
         ];
       },
       getItems: async (searchText: string) => {
-        let folders: MentionItem[] = [];
+        let folders: MentionItem[];
         if (!searchText) {
           const recentFile = await recentFilesManager.getMostRecentlyOpenedFiles();
           const recentFolder = Array.from(

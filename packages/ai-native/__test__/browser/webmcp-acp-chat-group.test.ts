@@ -1,5 +1,4 @@
-import { ChatServiceToken } from '@opensumi/ide-core-common';
-import { ChatMessageRole } from '@opensumi/ide-core-common/lib/types/ai-native';
+import { ChatMessageRole, ChatServiceToken } from '@opensumi/ide-core-common';
 
 import { AcpChatRelayStore } from '../../src/browser/acp/acp-chat-relay-store';
 import { AcpChatRelaySummaryProvider } from '../../src/browser/acp/acp-chat-relay-summary-provider';

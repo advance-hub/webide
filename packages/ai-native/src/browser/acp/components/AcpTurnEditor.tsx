@@ -2,7 +2,7 @@ import { DataContent } from 'ai';
 import cls from 'classnames';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Image } from '@opensumi/ide-components/lib/image';
+import { Image } from '@opensumi/ide-components/image';
 import {
   AINativeConfigService,
   LabelService,
@@ -10,26 +10,26 @@ import {
   getSymbolIcon,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/lib/components';
+import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/components';
 import {
   AINativeSettingSectionsId,
   ChatFeatureRegistryToken,
   ChatRenderRegistryToken,
+  CommandService,
   RulesServiceToken,
   URI,
   localize,
 } from '@opensumi/ide-core-common';
-import { CommandService } from '@opensumi/ide-core-common/lib/command';
-import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
+import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { MonacoCommandRegistry } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoCommandRegistry } from '@opensumi/ide-editor/commands';
 import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import { OutlineCompositeTreeNode, OutlineTreeNode } from '@opensumi/ide-outline/lib/browser/outline-node.define';
-import { OutlineTreeService } from '@opensumi/ide-outline/lib/browser/services/outline-tree.service';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { OutlineCompositeTreeNode, OutlineTreeNode } from '@opensumi/ide-outline/nodes';
+import { OutlineTreeService } from '@opensumi/ide-outline/tree';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { IconType } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
+import { IconService } from '@opensumi/ide-theme/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IChatInternalService } from '../../../common';
@@ -342,8 +342,7 @@ export const AcpTurnEditor = React.forwardRef<AcpTurnEditorHandle, AcpTurnEditor
         parent = (await outlineTreeService.resolveChildren())[0] as OutlineCompositeTreeNode;
       }
       const children = (await outlineTreeService.resolveChildren(parent)) as (
-        | OutlineTreeNode
-        | OutlineCompositeTreeNode
+        OutlineTreeNode | OutlineCompositeTreeNode
       )[];
       for (const child of children) {
         symbols.push(child);

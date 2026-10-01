@@ -9,11 +9,7 @@ import {
   isWebMcpToolInProfile,
 } from '../../common/webmcp-policy';
 
-import type {
-  WebMcpGroupDef,
-  WebMcpGroupInfo,
-  WebMcpToolResult,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { WebMcpGroupDef, WebMcpGroupInfo, WebMcpToolResult } from '@opensumi/ide-core-common';
 
 export const WEBMCP_PROFILE_SETTING_ID = 'ai.native.webmcp.profile';
 export const WEBMCP_PROFILE_QUERY_PARAM = 'webMcpProfile';

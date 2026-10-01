@@ -7,9 +7,12 @@
  * Tools follow the naming convention: terminal_{action}
  */
 import { Injector } from '@opensumi/di';
-import { ITerminalClient, ITerminalService } from '@opensumi/ide-terminal-next/lib/common';
-import { ITerminalApiService } from '@opensumi/ide-terminal-next/lib/common/api';
-import { ITerminalController } from '@opensumi/ide-terminal-next/lib/common/controller';
+import {
+  ITerminalApiService,
+  ITerminalClient,
+  ITerminalController,
+  ITerminalService,
+} from '@opensumi/ide-terminal-next';
 
 import { WebMcpGroupRegistration } from '../webmcp-group-registry';
 import { errorResult, serviceUnavailableResult, successResult, tryGetService } from '../webmcp-utils';
@@ -23,6 +26,8 @@ function toPositiveCappedNumber(value: unknown, fallback: number, cap: number): 
 }
 
 function stripAnsi(value: string): string {
+  // ANSI escape sequences intentionally start with the ESC control byte.
+  // eslint-disable-next-line no-control-regex
   return value.replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, '');
 }
 

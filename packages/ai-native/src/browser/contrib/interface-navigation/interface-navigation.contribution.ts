@@ -17,9 +17,9 @@ import {
   IEditor,
   IEditorFeatureContribution,
   IEditorFeatureRegistry,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
-import { MouseTargetType } from '@opensumi/ide-monaco/lib/browser/monaco-exports/editor';
+import { MouseTargetType } from '@opensumi/ide-monaco/editor-browser';
 import { IIconService, IThemeService, IconType } from '@opensumi/ide-theme';
 import { IModelDeltaDecoration } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 
@@ -55,7 +55,10 @@ class InterfaceDecoration extends Disposable implements IInterfaceDecoration {
 
   public editorDecoration: IModelDeltaDecoration;
 
-  constructor(public interfaceNode: Parser.SyntaxNode, private editor: monaco.editor.ICodeEditor) {
+  constructor(
+    public interfaceNode: Parser.SyntaxNode,
+    private editor: monaco.editor.ICodeEditor,
+  ) {
     super();
     // Interface Icon 有 Light 和 Dark 两种，根据工作空间 Theme 来设置
     const interfaceIconThemed: string =
@@ -203,18 +206,7 @@ export class InterfaceNavigationDecorationsContribution implements IEditorFeatur
       return;
     }
 
-    let interfaces: { interfaceNode?: Parser.SyntaxNode; members?: Parser.SyntaxNode[] }[] = [];
-
-    if (languageId === 'typescript' || languageId === 'typescriptreact') {
-      interfaces = await this.parseTypeScriptInterfaces(rootNode);
-    } else if (languageId === 'java') {
-      interfaces = await this.parseJavaInterfaces(rootNode);
-    } else {
-      // 尚未支持的语言 Parser
-      return;
-    }
-
-    interfaces =
+    const interfaces =
       languageId === 'java' ? await this.parseJavaInterfaces(rootNode) : await this.parseTypeScriptInterfaces(rootNode);
 
     const decorations = interfaces

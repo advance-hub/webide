@@ -1,6 +1,6 @@
 import { Injector } from '@opensumi/di';
 import { AppConfig } from '@opensumi/ide-core-browser';
-import { InlineChatIsVisible } from '@opensumi/ide-core-browser/lib/contextkey/ai-native';
+import { InlineChatIsVisible } from '@opensumi/ide-core-browser/contextkeys';
 import {
   AIServiceType,
   ActionSourceEnum,

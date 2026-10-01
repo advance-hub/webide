@@ -1,7 +1,7 @@
 import { IMarker } from '@xterm/xterm';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { AIActionItem } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { AIActionItem } from '@opensumi/ide-core-browser/components/ai';
 import { Disposable, InlineChatFeatureRegistryToken } from '@opensumi/ide-core-common';
 import { ITerminalController } from '@opensumi/ide-terminal-next';
 

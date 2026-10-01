@@ -2,11 +2,11 @@ import * as React from 'react';
 import { Root, createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
 
-jest.mock('@opensumi/ide-components/lib/click-outside', () => ({
+jest.mock('@opensumi/ide-components/click-outside', () => ({
   ClickOutside: ({ children }: { children: React.ReactNode }) => require('react').createElement('div', null, children),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className, iconClass }: { className?: string; iconClass?: string }) =>
     require('react').createElement('span', { className: className || iconClass }),
   getIcon: (name: string) => `icon-${name}`,

@@ -7,12 +7,12 @@ import {
   KeybindingRegistry,
   KeybindingScope,
 } from '@opensumi/ide-core-browser';
-import { AI_CODE_EDITS_COMMANDS } from '@opensumi/ide-core-browser/lib/ai-native/command';
-import { CodeEditsIsVisible } from '@opensumi/ide-core-browser/lib/contextkey/ai-native';
+import { AI_CODE_EDITS_COMMANDS } from '@opensumi/ide-core-browser/ai/commands';
+import { CodeEditsIsVisible } from '@opensumi/ide-core-browser/contextkeys';
 import { CommandContribution, CommandRegistry, Domain } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
+import { transaction } from '@opensumi/ide-monaco/observable';
 
 import { IntelligentCompletionsController } from './intelligent-completions.controller';
 

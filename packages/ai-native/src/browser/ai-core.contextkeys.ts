@@ -8,7 +8,7 @@ import {
   InlineHintWidgetIsVisible,
   InlineInputWidgetIsStreaming,
   InlineInputWidgetIsVisible,
-} from '@opensumi/ide-core-browser/lib/contextkey/ai-native';
+} from '@opensumi/ide-core-browser/contextkeys';
 import { ContextKeyService } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/browser/contextKeyService';
 import { IContextKeyServiceTarget } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
 

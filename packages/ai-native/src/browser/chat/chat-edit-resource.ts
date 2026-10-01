@@ -1,10 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { AppConfig, Emitter, Event, IApplicationService, PreferenceService, URI } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import {
-  IEditorDocumentModelContentProvider,
-  IEditorDocumentModelService,
-} from '@opensumi/ide-editor/lib/browser/doc-model/types';
+import { IEditorDocumentModelContentProvider, IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
 
 import { BaseApplyService } from '../mcp/base-apply.service';
 

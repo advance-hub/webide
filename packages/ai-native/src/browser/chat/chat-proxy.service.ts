@@ -2,6 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import {
   AIBackSerivcePath,
+  AINativeSettingSectionsId,
   CancellationToken,
   ChatAgentViewServiceToken,
   ChatFeatureRegistryToken,
@@ -13,10 +14,9 @@ import {
   IChatProgress,
   MCPConfigServiceToken,
 } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
-import { MonacoCommandRegistry } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoCommandRegistry } from '@opensumi/ide-editor/commands';
 import { IMessageService } from '@opensumi/ide-overlay';
-import { listenReadable } from '@opensumi/ide-utils/lib/stream';
+import { listenReadable } from '@opensumi/ide-utils/stream';
 
 import {
   CoreMessage,
@@ -74,19 +74,18 @@ export class ChatProxyService extends Disposable {
   private chatDeferred: Deferred<void> = new Deferred<void>();
 
   public async getRequestOptions() {
-    const model = this.preferenceService.get<string>(AINativeSettingSectionsId.LLMModelSelection);
+    const model = this.preferenceService.get<string>(AINativeSettingSectionsId.LLMModelSelection) ?? 'openai';
     const modelId = this.preferenceService.get<string>(AINativeSettingSectionsId.ModelID);
-    let apiKey: string = '';
+    const apiKeySetting =
+      model === 'deepseek'
+        ? AINativeSettingSectionsId.DeepseekApiKey
+        : model === 'anthropic'
+          ? AINativeSettingSectionsId.AnthropicApiKey
+          : AINativeSettingSectionsId.OpenaiApiKey;
+    const apiKey = this.preferenceService.get<string>(apiKeySetting, '');
     let baseURL: string = '';
-    if (model === 'deepseek') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.DeepseekApiKey, '');
-    } else if (model === 'openai') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiApiKey, '');
-    } else if (model === 'anthropic') {
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.AnthropicApiKey, '');
-    } else {
+    if (!['deepseek', 'openai', 'anthropic'].includes(model)) {
       // openai-compatible 为兜底
-      apiKey = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiApiKey, '');
       baseURL = this.preferenceService.get<string>(AINativeSettingSectionsId.OpenaiBaseURL, '');
     }
     const maxTokens = this.preferenceService.get<number>(AINativeSettingSectionsId.MaxTokens);

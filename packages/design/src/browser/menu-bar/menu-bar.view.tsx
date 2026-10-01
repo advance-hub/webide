@@ -14,15 +14,14 @@ import {
   AI_AGENTIC_WORKBENCH_TOGGLE,
   AI_PANEL_LAYOUT_CONTEXT,
   AI_PANEL_LAYOUT_GET,
-} from '@opensumi/ide-core-browser/lib/ai-native/command';
-import { Icon } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/ai/commands';
+import { Icon } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
+import { DesignLayoutConfig, VIEW_CONTAINERS } from '@opensumi/ide-core-browser/layout';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { CommandRegistry, CommandService, PanelLayoutMode } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { ToolBar } from '@opensumi/ide-toolbar/lib/browser/toolbar.view';
+import { ToolBar } from '@opensumi/ide-toolbar/view';
 
 import { DESIGN_MENU_BAR_LEFT, DESIGN_MENU_BAR_RIGHT } from '../../common';
 

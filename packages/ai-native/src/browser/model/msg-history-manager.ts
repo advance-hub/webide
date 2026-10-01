@@ -1,5 +1,4 @@
-import { Disposable, Emitter, Event, uuid } from '@opensumi/ide-core-common';
-import { ChatMessageRole, IHistoryChatMessage } from '@opensumi/ide-core-common/lib/types/ai-native';
+import { ChatMessageRole, Disposable, Emitter, Event, IHistoryChatMessage, uuid } from '@opensumi/ide-core-common';
 
 import { ChatFeatureRegistry } from '../chat/chat.feature.registry';
 

@@ -1,10 +1,10 @@
 import path from 'path';
 
 import * as React from 'react';
-import ts from 'typescript';
+import ts from 'typescript-api';
 
 import { COMMON_COMMANDS } from '@opensumi/ide-core-browser';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId } from '@opensumi/ide-core-common';
 
 jest.mock('tiktoken', () => ({
   Tiktoken: jest.fn(),

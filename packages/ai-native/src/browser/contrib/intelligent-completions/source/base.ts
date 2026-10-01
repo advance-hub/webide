@@ -17,14 +17,17 @@ import {
   disposableObservableValue,
   observableValue,
   transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 
 import { ICodeEditsContextBean } from '../index';
 
 export class CodeEditsContextBean extends Disposable {
   public readonly uid = uuid(6);
 
-  constructor(private readonly raw: ICodeEditsContextBean, private readonly source: BaseCodeEditsSource) {
+  constructor(
+    private readonly raw: ICodeEditsContextBean,
+    private readonly source: BaseCodeEditsSource,
+  ) {
     super();
   }
 

@@ -4,7 +4,7 @@ import ReactDOMClient from 'react-dom/client';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { KeybindingRegistry, useDisposable } from '@opensumi/ide-core-browser';
-import { AI_INLINE_DIFF_PARTIAL_EDIT } from '@opensumi/ide-core-browser/lib/ai-native/command';
+import { AI_INLINE_DIFF_PARTIAL_EDIT } from '@opensumi/ide-core-browser/ai/commands';
 import { Emitter, Event, IPosition, isDefined, isUndefined, localize, uuid } from '@opensumi/ide-core-common';
 import {
   ICodeEditor,
@@ -12,8 +12,8 @@ import {
   IModelDecorationsChangedEvent,
   Position,
 } from '@opensumi/ide-monaco';
-import { ReactInlineContentWidget } from '@opensumi/ide-monaco/lib/browser/ai-native/BaseInlineContentWidget';
-import { ContentWidgetPositionPreference } from '@opensumi/ide-monaco/lib/browser/monaco-exports/editor';
+import { ReactInlineContentWidget } from '@opensumi/ide-monaco/ai/widgets';
+import { ContentWidgetPositionPreference } from '@opensumi/ide-monaco/editor-browser';
 import { EditorOption } from '@opensumi/monaco-editor-core/esm/vs/editor/common/config/editorOptions';
 import { IScrollEvent } from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorCommon';
 import { LineTokens } from '@opensumi/monaco-editor-core/esm/vs/editor/common/tokens/lineTokens';
@@ -125,7 +125,10 @@ export class AcceptPartialEditWidget extends ReactInlineContentWidget {
 
   positionPreference = [ContentWidgetPositionPreference.EXACT];
 
-  constructor(protected readonly editor: ICodeEditor, protected editWidgetOptions?: IPartialEditWidgetOptions) {
+  constructor(
+    protected readonly editor: ICodeEditor,
+    protected editWidgetOptions?: IPartialEditWidgetOptions,
+  ) {
     super(editor);
   }
 
@@ -290,7 +293,11 @@ export class RemovedZoneWidget extends ZoneWidget {
 
   public status: IWidgetStatus = 'pending';
 
-  constructor(editor: ICodeEditor, public readonly textLines: ITextLinesTokens[], options: IRemovedZoneWidgetOptions) {
+  constructor(
+    editor: ICodeEditor,
+    public readonly textLines: ITextLinesTokens[],
+    options: IRemovedZoneWidgetOptions,
+  ) {
     super(editor, options);
 
     if (isDefined(options.isHidden)) {

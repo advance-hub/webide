@@ -1,4 +1,5 @@
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { SlotLocation, fastdom } from '@opensumi/ide-core-browser';
+import { DesignLayoutConfig } from '@opensumi/ide-core-browser/layout';
 import { AINativeSettingSectionsId, PreferenceScope, URI } from '@opensumi/ide-core-common';
 
 import {
@@ -362,6 +363,27 @@ describe('AIPanelLayoutService', () => {
       PreferenceScope.User,
     );
     expect(layoutService.toggleSlot).toHaveBeenCalledWith(AI_CHAT_VIEW_ID, true, AI_CLASSIC_CHAT_DEFAULT_SIZE);
+  });
+
+  it('should reveal the primary view after restoring the classic layout', async () => {
+    expect.hasAssertions();
+    const { layoutService, service } = createService({ inspectValue: { globalValue: 'agentic' } });
+    const nextFrame = jest.spyOn(fastdom, 'measureAtNextFrame').mockImplementation((callback) => {
+      callback();
+      return { dispose: jest.fn() };
+    });
+
+    try {
+      await service.setLayoutMode('classic');
+
+      expect(layoutService.setLayoutStateKey).toHaveBeenCalledWith('layout', {
+        saveCurrent: false,
+        forceRestore: true,
+      });
+      expect(layoutService.toggleSlot).toHaveBeenCalledWith(SlotLocation.view, true);
+    } finally {
+      nextFrame.mockRestore();
+    }
   });
 
   it('should apply external preference changes to the active layout shell', () => {

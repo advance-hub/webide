@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { getIcon, localize, useInjectable } from '@opensumi/ide-core-browser';
-import { Popover } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { Popover } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 
 import { AIPanelLayoutService } from '../layout/panel-layout.service';
 

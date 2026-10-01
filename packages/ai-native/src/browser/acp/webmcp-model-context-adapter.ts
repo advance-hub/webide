@@ -1,9 +1,9 @@
-import { ensureModelContext } from '@opensumi/ide-core-browser/lib/webmcp-polyfill';
+import { ensureModelContext } from '@opensumi/ide-core-browser/webmcp';
 
 import { canExposeWebMcpTool } from '../../common/webmcp-policy';
 
 import type { WebMcpGroupDefinitionOptions, WebMcpGroupRegistry } from './webmcp-group-registry';
-import type { NavigatorModelContext, WebMCPTool } from '@opensumi/ide-core-browser/lib/webmcp-types';
+import type { NavigatorModelContext, WebMCPTool } from '@opensumi/ide-core-browser/webmcp';
 import type { IDisposable } from '@opensumi/ide-core-common';
 
 export interface WebMcpModelContextAdapterOptions extends WebMcpGroupDefinitionOptions {

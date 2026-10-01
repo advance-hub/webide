@@ -18,7 +18,7 @@ import {
   observableFromEvent,
   observableValue,
   transaction,
-} from '@opensumi/ide-monaco/lib/common/observable';
+} from '@opensumi/ide-monaco/observable';
 
 import { BaseAIMonacoEditorController } from '../../contrib/base';
 import { EInlineDiffPreviewMode } from '../../preferences/schema';
@@ -58,10 +58,8 @@ export class InlineDiffController extends BaseAIMonacoEditorController {
   mount(): IDisposable {
     this.previewerStore = new Map();
     this.currentPreviewer = observableValue(this, undefined);
-    this.modelChangeObs = observableFromEvent<monaco.editor.ITextModel>(
-      this,
-      this.monacoEditor.onDidChangeModel,
-      () => this.monacoEditor.getModel()!,
+    this.modelChangeObs = observableFromEvent<monaco.editor.ITextModel>(this, this.monacoEditor.onDidChangeModel, () =>
+      this.monacoEditor.getModel()!,
     );
 
     this.featureDisposable.addDispose(

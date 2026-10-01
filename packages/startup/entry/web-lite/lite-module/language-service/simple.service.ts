@@ -1,17 +1,22 @@
-// eslint-disable-next-line import/no-unresolved
 import { CancellationToken, DefinitionProvider, DocumentSelector, HoverProvider, ReferenceProvider } from 'vscode';
 
 import { Autowired, ConstructorOf, Injectable } from '@opensumi/di';
 import { DisposableCollection, LRUMap, URI, Uri } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelService, LanguageSelector } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService, LanguageSelector } from '@opensumi/ide-editor/browser';
+import {
+  Adapter,
+  DefinitionAdapter,
+  ExtHostDocumentData,
+  HoverAdapter,
+  ReferenceAdapter,
+} from '@opensumi/ide-extension/language/adapters';
 import {
   ExtensionDocumentDataManager,
   IExtHostLanguages,
   MonacoModelIdentifier,
   testGlob,
-} from '@opensumi/ide-extension/lib/common/vscode';
-import { fromLanguageSelector } from '@opensumi/ide-extension/lib/common/vscode/converter';
-import { Disposable } from '@opensumi/ide-extension/lib/common/vscode/ext-types';
+} from '@opensumi/ide-extension/vscode';
+import { fromLanguageSelector } from '@opensumi/ide-extension/vscode/converter';
 import {
   Definition,
   DefinitionLink,
@@ -21,15 +26,11 @@ import {
   ReferenceContext,
   SerializedDocumentFilter,
   isDocumentFilter,
-} from '@opensumi/ide-extension/lib/common/vscode/model.api';
-import { ExtHostDocumentData } from '@opensumi/ide-extension/lib/hosted/api/vscode/doc/ext-data.host';
-import { Adapter } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.language';
-import { DefinitionAdapter } from '@opensumi/ide-extension/lib/hosted/api/vscode/language/definition';
-import { HoverAdapter } from '@opensumi/ide-extension/lib/hosted/api/vscode/language/hover';
-import { ReferenceAdapter } from '@opensumi/ide-extension/lib/hosted/api/vscode/language/reference';
+} from '@opensumi/ide-extension/vscode/model';
+import { Disposable } from '@opensumi/ide-extension/vscode/types';
 import * as monaco from '@opensumi/ide-monaco';
-import { monaco as monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { monaco as monacoApi } from '@opensumi/ide-monaco/api';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 
 import type * as vscode from 'vscode';
 

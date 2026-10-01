@@ -1,8 +1,8 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { AnthropicModel } from '@opensumi/ide-ai-native/lib/node/anthropic/anthropic-language-model';
-import { DeepSeekModel } from '@opensumi/ide-ai-native/lib/node/deepseek/deepseek-language-model';
-import { OpenAIModel } from '@opensumi/ide-ai-native/lib/node/openai/openai-language-model';
-import { OpenAICompatibleModel } from '@opensumi/ide-ai-native/lib/node/openai-compatible/openai-compatible-language-model';
+import { AnthropicModel } from '@opensumi/ide-ai-native/node/anthropic';
+import { DeepSeekModel } from '@opensumi/ide-ai-native/node/deepseek';
+import { OpenAIModel } from '@opensumi/ide-ai-native/node/openai';
+import { OpenAICompatibleModel } from '@opensumi/ide-ai-native/node/openai-compatible';
 import { IAIBackServiceOption } from '@opensumi/ide-core-common';
 import {
   CancellationToken,

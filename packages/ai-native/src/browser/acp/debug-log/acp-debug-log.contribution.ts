@@ -8,7 +8,7 @@ import {
   IResource,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser/types';
+} from '@opensumi/ide-editor/types';
 
 import { AcpDebugLogView } from './acp-debug-log.view';
 

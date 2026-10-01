@@ -1,8 +1,8 @@
 import { Injectable } from '@opensumi/di';
 import { AINativeSettingSectionsId, ECodeEditsSourceTyping, IDisposable } from '@opensumi/ide-core-common';
 import { ICursorPositionChangedEvent, IPosition, Position } from '@opensumi/ide-monaco';
-import { URI } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { autorunDelta, observableFromEvent } from '@opensumi/ide-monaco/lib/common/observable';
+import { URI } from '@opensumi/ide-monaco/api';
+import { autorunDelta, observableFromEvent } from '@opensumi/ide-monaco/observable';
 import { StandaloneServices } from '@opensumi/monaco-editor-core/esm/vs/editor/standalone/browser/standaloneServices';
 import {
   IMarker,

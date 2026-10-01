@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import {
   ACP_SESSION_NOT_FOUND_ERROR_NAME,
-  AvailableCommand,
+  AgentProcessConfig,
   CLIENT_ID_TOKEN,
   CancellationToken,
   IAIBackService,
@@ -22,11 +22,9 @@ import {
   SetSessionModeRequest,
   ThreadStatus,
 } from '@opensumi/ide-core-common';
-import { AgentProcessConfig } from '@opensumi/ide-core-common/lib/types/ai-native/agent-types';
 import { ChatReadableStream, INodeLogger } from '@opensumi/ide-core-node';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
-import { BaseLanguageModel } from '../base-language-model';
 import { OpenAICompatibleModel } from '../openai-compatible/openai-compatible-language-model';
 
 import { toAgentUpdate } from './acp-agent-update-adapter';
@@ -712,7 +710,7 @@ ${input}`;
           type: 'function',
           function: {
             name: update.toolCall?.name || update.content,
-            arguments: update.toolCall?.input !== undefined ? JSON.stringify(update.toolCall.input) ?? '' : '',
+            arguments: update.toolCall?.input !== undefined ? (JSON.stringify(update.toolCall.input) ?? '') : '',
           },
           state: 'complete',
         };

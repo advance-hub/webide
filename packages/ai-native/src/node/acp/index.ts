@@ -2,7 +2,8 @@ export { AcpCliBackService, AcpCliBackServiceToken } from './acp-cli-back.servic
 export { AcpFileSystemHandler, AcpFileSystemHandlerToken } from './handlers/file-system.handler';
 export { AcpTerminalHandler, AcpTerminalHandlerToken } from './handlers/terminal.handler';
 export { AcpAgentRequestHandler, AcpAgentRequestHandlerToken } from './handlers/agent-request.handler';
-export { AcpAgentService, AcpAgentServiceToken, IAcpAgentService } from './acp-agent.service';
+export { AcpAgentService, AcpAgentServiceToken } from './acp-agent.service';
+export type { IAcpAgentService } from './acp-agent.service';
 export {
   AcpPermissionCallerService,
   AcpPermissionCallerServiceToken,
@@ -18,14 +19,10 @@ export {
   AcpWebMcpRpcBridgeServiceToken,
 } from './acp-browser-rpc-bridge.service';
 export { AcpThreadStatusCallerService, AcpThreadStatusCallerServiceToken } from './acp-thread-status-caller.service';
-export {
-  PermissionRoutingService,
-  PermissionRoutingServiceToken,
-  IPermissionRoutingService,
-} from './permission-routing.service';
-export {
-  AcpThread,
-  AcpThreadToken,
+export { PermissionRoutingService, PermissionRoutingServiceToken } from './permission-routing.service';
+export type { IPermissionRoutingService } from './permission-routing.service';
+export { AcpThread, AcpThreadToken, AcpThreadFactoryToken, AcpThreadFactoryProvider } from './acp-thread';
+export type {
   IAcpThread,
   ThreadStatus,
   ToolCallStatus,
@@ -38,8 +35,6 @@ export {
   AcpThreadEvent,
   AcpThreadOptions,
   AcpThreadFactory,
-  AcpThreadFactoryToken,
-  AcpThreadFactoryProvider,
   AcpThreadRuntimeConfig,
 } from './acp-thread';
 export { AcpWebMcpCallerService } from './acp-webmcp-caller.service';

@@ -1,5 +1,5 @@
 import { ChatMessageRole } from '@opensumi/ide-core-common';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { ACPSessionProvider } from '../../../src/browser/chat/acp-session-provider';
 import { AcpChatManagerService } from '../../../src/browser/chat/chat-manager.service.acp';
@@ -158,8 +158,10 @@ describe('AcpChatManagerService', () => {
     };
 
     Object.defineProperty(provider, 'configProvider', {
+      configurable: true,
       value: {
         resolveConfig: jest.fn().mockResolvedValue({ agentId: 'claude-agent-acp', cwd: '/workspace' }),
+        resolvePrewarmConfig: jest.fn().mockResolvedValue({ agentId: 'claude-agent-acp', cwd: '/workspace' }),
       },
     });
     Object.defineProperty(provider, 'messageService', {
@@ -830,9 +832,53 @@ describe('AcpChatManagerService', () => {
     expect(session.createdAt).toBe(67890);
   });
 
-  it('keeps the first empty ACP session list result retryable before caching confirmed empty history', async () => {
+  it('expires a confirmed empty ACP session list so late backend history becomes visible', async () => {
     const provider = createSessionProvider();
-    const listSessions = jest.fn().mockResolvedValue({ sessions: [] });
+    const listSessions = jest
+      .fn()
+      .mockResolvedValueOnce({ sessions: [] })
+      .mockResolvedValueOnce({ sessions: [] })
+      .mockResolvedValueOnce({
+        sessions: [{ sessionId: 'late-session', title: 'Late session' }],
+      });
+    Object.defineProperty(provider, 'aiBackService', {
+      value: {
+        listSessions,
+      },
+    });
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+
+    try {
+      await expect(provider.loadSessions()).resolves.toEqual([]);
+      await expect(provider.loadSessions()).resolves.toEqual([]);
+
+      dateNowSpy.mockReturnValue(10_500);
+      await expect(provider.loadSessions()).resolves.toEqual([]);
+      expect(listSessions).toHaveBeenCalledTimes(2);
+
+      dateNowSpy.mockReturnValue(11_001);
+      await expect(provider.loadSessions()).resolves.toEqual([
+        expect.objectContaining({
+          sessionId: 'acp:late-session',
+          title: 'Late session',
+        }),
+      ]);
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+
+    expect(listSessions).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not start an implicit agent while loading history in the background', async () => {
+    const provider = createSessionProvider();
+    const listSessions = jest.fn();
+    Object.defineProperty(provider, 'configProvider', {
+      value: {
+        resolveConfig: jest.fn(),
+        resolvePrewarmConfig: jest.fn().mockResolvedValue(undefined),
+      },
+    });
     Object.defineProperty(provider, 'aiBackService', {
       value: {
         listSessions,
@@ -840,10 +886,8 @@ describe('AcpChatManagerService', () => {
     });
 
     await expect(provider.loadSessions()).resolves.toEqual([]);
-    await expect(provider.loadSessions()).resolves.toEqual([]);
-    await expect(provider.loadSessions()).resolves.toEqual([]);
 
-    expect(listSessions).toHaveBeenCalledTimes(2);
+    expect(listSessions).not.toHaveBeenCalled();
   });
 
   it('reuses the in-flight ACP session list request', async () => {

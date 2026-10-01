@@ -11,20 +11,17 @@ jest.mock('@opensumi/ide-core-browser', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className }: { className?: string }) => require('react').createElement('span', { className }),
   Popover: ({ children }: { children: React.ReactNode }) => require('react').createElement('div', null, children),
   PopoverPosition: { left: 'left' },
   getIcon: (name: string) => `icon-${name}`,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
-  EnhanceIcon: () => null,
-}));
-
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native/interactive-input/index', () => {
+jest.mock('@opensumi/ide-core-browser/components/ai', () => {
   const ReactModule = require('react') as typeof import('react');
   return {
+    EnhanceIcon: () => null,
     InteractiveInput: ReactModule.forwardRef(
       (
         props: {

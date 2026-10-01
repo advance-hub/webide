@@ -2,18 +2,17 @@ import cls from 'classnames';
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { AINativeConfigService, useInjectable, useLatest } from '@opensumi/ide-core-browser';
-import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/lib/components';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { InteractiveInput } from '@opensumi/ide-core-browser/lib/components/ai-native/interactive-input/index';
+import { Icon, Popover, PopoverPosition, getIcon } from '@opensumi/ide-core-browser/components';
+import { EnhanceIcon, InteractiveInput } from '@opensumi/ide-core-browser/components/ai';
 import {
   ChatAgentViewServiceToken,
   ChatFeatureRegistryToken,
+  CommandService,
   MessageType,
   localize,
   runWhenIdle,
 } from '@opensumi/ide-core-common';
-import { CommandService } from '@opensumi/ide-core-common/lib/command';
-import { MonacoCommandRegistry } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
+import { MonacoCommandRegistry } from '@opensumi/ide-editor/commands';
 import { IDialogService } from '@opensumi/ide-overlay';
 
 import {

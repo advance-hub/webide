@@ -2,10 +2,9 @@ import cls from 'classnames';
 import React, { useState } from 'react';
 
 import { useInjectable } from '@opensumi/ide-core-browser';
-import { Icon } from '@opensumi/ide-core-browser/lib/components';
-import { Loading } from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { IChatToolContent, uuid } from '@opensumi/ide-core-common';
-import { localize } from '@opensumi/ide-core-common/lib/localize';
+import { Icon } from '@opensumi/ide-core-browser/components';
+import { Loading } from '@opensumi/ide-core-browser/components/ai';
+import { IChatToolContent, localize, uuid } from '@opensumi/ide-core-common';
 
 import { TOOL_NAME_SEPARATOR } from '../../common/utils';
 import { IMCPServerRegistry, TokenMCPServerRegistry } from '../types';

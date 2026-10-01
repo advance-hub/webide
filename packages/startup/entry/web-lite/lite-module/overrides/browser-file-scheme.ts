@@ -4,7 +4,7 @@ import { IFileSchemeDocClient } from '@opensumi/ide-file-scheme';
 import {
   FileSystemEditorComponentContribution,
   FileSystemEditorResourceContribution,
-} from '@opensumi/ide-file-scheme/lib/browser/file-scheme.contribution';
+} from '@opensumi/ide-file-scheme/contribution';
 
 import { FileSchemeDocClientService } from './doc-client';
 

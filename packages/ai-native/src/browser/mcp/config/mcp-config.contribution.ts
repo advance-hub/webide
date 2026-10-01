@@ -1,9 +1,7 @@
 import { Autowired } from '@opensumi/di';
 import { getIcon } from '@opensumi/ide-components';
-import { MenuContribution } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IMenuRegistry } from '@opensumi/ide-core-browser/lib/menu/next/base';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next/menu-id';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService } from '@opensumi/ide-core-browser';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { Domain, URI, localize } from '@opensumi/ide-core-common';
 import {
   BrowserEditorContribution,
@@ -11,9 +9,9 @@ import {
   EditorComponentRenderMode,
   IResource,
   ResourceService,
-} from '@opensumi/ide-editor/lib/browser/types';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+} from '@opensumi/ide-editor/types';
+import { IconService } from '@opensumi/ide-theme/browser';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { MCPConfigView } from './components/mcp-config.view';
 import { MCPConfigCommands, MCP_CONFIG_COMPONENTS_SCHEME_ID } from './mcp-config.constants';

@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Modal } from '@opensumi/ide-components/lib/modal';
-import { Popover, PopoverPosition, PopoverTriggerType } from '@opensumi/ide-components/lib/popover';
+import { Modal } from '@opensumi/ide-components/modal';
+import { Popover, PopoverPosition, PopoverTriggerType } from '@opensumi/ide-components/popover';
 import { PreferenceService, useInjectable } from '@opensumi/ide-core-browser';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId } from '@opensumi/ide-core-common';
 import { IWindowDialogService } from '@opensumi/ide-overlay';
 
 import { IChatInternalService } from '../../../common';
@@ -355,8 +355,8 @@ function TaskRow({
   const guidance = !projectAvailable
     ? 'Project unavailable.'
     : conversationUnavailable
-    ? 'Select the task to retry loading its history.'
-    : undefined;
+      ? 'Select the task to retry loading its history.'
+      : undefined;
   const accessibleLabel = [
     `${task.title}.`,
     `Agent: ${agentDescription}.`,

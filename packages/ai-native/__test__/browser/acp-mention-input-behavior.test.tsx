@@ -8,14 +8,14 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   useInjectable: jest.fn(),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: ({ className }: { className?: string }) => require('react').createElement('span', { className }),
   Popover: ({ children }: { children: React.ReactNode }) => require('react').createElement('div', null, children),
   PopoverPosition: { top: 'top' },
   getIcon: (name: string) => `icon-${name}`,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   EnhanceIcon: ({ ariaLabel, onClick }: { ariaLabel?: string; onClick?: () => void }) =>
     require('react').createElement('button', { 'aria-label': ariaLabel, onClick, type: 'button' }, ariaLabel),
 }));

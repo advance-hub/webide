@@ -7,7 +7,7 @@ import {
   PreferenceService,
   StaleLRUMap,
 } from '@opensumi/ide-core-browser';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
 
 import { IIntelligentCompletionsResult } from '../intelligent-completions';
 

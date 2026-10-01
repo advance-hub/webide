@@ -2,7 +2,7 @@
 
 import { Injectable } from '@opensumi/di';
 import { LogLevel, SupportLogNamespace } from '@opensumi/ide-core-browser';
-import { ensureDir } from '@opensumi/ide-core-common/lib/browser-fs/ensure-dir';
+import { ensureDir } from '@opensumi/ide-core-common/browser-fs';
 
 @Injectable()
 export class MockLogServiceForClient {

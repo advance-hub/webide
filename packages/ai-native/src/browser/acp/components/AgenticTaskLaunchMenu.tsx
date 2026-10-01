@@ -8,8 +8,7 @@ import {
   localize,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { PreferenceScope } from '@opensumi/ide-core-common';
-import { AINativeSettingSectionsId } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import { AINativeSettingSectionsId, PreferenceScope } from '@opensumi/ide-core-common';
 import { strings } from '@opensumi/ide-utils';
 
 import { AI_CHAT_NEW_TASK } from '../../chat/acp-new-draft.commands';
@@ -147,11 +146,11 @@ export function AgenticTaskLaunchMenu({
   const launchTitle = !projectAvailable
     ? localize('aiNative.chat.newTask.workspaceUnavailable', 'Workspace Target unavailable')
     : !selectedAgent
-    ? localize('aiNative.chat.newTask.noAgent', 'No ACP Agent available')
-    : `${strings.format(
-        localize('aiNative.chat.newTask.withAgent', 'New Task with {0}'),
-        selectedAgent.label,
-      )}${newTaskKeybinding ? ` (${newTaskKeybinding})` : ''}`;
+      ? localize('aiNative.chat.newTask.noAgent', 'No ACP Agent available')
+      : `${strings.format(
+          localize('aiNative.chat.newTask.withAgent', 'New Task with {0}'),
+          selectedAgent.label,
+        )}${newTaskKeybinding ? ` (${newTaskKeybinding})` : ''}`;
 
   return (
     <div className={chatStyles.agentic_task_launch_menu_group}>

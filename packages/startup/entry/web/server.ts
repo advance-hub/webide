@@ -1,18 +1,23 @@
 import 'tsconfig-paths/register';
 
 import { Injector, Provider } from '@opensumi/di';
-import { AIBackSerivceToken } from '@opensumi/ide-core-common';
-import { startServer } from '@opensumi/ide-dev-tool/src/server';
-import { ExpressFileServerModule } from '@opensumi/ide-express-file-server/lib/node';
-import { OpenerModule } from '@opensumi/ide-remote-opener/lib/node';
-import { PtyServiceManagerToken } from '@opensumi/ide-terminal-next/lib/node/pty.manager';
+import { toRuntimePlanContract } from '@opensumi/ide-core-common';
+import { startServer } from '@opensumi/ide-dev-tool/server';
+import { ExpressFileServerModule } from '@opensumi/ide-express-file-server/node';
+import { OpenerModule } from '@opensumi/ide-remote-opener/node';
+import {
+  compileOpenSumiProductRuntimePlan,
+  composeLegacyEntrypointModules,
+  createRuntimeTopologyServerHandshake,
+  parseRuntimeTopologyHandshakePolicy,
+} from '@opensumi/ide-startup';
+import { AINodeBindings } from '@opensumi/ide-startup/node/ai';
+import { CommonNodeBindings, CommonNodeModules } from '@opensumi/ide-startup/node/modules';
+import { PtyServiceManagerToken } from '@opensumi/ide-terminal-next/node/pty-manager';
 import {
   PtyServiceManagerRemote,
   PtyServiceManagerRemoteOptions,
-} from '@opensumi/ide-terminal-next/lib/node/pty.manager.remote';
-
-import { CommonNodeModules } from '../../src/node/common-modules';
-import { AIBackService } from '../sample-modules/ai-native/ai.back.service';
+} from '@opensumi/ide-terminal-next/node/remote-pty-manager';
 
 const injectorProviders: Provider[] = [
   // {
@@ -43,8 +48,21 @@ if (process.env.PTY_PROXY_SOCK || process.env.PTY_PROXY_PORT) {
 }
 
 const injector = new Injector(injectorProviders);
+const runtimePlan = compileOpenSumiProductRuntimePlan({
+  runtime: 'node',
+  commonBindings: CommonNodeBindings,
+  options: [{ id: 'ai', bindings: AINodeBindings }],
+});
 
 startServer({
-  modules: [...CommonNodeModules, ExpressFileServerModule, OpenerModule],
+  modules: composeLegacyEntrypointModules({
+    runtimePlan,
+    frameworkModules: CommonNodeModules,
+    afterOptionalModules: [ExpressFileServerModule, OpenerModule],
+  }),
   injector,
+  runtimeTopologyHandshake: createRuntimeTopologyServerHandshake({
+    runtimePlan: toRuntimePlanContract(runtimePlan),
+    policy: parseRuntimeTopologyHandshakePolicy(process.env.OPENSUMI_RUNTIME_TOPOLOGY_POLICY, 'compatible'),
+  }),
 });

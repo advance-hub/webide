@@ -30,7 +30,7 @@ import {
   TerminalRegistryToken,
   WebMcpGroupRegistryToken,
 } from '@opensumi/ide-core-common';
-import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/lib/browser/folder-file-preference-provider';
+import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/folder-provider';
 
 import {
   ChatProxyServiceToken,

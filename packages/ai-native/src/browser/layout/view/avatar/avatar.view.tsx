@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { localize, useInjectable } from '@opensumi/ide-core-browser';
-import { AILogoAvatar } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { AILogoAvatar } from '@opensumi/ide-core-browser/components/ai';
 import { PanelLayoutMode } from '@opensumi/ide-core-common';
 
 import { AIPanelLayoutService } from '../../panel-layout.service';

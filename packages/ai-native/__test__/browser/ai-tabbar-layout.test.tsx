@@ -70,7 +70,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => {
+jest.mock('@opensumi/ide-core-browser/components', () => {
   const React = require('react');
   return {
     EDirection: {
@@ -89,23 +89,17 @@ jest.mock('@opensumi/ide-core-browser/lib/components', () => {
   };
 });
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   EnhanceIcon: () => <span />,
   EnhanceIconWithCtxMenu: () => <span />,
   EnhancePopover: ({ children }: React.PropsWithChildren) => <>{children}</>,
   HorizontalVertical: () => <span />,
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/common/container-id', () => ({
+jest.mock('@opensumi/ide-core-browser/layout', () => ({
   EXPLORER_CONTAINER_ID: 'explorer',
   SCM_CONTAINER_ID: 'scm',
-}));
-
-jest.mock('@opensumi/ide-core-browser/lib/layout/constants', () => ({
   DesignLayoutConfig: class DesignLayoutConfig {},
-}));
-
-jest.mock('@opensumi/ide-core-browser/lib/layout/view-id', () => ({
   VIEW_CONTAINERS: {
     LEFT_TABBAR_PANEL: 'left-tabbar-panel',
   },
@@ -115,7 +109,7 @@ jest.mock('@opensumi/ide-core-common', () => ({
   localize: (key: string) => key,
 }));
 
-jest.mock('@opensumi/ide-design/lib/browser/layout/tabbar.view', () => ({
+jest.mock('@opensumi/ide-design/tabbar', () => ({
   DesignLeftTabRenderer: (props: any) => {
     const TabbarView = props.tabbarView;
     mockCapturedDesignLeftProps = props;
@@ -128,7 +122,7 @@ jest.mock('@opensumi/ide-main-layout', () => ({
   IMainLayoutService: mockMainLayoutServiceToken,
 }));
 
-jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/bar.view', () => ({
+jest.mock('@opensumi/ide-main-layout/tabbar/view', () => ({
   ChatTabbarRenderer2: () => <div />,
   IconElipses: () => <div />,
   IconTabView: () => <div />,
@@ -143,15 +137,15 @@ jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/bar.view', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/panel.view', () => ({
+jest.mock('@opensumi/ide-main-layout/tabbar/panel', () => ({
   BaseTabPanelView: () => <div data-testid='base-tab-panel-view' />,
   ContainerView: () => <div />,
 }));
 
-jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/renderer.view', () => ({
+jest.mock('@opensumi/ide-main-layout/tabbar/renderer', () => ({
   TabRendererBase: (props: any) => {
     const React = require('react');
-    const { PanelContext } = require('@opensumi/ide-core-browser/lib/components');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
     mockCapturedTabRendererProps = props;
     mockCapturedResizeHandle = React.useContext(PanelContext);
     const TabbarView = props.TabbarView;
@@ -165,7 +159,7 @@ jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/renderer.view', () => ({
   },
 }));
 
-jest.mock('@opensumi/ide-main-layout/lib/browser/tabbar/tabbar.service', () => ({
+jest.mock('@opensumi/ide-main-layout/tabbar', () => ({
   TabbarServiceFactory: mockTabbarServiceFactoryToken,
 }));
 
@@ -204,7 +198,7 @@ describe('AI tabbar layout BDD', () => {
   });
 
   it('Given classic layout, when the left tab renderer renders, then it uses the design left renderer', async () => {
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AILeftTabRenderer className='slot-class' components={[]} />);
@@ -219,7 +213,7 @@ describe('AI tabbar layout BDD', () => {
 
   it('Given agentic layout, when the left tab renderer renders, then it puts the view tabbar on the right', async () => {
     panelLayoutMode = 'agentic';
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AILeftTabRenderer className='slot-class' components={[]} />);
@@ -266,7 +260,7 @@ describe('AI tabbar layout BDD', () => {
         },
       },
     ];
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AILeftTabRenderer className='slot-class' components={[]} />);
@@ -281,8 +275,8 @@ describe('AI tabbar layout BDD', () => {
 
   it('Given agentic layout, when the view slot restores size, then it uses the previous resize handle', async () => {
     panelLayoutMode = 'agentic';
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -320,8 +314,8 @@ describe('AI tabbar layout BDD', () => {
     panelLayoutMode = 'agentic';
     mockViewCurrentContainerId = 'workbench.explorer.fileView';
     mockViewTabbarService.prevSize = 384;
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -348,8 +342,8 @@ describe('AI tabbar layout BDD', () => {
   it('Given agentic layout has an active Explorer without cached width, when view is ready, then it restores the default usable width', async () => {
     panelLayoutMode = 'agentic';
     mockViewCurrentContainerId = 'workbench.explorer.fileView';
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -376,8 +370,8 @@ describe('AI tabbar layout BDD', () => {
     panelLayoutMode = 'agentic';
     mockViewCurrentContainerId = 'workbench.explorer.fileView';
     mockViewReadyPromise = new Promise(() => {});
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AILeftTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AILeftTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -401,7 +395,7 @@ describe('AI tabbar layout BDD', () => {
   });
 
   it('Given classic layout, when the hidden AI chat renderer renders, then it keeps the main branch direction', async () => {
-    const { AIChatTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { AIChatTabRenderer } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AIChatTabRenderer className='slot-class' components={[]} />);
@@ -413,8 +407,8 @@ describe('AI tabbar layout BDD', () => {
   });
 
   it('Given classic layout, when AI chat collapses, then it uses the latter split child resize side', async () => {
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AIChatTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AIChatTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -441,7 +435,7 @@ describe('AI tabbar layout BDD', () => {
   });
 
   it('Given classic layout, when the tabbed AI chat renderer renders, then it keeps the main branch right-side direction', async () => {
-    const { AIChatTabRendererWithTab } = await import('../../src/browser/layout/tabbar.view');
+    const { AIChatTabRendererWithTab } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AIChatTabRendererWithTab className='slot-class' components={[]} />);
@@ -453,8 +447,8 @@ describe('AI tabbar layout BDD', () => {
 
   it('Given agentic layout, when AI chat restores size, then it uses the first split child resize side', async () => {
     panelLayoutMode = 'agentic';
-    const { PanelContext } = await import('@opensumi/ide-core-browser/lib/components');
-    const { AIChatTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { PanelContext } = require('@opensumi/ide-core-browser/components');
+    const { AIChatTabRenderer } = require('../../src/browser/layout/tabbar.view');
     const parentResizeHandle = {
       setSize: jest.fn(),
       setRelativeSize: jest.fn(),
@@ -483,7 +477,7 @@ describe('AI tabbar layout BDD', () => {
 
   it('Given agentic layout, when the hidden AI chat tabbar renders, then it does not render overflow tabs', async () => {
     panelLayoutMode = 'agentic';
-    const { AIChatTabRenderer } = await import('../../src/browser/layout/tabbar.view');
+    const { AIChatTabRenderer } = require('../../src/browser/layout/tabbar.view');
 
     act(() => {
       root.render(<AIChatTabRenderer className='slot-class' components={[]} />);

@@ -1,5 +1,4 @@
-import { DEFAULT_ACP_THREAD_POOL_SIZE } from '@opensumi/ide-core-common/lib/settings/ai-native';
-import { EnvVariable, McpServer } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import { DEFAULT_ACP_THREAD_POOL_SIZE, EnvVariable, McpServer } from '@opensumi/ide-core-common';
 
 import { buildAcpAgentProcessConfig } from '../../../src/browser/acp/build-agent-process-config';
 

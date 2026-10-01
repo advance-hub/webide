@@ -3,7 +3,7 @@ import z from 'zod';
 import { Autowired, Injectable } from '@opensumi/di';
 import { AINativeSettingSectionsId, AppConfig, PreferenceService } from '@opensumi/ide-core-browser';
 import { ITerminalController, ITerminalGroupViewService } from '@opensumi/ide-terminal-next';
-import { Deferred } from '@opensumi/ide-utils/lib/promises';
+import { Deferred } from '@opensumi/ide-utils';
 
 import { ETerminalAutoExecutionPolicy } from '../../../preferences/schema';
 import { MCPLogger } from '../../../types';

@@ -3,7 +3,7 @@ import React, { FC, memo, useCallback, useEffect, useRef, useState } from 'react
 
 import { Icon, Input, Loading, Popover, PopoverPosition, PopoverTriggerType, getIcon } from '@opensumi/ide-components';
 import { localize } from '@opensumi/ide-core-browser';
-import { EnhanceIcon } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { EnhanceIcon } from '@opensumi/ide-core-browser/components/ai';
 import { ThreadStatus } from '@opensumi/ide-core-common';
 
 import { AI_CHAT_NEW_CHAT } from '../../chat/acp-new-draft.commands';

@@ -1,4 +1,4 @@
-import { multiLineDiffComputer } from '@opensumi/ide-ai-native/lib/browser/contrib/intelligent-completions/diff-computer';
+import { multiLineDiffComputer } from '../../../../src/browser/contrib/intelligent-completions/diff-computer';
 
 describe('MultiLineDiffComputer', () => {
   const diffComputer = multiLineDiffComputer;

@@ -1,6 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { Disposable, Emitter, Event } from '@opensumi/ide-core-common';
-import { IChatComponent, IChatContent } from '@opensumi/ide-core-common/lib/types/ai-native';
+import { Disposable, Emitter, Event, IChatComponent, IChatContent } from '@opensumi/ide-core-common';
 
 import { IChatInternalService, IChatMessageListItem, IChatMessageStructure } from '../../common';
 import { AIPanelLayoutService } from '../layout/panel-layout.service';

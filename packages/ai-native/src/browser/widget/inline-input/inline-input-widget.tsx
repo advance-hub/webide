@@ -2,9 +2,9 @@ import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'rea
 
 import { Injectable } from '@opensumi/di';
 import { AINativeConfigService, useInjectable } from '@opensumi/ide-core-browser';
-import { AIAction, InteractiveInput } from '@opensumi/ide-core-browser/lib/components/ai-native/index';
+import { AIAction, InteractiveInput } from '@opensumi/ide-core-browser/components/ai';
 import { AIInlineInputChatContentWidgetId, Disposable, Emitter, Event, localize } from '@opensumi/ide-core-common';
-import { ContentWidgetPositionPreference } from '@opensumi/ide-monaco/lib/browser/monaco-exports/editor';
+import { ContentWidgetPositionPreference } from '@opensumi/ide-monaco/editor-browser';
 
 import { InlineResultAction } from '../inline-actions/result-items/index';
 import { EInlineChatStatus, EResultKind } from '../inline-chat/inline-chat.service';
@@ -98,7 +98,10 @@ export class InlineInputWidget extends AIInlineContentWidget {
   protected readonly _onValueChange = new Emitter<string>();
   public readonly onValueChange = this._onValueChange.event;
 
-  constructor(protected readonly editor: IMonacoCodeEditor, protected readonly defaultValue?: string) {
+  constructor(
+    protected readonly editor: IMonacoCodeEditor,
+    protected readonly defaultValue?: string,
+  ) {
     super(editor);
   }
 

@@ -2,8 +2,7 @@ import * as fs from 'fs';
 
 import { FileChangeType, FileSystemProviderCapabilities } from '@opensumi/ide-core-browser';
 import { BinaryBuffer, Emitter, Event, FileUri, URI, Uri, path } from '@opensumi/ide-core-common';
-import { ensureDir } from '@opensumi/ide-core-common/lib/browser-fs/ensure-dir';
-import { promisify } from '@opensumi/ide-core-common/lib/browser-fs/util';
+import { ensureDir, promisify } from '@opensumi/ide-core-common/browser-fs';
 import {
   FileChangeEvent,
   FileStat,
@@ -72,7 +71,10 @@ export class BrowserFsProvider implements IDiskFileProvider {
   protected readonly onDidChangeFileEmitter = new Emitter<FileChangeEvent>();
   onDidChangeFile: Event<FileChangeEvent> = this.onDidChangeFileEmitter.event;
 
-  constructor(private httpFileService: AbstractHttpFileService, private options: BrowserFsProviderOptions) {}
+  constructor(
+    private httpFileService: AbstractHttpFileService,
+    private options: BrowserFsProviderOptions,
+  ) {}
 
   capabilities: FileSystemProviderCapabilities = 2048;
   onDidChangeCapabilities: Event<void> = new Emitter<void>().event;

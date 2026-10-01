@@ -1,21 +1,24 @@
-import { AINativeSettingSectionsId, CancellationToken, IChatProgress } from '@opensumi/ide-core-common';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { AINativeSettingSectionsId, CancellationToken, Emitter, IChatProgress } from '@opensumi/ide-core-common';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { AcpChatAgent } from '../../../src/browser/chat/acp-chat-agent';
 
 describe('AcpChatAgent', () => {
-  function createAgent() {
+  function createAgent({ autoEnd = true } = {}) {
     const output = new SumiReadableStream<IChatProgress>();
     const requestStream = jest.fn(async () => {
-      queueMicrotask(() => output.end());
+      if (autoEnd) {
+        queueMicrotask(() => output.end());
+      }
       return output;
     });
+    const cancelSession = jest.fn(async () => output.end());
     const preferenceGet = jest.fn((id: string, fallback?: unknown) => fallback);
     const agent = Object.create(AcpChatAgent.prototype) as AcpChatAgent;
 
     Object.defineProperties(agent, {
       aiBackService: {
-        value: { requestStream },
+        value: { requestStream, cancelSession },
       },
       preferenceService: {
         value: { get: preferenceGet },
@@ -59,7 +62,7 @@ describe('AcpChatAgent', () => {
       },
     });
 
-    return { agent, preferenceGet, requestStream };
+    return { agent, preferenceGet, requestStream, cancelSession };
   }
 
   it('uses stream as the ACP delivery mode when the preference is unset', async () => {
@@ -83,7 +86,33 @@ describe('AcpChatAgent', () => {
         acpDeliveryMode: 'stream',
         sessionId: 'session-1',
       }),
-      CancellationToken.None,
     );
+  });
+
+  it('cancels the ACP session explicitly instead of transporting the browser token', async () => {
+    const { agent, requestStream, cancelSession } = createAgent({ autoEnd: false });
+    const cancellation = new Emitter<void>();
+    const token = {
+      isCancellationRequested: false,
+      onCancellationRequested: cancellation.event,
+    } as any;
+
+    const invocation = agent.invoke(
+      {
+        requestId: 'request-2',
+        sessionId: 'acp:session-2',
+        message: 'hello',
+      } as any,
+      jest.fn(),
+      [{ role: 'user', content: 'hello' }],
+      token,
+    );
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    cancellation.fire();
+    await invocation;
+
+    expect(requestStream).toHaveBeenCalledWith('hello', expect.objectContaining({ sessionId: 'session-2' }));
+    expect(cancelSession).toHaveBeenCalledWith('session-2');
   });
 });

@@ -3,7 +3,7 @@ import { RPCService } from '@opensumi/ide-connection';
 
 import { AcpBrowserRpcRegistry } from './acp-browser-rpc-registry';
 
-import type { IAcpThreadStatusService } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { IAcpThreadStatusService } from '@opensumi/ide-core-common';
 
 export const AcpThreadStatusCallerServiceToken = Symbol('AcpThreadStatusCallerServiceToken');
 

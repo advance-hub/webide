@@ -57,7 +57,7 @@ jest.mock('@opensumi/ide-core-browser', () => ({
   }),
 }));
 
-jest.mock('@opensumi/ide-core-browser/lib/components/ai-native', () => ({
+jest.mock('@opensumi/ide-core-browser/components/ai', () => ({
   EnhanceIcon: ({ className, onClick, onKeyDown, onMouseDown, tabIndex, role, ariaLabel }: any) =>
     require('react').createElement(
       'div',

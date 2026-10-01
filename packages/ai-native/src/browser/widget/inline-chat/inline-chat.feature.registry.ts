@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { KeybindingRegistry, Logger } from '@opensumi/ide-core-browser';
-import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/lib/ai-native/command';
-import { AIActionItem } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { AI_INLINE_CHAT_INTERACTIVE_INPUT_VISIBLE } from '@opensumi/ide-core-browser/ai/commands';
+import { AIActionItem } from '@opensumi/ide-core-browser/components/ai';
 import { Disposable, Event, IDisposable, formatLocalize, isUndefined } from '@opensumi/ide-core-common';
 
 import { CodeActionService } from '../../contrib/code-action/code-action.service';

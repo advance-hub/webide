@@ -9,20 +9,26 @@ import {
   useContextMenus,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { EXPLORER_CONTAINER_ID, SCM_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { EDirection, PanelContext, ResizeHandle } from '@opensumi/ide-core-browser/lib/components';
+import { EDirection, PanelContext, ResizeHandle } from '@opensumi/ide-core-browser/components';
 import {
   EnhanceIcon,
   EnhanceIconWithCtxMenu,
   EnhancePopover,
   HorizontalVertical,
-} from '@opensumi/ide-core-browser/lib/components/ai-native';
-import { DesignLayoutConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { VIEW_CONTAINERS } from '@opensumi/ide-core-browser/lib/layout/view-id';
-import { IMenu } from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/components/ai';
+import {
+  DesignLayoutConfig,
+  EXPLORER_CONTAINER_ID,
+  SCM_CONTAINER_ID,
+  VIEW_CONTAINERS,
+} from '@opensumi/ide-core-browser/layout';
+import { IMenu } from '@opensumi/ide-core-browser/menu';
 import { localize } from '@opensumi/ide-core-common';
-import { DesignLeftTabRenderer, DesignRightTabRenderer } from '@opensumi/ide-design/lib/browser/layout/tabbar.view';
+import { DesignLeftTabRenderer, DesignRightTabRenderer } from '@opensumi/ide-design/tabbar';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { TabbarService, TabbarServiceFactory } from '@opensumi/ide-main-layout/tabbar';
+import { BaseTabPanelView, ContainerView } from '@opensumi/ide-main-layout/tabbar/panel';
+import { TabRendererBase } from '@opensumi/ide-main-layout/tabbar/renderer';
 import {
   ChatTabbarRenderer2,
   IconElipses,
@@ -30,10 +36,7 @@ import {
   LeftTabbarRenderer,
   RightTabbarRenderer,
   TabbarViewBase,
-} from '@opensumi/ide-main-layout/lib/browser/tabbar/bar.view';
-import { BaseTabPanelView, ContainerView } from '@opensumi/ide-main-layout/lib/browser/tabbar/panel.view';
-import { TabRendererBase } from '@opensumi/ide-main-layout/lib/browser/tabbar/renderer.view';
-import { TabbarService, TabbarServiceFactory } from '@opensumi/ide-main-layout/lib/browser/tabbar/tabbar.service';
+} from '@opensumi/ide-main-layout/tabbar/view';
 
 import { AI_CHAT_VIEW_ID } from '../../common';
 

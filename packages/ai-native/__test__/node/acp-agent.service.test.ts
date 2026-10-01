@@ -10,13 +10,16 @@ jest.mock('@opensumi/di', () => {
   };
 });
 
-import { ACP_SESSION_NOT_FOUND_ERROR_NAME, ACP_THREAD_POOL_SATURATED_ERROR_NAME } from '@opensumi/ide-core-common';
-import { DEFAULT_ACP_THREAD_POOL_SIZE } from '@opensumi/ide-core-common/lib/settings/ai-native';
+import {
+  ACP_SESSION_NOT_FOUND_ERROR_NAME,
+  ACP_THREAD_POOL_SATURATED_ERROR_NAME,
+  DEFAULT_ACP_THREAD_POOL_SIZE,
+} from '@opensumi/ide-core-common';
 import { INodeLogger } from '@opensumi/ide-core-node';
 
 import { AcpAgentLifecycleContribution } from '../../src/node';
 import { AcpAgentService, AcpAgentServiceToken } from '../../src/node/acp/acp-agent.service';
-import { AcpTerminalHandler, AcpTerminalHandlerToken } from '../../src/node/acp/handlers/terminal.handler';
+import { AcpThread } from '../../src/node/acp/acp-thread';
 
 // ---- Mock dependencies ----
 
@@ -123,7 +126,7 @@ function createMockThread(overrides: Record<string, any> = {}): MockThread {
     initialize: jest.fn().mockResolvedValue({ protocolVersion: 1, agentCapabilities: {} }),
     newSession: jest.fn().mockResolvedValue({ sessionId: 'new-session-1' }),
     loadSession: jest.fn().mockResolvedValue({ sessionId: 'loaded-session-1' }),
-    loadSessionOrNew: jest.fn().mockResolvedValue({ sessionId: 'new-session-1' }),
+    loadSessionOrNew: jest.fn().mockResolvedValue({ sessionId: 'new-session-1', createdByFallback: true }),
     prompt: jest.fn().mockResolvedValue({ stopReason: 'end_turn' }),
     cancel: jest.fn().mockResolvedValue(undefined),
     listSessions: jest.fn().mockResolvedValue({ sessions: [] }),
@@ -169,6 +172,20 @@ function setupServiceWithMockFactory(mockFactory: jest.Mock) {
   return service;
 }
 
+function createConnectedAcpThread(connection: Record<string, unknown>): AcpThread {
+  const thread = new AcpThread({
+    ...mockAgentProcessConfig,
+    fileSystemHandler: {} as any,
+    terminalHandler: mockTerminalHandler as any,
+    permissionRouting: mockPermissionRouting as any,
+    logger: mockLogger,
+  });
+  (thread as any)._initialized = true;
+  (thread as any)._connected = true;
+  (thread as any)._connection = connection;
+  return thread;
+}
+
 function createService(): { service: AcpAgentService; mockFactory: jest.Mock; thread: MockThread } {
   const thread = createMockThread();
   const mockFactory = jest.fn().mockReturnValue(thread);
@@ -196,6 +213,7 @@ function createServiceWithAutoEvents(): { service: AcpAgentService; mockFactory:
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockTerminalHandler.releaseSessionTerminals.mockResolvedValue(undefined);
   jest.useRealTimers();
 });
 
@@ -985,6 +1003,71 @@ describe('AcpAgentService (Thread Pool)', () => {
       expect(thread.loadSession).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 'existing-session-id' }));
     });
 
+    it('releases a late ordinary load identity exactly once after stop owns its cleanup', async () => {
+      const loadSessionGate = createDeferred<{ sessionId: string }>();
+      const loadSession = jest.fn(() => loadSessionGate.promise);
+      const thread = new AcpThread({
+        ...mockAgentProcessConfig,
+        fileSystemHandler: {} as any,
+        terminalHandler: mockTerminalHandler as any,
+        permissionRouting: mockPermissionRouting as any,
+        logger: mockLogger,
+      });
+      (thread as any)._initialized = true;
+      (thread as any)._connected = true;
+      (thread as any)._connection = { loadSession };
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+      const terminalReleaseFinished = createDeferred();
+      const allowStopToClearSessions = createDeferred();
+      const releasePendingTerminals = (service as any).releasePendingTerminals.bind(service);
+      let releasePass = 0;
+      jest.spyOn(service as any, 'releasePendingTerminals').mockImplementation(async (...args: any[]) => {
+        const errors = await releasePendingTerminals(...args);
+        releasePass += 1;
+        if (releasePass === 1) {
+          terminalReleaseFinished.resolve();
+          await allowStopToClearSessions.promise;
+        }
+        return errors;
+      });
+
+      const loadOutcome = service.loadSession('existing-session', mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await flushAsyncWork();
+      expect(loadSession).toHaveBeenCalledTimes(1);
+
+      const disposeOutcomePromise = service.dispose().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      await terminalReleaseFinished.promise;
+      expect((service as any).sessions.has('existing-session')).toBe(true);
+      expect((service as any).pendingTerminalReleaseIds.has('existing-session')).toBe(false);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('existing-session');
+
+      loadSessionGate.resolve({ sessionId: 'existing-session' });
+      expect(await loadOutcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      await flushAsyncWork();
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'existing-session'),
+      ).toHaveLength(1);
+
+      allowStopToClearSessions.resolve();
+      const disposeOutcome = await disposeOutcomePromise;
+      expect(disposeOutcome).toBeInstanceOf(AggregateError);
+      await flushAsyncWork();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'existing-session'),
+      ).toHaveLength(1);
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
+      expect((service as any).sessions.size).toBe(0);
+    });
+
     it('should return native agent replay notifications as historyUpdates', async () => {
       const nativeHistory = [
         {
@@ -1448,7 +1531,10 @@ describe('AcpAgentService (Thread Pool)', () => {
       const thread = createMockThread({
         initialized: true,
         getStatus: jest.fn().mockReturnValue('idle'),
-        loadSessionOrNew: jest.fn().mockResolvedValue({ sessionId: 'actual-session-id' }),
+        loadSessionOrNew: jest.fn().mockResolvedValue({
+          sessionId: 'actual-session-id',
+          createdByFallback: true,
+        }),
         onEvent: jest.fn(() => ({ dispose: jest.fn() })),
       });
       const mockFactory = jest.fn().mockReturnValue(thread);
@@ -1464,7 +1550,7 @@ describe('AcpAgentService (Thread Pool)', () => {
     });
 
     it('should join a pending loadSessionOrNew request for the same session', async () => {
-      const loadGate = createDeferred<{ sessionId: string }>();
+      const loadGate = createDeferred<{ sessionId: string; createdByFallback: boolean }>();
       const thread = createMockThread({
         initialized: true,
         getStatus: jest.fn().mockReturnValue('idle'),
@@ -1478,7 +1564,7 @@ describe('AcpAgentService (Thread Pool)', () => {
       await flushAsyncWork();
 
       const secondLoad = service.loadSessionOrNew('pending-session-id', mockAgentProcessConfig);
-      loadGate.resolve({ sessionId: 'pending-session-id' });
+      loadGate.resolve({ sessionId: 'pending-session-id', createdByFallback: false });
       const [firstResult, secondResult] = await Promise.all([firstLoad, secondLoad]);
 
       expect(firstResult.sessionId).toBe('pending-session-id');
@@ -1496,7 +1582,7 @@ describe('AcpAgentService (Thread Pool)', () => {
           threadId: `thread-${i}`,
           getStatus: jest.fn().mockReturnValue('awaiting_prompt'),
           newSession: jest.fn().mockResolvedValue({ sessionId: `session-${i}` }),
-          loadSessionOrNew: jest.fn().mockResolvedValue({ sessionId: 'session-3' }),
+          loadSessionOrNew: jest.fn().mockResolvedValue({ sessionId: 'session-3', createdByFallback: false }),
           onEvent: jest.fn((cb: any) => {
             setTimeout(() => {
               cb({
@@ -2231,6 +2317,84 @@ describe('AcpAgentService (Thread Pool)', () => {
       expect(service.getSessionInfo(result.sessionId)).toBeNull();
     });
 
+    it('should still fully dispose the thread when force terminal cleanup fails', async () => {
+      const { service, thread } = createServiceWithAutoEvents();
+
+      setTimeout(() => {
+        thread._fireEvent({
+          type: 'session_notification',
+          notification: {
+            sessionId: 'session-1',
+            update: { sessionUpdate: 'available_commands_update', availableCommands: [] },
+          },
+        });
+      }, 10);
+
+      const result = await service.createSession(mockAgentProcessConfig);
+      mockTerminalHandler.releaseSessionTerminals.mockRejectedValueOnce(new Error('terminal cleanup failed'));
+
+      await expect(service.disposeSession(result.sessionId, true)).rejects.toThrow('terminal cleanup failed');
+
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      expect((service as any).threadPool).not.toContain(thread);
+      expect(service.getSessionInfo(result.sessionId)).toBeNull();
+    });
+
+    it('should not release terminals again when the same disposed session is disposed twice', async () => {
+      const { service, thread } = createServiceWithAutoEvents();
+
+      setTimeout(() => {
+        thread._fireEvent({
+          type: 'session_notification',
+          notification: {
+            sessionId: 'session-1',
+            update: { sessionUpdate: 'available_commands_update', availableCommands: [] },
+          },
+        });
+      }, 10);
+
+      const result = await service.createSession(mockAgentProcessConfig);
+
+      await service.disposeSession(result.sessionId);
+      await service.disposeSession(result.sessionId);
+
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith(result.sessionId);
+    });
+
+    it('should preserve a new same-id binding while the previous session disposal is still draining terminals', async () => {
+      const firstLoadSession = jest.fn().mockResolvedValue({ sessionId: 'same-session' });
+      const secondLoadSession = jest.fn().mockResolvedValue({ sessionId: 'same-session' });
+      const firstThread = createConnectedAcpThread({ loadSession: firstLoadSession });
+      const secondThread = createConnectedAcpThread({ loadSession: secondLoadSession });
+      const mockFactory = jest.fn().mockReturnValueOnce(firstThread).mockReturnValueOnce(secondThread);
+      const service = setupServiceWithMockFactory(mockFactory);
+
+      await service.loadSession('same-session', mockAgentProcessConfig);
+
+      const releaseStarted = createDeferred();
+      const releaseGate = createDeferred();
+      mockTerminalHandler.releaseSessionTerminals.mockImplementationOnce(() => {
+        releaseStarted.resolve();
+        return releaseGate.promise;
+      });
+
+      const firstDisposal = service.disposeSession('same-session');
+      await releaseStarted.promise;
+      const replacement = await service.loadSession('same-session', mockAgentProcessConfig);
+
+      expect(replacement.processId).toBe(secondThread.threadId);
+      expect((service as any).sessions.get('same-session')).toBe(secondThread);
+      expect(secondThread.sessionId).toBe('same-session');
+
+      releaseGate.resolve();
+      await firstDisposal;
+
+      expect((service as any).sessions.get('same-session')).toBe(secondThread);
+      expect(secondThread.sessionId).toBe('same-session');
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+    });
+
     it('should release a loaded session only after the final retained reference is disposed', async () => {
       const thread = createMockThread({
         initialized: true,
@@ -2305,6 +2469,28 @@ describe('AcpAgentService (Thread Pool)', () => {
       expect((service as any).threadPool).toHaveLength(0);
     });
 
+    it('shares one in-flight stop and keeps admission closed until it settles', async () => {
+      const disposalGate = createDeferred();
+      const thread = createMockThread({ dispose: jest.fn(() => disposalGate.promise) });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).threadPool.push(thread);
+
+      const firstStop = service.stopAgent();
+      const secondStop = service.stopAgent();
+
+      expect(secondStop).toBe(firstStop);
+      await flushAsyncWork();
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      await expect(service.createSession(mockAgentProcessConfig)).rejects.toMatchObject({
+        name: 'AcpAgentServiceStoppingError',
+      });
+
+      disposalGate.resolve();
+      await Promise.all([firstStop, secondStop]);
+
+      expect((service as any).stopping).toBe(false);
+    });
+
     it('waits for warming initialization to settle before disposing the thread', async () => {
       const initializeGate = createDeferred<any>();
       const thread = createMockThread();
@@ -2324,7 +2510,7 @@ describe('AcpAgentService (Thread Pool)', () => {
       await flushAsyncWork();
 
       expect(stopSettled).toBe(false);
-      expect(thread.dispose).not.toHaveBeenCalled();
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
 
       initializeGate.resolve({ protocolVersion: 1, agentCapabilities: {} });
       await Promise.all([warmup, stop]);
@@ -2368,7 +2554,7 @@ describe('AcpAgentService (Thread Pool)', () => {
       await flushAsyncWork();
 
       expect(stopSettled).toBe(false);
-      expect(thread.dispose).not.toHaveBeenCalled();
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
 
       initializeGate.resolve({ protocolVersion: 1, agentCapabilities: {} });
       const [outcome] = await Promise.all([createOutcome, stop]);
@@ -2377,6 +2563,788 @@ describe('AcpAgentService (Thread Pool)', () => {
       expect((outcome as Error).name).toBe('AcpAgentServiceStoppingError');
       expect(thread.dispose).toHaveBeenCalledTimes(1);
       expect((service as any).threadPool).toHaveLength(0);
+    });
+
+    it('drains an admitted prompt and rejects new prompt work after shutdown admission closes', async () => {
+      expect.hasAssertions();
+      const promptGate = createDeferred<any>();
+      const thread = createMockThread({
+        prompt: jest.fn(() => promptGate.promise),
+      });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).threadPool.push(thread);
+      (service as any).sessions.set('active-session', thread);
+
+      const admittedStream = service.sendMessage(
+        { prompt: 'finish this prompt', sessionId: 'active-session' },
+        mockAgentProcessConfig,
+      );
+      admittedStream.onError(jest.fn());
+      await flushAsyncWork();
+      expect(thread.prompt).toHaveBeenCalledTimes(1);
+
+      let stopSettled = false;
+      const stop = service.stopAgent().finally(() => {
+        stopSettled = true;
+      });
+      await flushAsyncWork();
+      expect(stopSettled).toBe(false);
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+
+      const rejectedErrors: Error[] = [];
+      const rejectedStream = service.sendMessage(
+        { prompt: 'do not admit this prompt', sessionId: 'active-session' },
+        mockAgentProcessConfig,
+      );
+      rejectedStream.onError((error) => rejectedErrors.push(error));
+      await flushAsyncWork();
+      expect(rejectedErrors).toHaveLength(1);
+      expect(rejectedErrors[0].name).toBe('AcpAgentServiceStoppingError');
+      expect(thread.prompt).toHaveBeenCalledTimes(1);
+
+      promptGate.resolve({ stopReason: 'end_turn' });
+      await stop;
+
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      expect(stopSettled).toBe(true);
+    });
+
+    it('bounds a stuck prompt, retires its ownership, and only reopens after a later clean stop', async () => {
+      const promptGate = createDeferred<any>();
+      const thread = createMockThread({ prompt: jest.fn(() => promptGate.promise) });
+      const replacementThread = createMockThread();
+      replacementThread.newSession.mockImplementation(async () => {
+        replacementThread._fireEvent({
+          type: 'session_notification',
+          notification: {
+            sessionId: 'replacement-session',
+            update: { sessionUpdate: 'available_commands_update', availableCommands: [] },
+          },
+        });
+        return { sessionId: 'replacement-session' };
+      });
+      const mockFactory = jest.fn().mockReturnValueOnce(replacementThread);
+      const service = setupServiceWithMockFactory(mockFactory);
+      (service as any).stopLeaseMs = 20;
+      (service as any).threadPool.push(thread);
+      (service as any).sessions.set('stuck-session', thread);
+
+      const stream = service.sendMessage(
+        { prompt: 'never returns', sessionId: 'stuck-session' },
+        mockAgentProcessConfig,
+      );
+      stream.onError(jest.fn());
+      await flushAsyncWork();
+      expect(thread.prompt).toHaveBeenCalledTimes(1);
+
+      const firstOutcome = await service.stopAgent().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+
+      expect(firstOutcome).toBeInstanceOf(AggregateError);
+      expect(firstOutcome?.errors).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'AcpAgentServiceStopTimeoutError' })]),
+      );
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      expect((service as any).sessions.size).toBe(0);
+      await expect(service.createSession(mockAgentProcessConfig)).rejects.toMatchObject({
+        name: 'AcpAgentServiceStoppingError',
+      });
+
+      promptGate.resolve({ stopReason: 'end_turn' });
+      await flushAsyncWork();
+      await service.stopAgent();
+
+      const replacement = await service.createSession(mockAgentProcessConfig);
+      expect(replacement.sessionId).toBe('replacement-session');
+      expect((service as any).sessions.get('replacement-session')).toBe(replacementThread);
+      await service.stopAgent();
+    });
+
+    it('bounds a stuck initialize and keeps acquisition closed until the admitted create settles', async () => {
+      const initializeGate = createDeferred<any>();
+      const thread = createMockThread({ initialize: jest.fn(() => initializeGate.promise) });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+
+      const createOutcome = service.createSession(mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await flushAsyncWork();
+      expect(thread.initialize).toHaveBeenCalledTimes(1);
+
+      const stopOutcome = await service.stopAgent().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      expect(stopOutcome).toBeInstanceOf(AggregateError);
+      expect(stopOutcome?.errors).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'AcpAgentServiceStopTimeoutError' })]),
+      );
+      await expect(service.createSession(mockAgentProcessConfig)).rejects.toMatchObject({
+        name: 'AcpAgentServiceStoppingError',
+      });
+
+      initializeGate.resolve({ protocolVersion: 1, agentCapabilities: {} });
+      expect(await createOutcome).toMatchObject({ name: 'AcpAgentServiceStoppingError' });
+      await flushAsyncWork();
+      await service.stopAgent();
+
+      expect((service as any).stopping).toBe(false);
+    });
+
+    it('releases a session created by an admitted newSession RPC after stop begins', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const thread = createMockThread({
+        initialized: true,
+        newSession: jest.fn(() => newSessionGate.promise),
+      });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+
+      const createOutcome = service.createSession(mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await flushAsyncWork();
+      expect(thread.newSession).toHaveBeenCalledTimes(1);
+
+      const stop = service.stopAgent();
+      await flushAsyncWork();
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+
+      newSessionGate.resolve({ sessionId: 'late-created-session' });
+      const [outcome] = await Promise.all([createOutcome, stop]);
+
+      expect(outcome).toMatchObject({ name: 'AcpAgentServiceStoppingError' });
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('late-created-session');
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
+      expect((service as any).sessions.size).toBe(0);
+    });
+
+    it('does not replay a non-fallback load identity when stop owns the late loadSessionOrNew result', async () => {
+      const loadGate = createDeferred<{ sessionId: string }>();
+      const loadStarted = createDeferred();
+      const loadSession = jest.fn(() => {
+        loadStarted.resolve();
+        return loadGate.promise;
+      });
+      const newSession = jest.fn();
+      const thread = createConnectedAcpThread({ loadSession, newSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+
+      const loadOutcome = service.loadSessionOrNew('existing-load-or-new', mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await loadStarted.promise;
+
+      const stop = service.stopAgent();
+      loadGate.resolve({ sessionId: 'existing-load-or-new' });
+      const [outcome] = await Promise.all([loadOutcome, stop]);
+
+      expect(outcome).toMatchObject({ name: 'AcpThreadDisposedError' });
+      expect(newSession).not.toHaveBeenCalled();
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'existing-load-or-new'),
+      ).toHaveLength(1);
+    });
+
+    it('does not replay a create identity bound before stop while available commands are pending', async () => {
+      const newSession = jest.fn().mockResolvedValue({ sessionId: 'bound-create-session' });
+      const thread = createConnectedAcpThread({ newSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).availableCommandsWaitMs = 15;
+      (service as any).stopLeaseMs = 100;
+      const sessionBound = createDeferred();
+      const bindSession = (service as any).bindSession.bind(service);
+      jest.spyOn(service as any, 'bindSession').mockImplementation((sessionId: string, boundThread: AcpThread) => {
+        bindSession(sessionId, boundThread);
+        if (sessionId === 'bound-create-session') {
+          sessionBound.resolve();
+        }
+      });
+
+      const createOutcome = service.createSession(mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await sessionBound.promise;
+      const stop = service.stopAgent();
+      const [outcome] = await Promise.all([createOutcome, stop]);
+
+      expect(outcome).toMatchObject({ name: 'AcpAgentServiceStoppingError' });
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'bound-create-session'),
+      ).toHaveLength(1);
+    });
+
+    it('lets disposeSession close a bound create operation without stop replaying its identity', async () => {
+      const newSession = jest.fn().mockResolvedValue({ sessionId: 'dispose-bound-create' });
+      const thread = createConnectedAcpThread({ newSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).availableCommandsWaitMs = 5000;
+      const sessionBound = createDeferred();
+      const bindSession = (service as any).bindSession.bind(service);
+      jest.spyOn(service as any, 'bindSession').mockImplementation((sessionId: string, boundThread: AcpThread) => {
+        bindSession(sessionId, boundThread);
+        if (sessionId === 'dispose-bound-create') {
+          sessionBound.resolve();
+        }
+      });
+
+      const createOutcome = service.createSession(mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await sessionBound.promise;
+
+      await service.disposeSession('dispose-bound-create');
+      const outcome = await createOutcome;
+
+      expect(outcome).toBeInstanceOf(Error);
+      expect((service as any).sessions.has('dispose-bound-create')).toBe(false);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'dispose-bound-create'),
+      ).toHaveLength(1);
+
+      await service.stopAgent();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'dispose-bound-create'),
+      ).toHaveLength(1);
+    });
+
+    it('automatically releases a real session id observed after terminal disposal already timed out', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const newSession = jest.fn(() => newSessionGate.promise);
+      const thread = new AcpThread({
+        ...mockAgentProcessConfig,
+        fileSystemHandler: {} as any,
+        terminalHandler: mockTerminalHandler as any,
+        permissionRouting: mockPermissionRouting as any,
+        logger: mockLogger,
+      });
+      (thread as any)._initialized = true;
+      (thread as any)._connected = true;
+      (thread as any)._connection = { newSession };
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+
+      const createOutcome = service.createSession(mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await flushAsyncWork();
+      expect(newSession).toHaveBeenCalledTimes(1);
+
+      const disposeOutcome = await service.dispose().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      expect(disposeOutcome).toBeInstanceOf(AggregateError);
+      expect(disposeOutcome?.errors).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'AcpAgentServiceStopTimeoutError' })]),
+      );
+      expect(mockTerminalHandler.releaseSessionTerminals).not.toHaveBeenCalled();
+
+      newSessionGate.resolve({ sessionId: 'late-real-session' });
+      expect(await createOutcome).toMatchObject({ name: 'AcpAgentServiceDisposedError' });
+      await flushAsyncWork();
+
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('late-real-session');
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
+      expect((service as any).lateTerminalReleaseIds.size).toBe(0);
+      expect((service as any).sessions.size).toBe(0);
+      expect(thread.sessionId).toBe('');
+      expect(thread.needsReset).toBe(false);
+      expect(thread.isConnected).toBe(false);
+      await expect(service.createSession(mockAgentProcessConfig)).rejects.toMatchObject({
+        name: 'AcpAgentServiceDisposedError',
+      });
+    });
+
+    it('releases a late fallback session id without double-releasing the retired load identity', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const newSessionStarted = createDeferred();
+      const loadSession = jest.fn().mockRejectedValue(new Error('session not found'));
+      const newSession = jest.fn(() => {
+        newSessionStarted.resolve();
+        return newSessionGate.promise;
+      });
+      const thread = new AcpThread({
+        ...mockAgentProcessConfig,
+        fileSystemHandler: {} as any,
+        terminalHandler: mockTerminalHandler as any,
+        permissionRouting: mockPermissionRouting as any,
+        logger: mockLogger,
+      });
+      (thread as any)._initialized = true;
+      (thread as any)._connected = true;
+      (thread as any)._connection = { loadSession, newSession };
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+      const terminalReleaseFinished = createDeferred();
+      const allowStopToClearSessions = createDeferred();
+      const releasePendingTerminals = (service as any).releasePendingTerminals.bind(service);
+      let releasePass = 0;
+      jest.spyOn(service as any, 'releasePendingTerminals').mockImplementation(async (...args: any[]) => {
+        const errors = await releasePendingTerminals(...args);
+        releasePass += 1;
+        if (releasePass === 1) {
+          terminalReleaseFinished.resolve();
+          await allowStopToClearSessions.promise;
+        }
+        return errors;
+      });
+
+      const loadOutcome = service.loadSessionOrNew('missing-session', mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await newSessionStarted.promise;
+      expect(loadSession).toHaveBeenCalledTimes(1);
+      expect(newSession).toHaveBeenCalledTimes(1);
+
+      const disposeOutcomePromise = service.dispose().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      await terminalReleaseFinished.promise;
+      expect((service as any).sessions.has('missing-session')).toBe(true);
+      expect((service as any).pendingTerminalReleaseIds.has('missing-session')).toBe(false);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('missing-session');
+
+      newSessionGate.resolve({ sessionId: 'late-fallback-session' });
+      expect(await loadOutcome).toMatchObject({ name: 'AcpAgentServiceDisposedError' });
+      await flushAsyncWork();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'missing-session'),
+      ).toHaveLength(1);
+
+      allowStopToClearSessions.resolve();
+      const disposeOutcome = await disposeOutcomePromise;
+      expect(disposeOutcome).toBeInstanceOf(AggregateError);
+      await flushAsyncWork();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'missing-session'),
+      ).toHaveLength(1);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'late-fallback-session'),
+      ).toHaveLength(1);
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
+      expect((service as any).lateTerminalReleaseIds.size).toBe(0);
+      expect((service as any).sessions.size).toBe(0);
+      expect(thread.sessionId).not.toBe('late-fallback-session');
+    });
+
+    it('treats a fallback-created session that reuses the requested string as a new cleanup generation', async () => {
+      const newSessionGate = createDeferred<{ sessionId: string }>();
+      const newSessionStarted = createDeferred();
+      const loadSession = jest.fn().mockRejectedValue(new Error('session not found'));
+      const newSession = jest.fn(() => {
+        newSessionStarted.resolve();
+        return newSessionGate.promise;
+      });
+      const thread = createConnectedAcpThread({ loadSession, newSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 15;
+
+      const loadOutcome = service.loadSessionOrNew('same-session-id', mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await newSessionStarted.promise;
+
+      const disposeOutcome = await service.dispose().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      expect(disposeOutcome).toBeInstanceOf(AggregateError);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'same-session-id'),
+      ).toHaveLength(1);
+
+      newSessionGate.resolve({ sessionId: 'same-session-id' });
+      expect(await loadOutcome).toMatchObject({ name: 'AcpAgentServiceDisposedError' });
+      await flushAsyncWork();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'same-session-id'),
+      ).toHaveLength(2);
+    });
+
+    it('lets disposeSession own a pending ordinary load without a second requested-id release', async () => {
+      const loadGate = createDeferred<{ sessionId: string }>();
+      const loadStarted = createDeferred();
+      const loadSession = jest.fn(() => {
+        loadStarted.resolve();
+        return loadGate.promise;
+      });
+      const thread = createConnectedAcpThread({ loadSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+
+      const loadOutcome = service.loadSession('pending-dispose-session', mockAgentProcessConfig).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await loadStarted.promise;
+      const disposal = service.disposeSession('pending-dispose-session');
+      await flushAsyncWork();
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'pending-dispose-session'),
+      ).toHaveLength(1);
+
+      loadGate.resolve({ sessionId: 'pending-dispose-session' });
+      expect(await loadOutcome).toBeInstanceOf(Error);
+      await disposal;
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'pending-dispose-session'),
+      ).toHaveLength(1);
+      expect((service as any).sessions.has('pending-dispose-session')).toBe(false);
+    });
+
+    it('disposes both identities when fallback is rebound and default options are still pending', async () => {
+      const defaultsGate = createDeferred<Record<string, never>>();
+      const defaultsStarted = createDeferred();
+      const loadSession = jest.fn().mockRejectedValue(new Error('session not found'));
+      const newSession = jest.fn().mockResolvedValue({
+        sessionId: 'fallback-actual-session',
+        configOptions: [{ id: 'permission', type: 'boolean' }],
+      });
+      const setSessionConfigOption = jest.fn(() => {
+        defaultsStarted.resolve();
+        return defaultsGate.promise;
+      });
+      const thread = createConnectedAcpThread({ loadSession, newSession, setSessionConfigOption });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      const config = {
+        ...mockAgentProcessConfig,
+        defaultConfigOptions: { permission: true },
+      };
+
+      const loadOutcome = service.loadSessionOrNew('fallback-requested-session', config).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await defaultsStarted.promise;
+      expect((service as any).sessions.has('fallback-requested-session')).toBe(false);
+      expect((service as any).sessions.get('fallback-actual-session')).toBe(thread);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'fallback-requested-session'),
+      ).toHaveLength(1);
+
+      const disposal = service.disposeSession('fallback-requested-session');
+      await flushAsyncWork();
+      defaultsGate.resolve({});
+      expect(await loadOutcome).toBeInstanceOf(Error);
+      await disposal;
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'fallback-requested-session'),
+      ).toHaveLength(1);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'fallback-actual-session'),
+      ).toHaveLength(1);
+      expect((service as any).sessions.has('fallback-actual-session')).toBe(false);
+      expect((service as any).sessionRefCounts.has('fallback-actual-session')).toBe(false);
+    });
+
+    it('keeps a late fallback join retained after the actual id is rebound', async () => {
+      const defaultsGate = createDeferred<Record<string, never>>();
+      const defaultsStarted = createDeferred();
+      const loadSession = jest.fn().mockRejectedValue(new Error('session not found'));
+      const newSession = jest.fn().mockResolvedValue({
+        sessionId: 'late-join-actual',
+        configOptions: [{ id: 'permission', type: 'boolean' }],
+      });
+      const setSessionConfigOption = jest.fn(() => {
+        defaultsStarted.resolve();
+        return defaultsGate.promise;
+      });
+      const thread = createConnectedAcpThread({ loadSession, newSession, setSessionConfigOption });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      const config = { ...mockAgentProcessConfig, defaultConfigOptions: { permission: true } };
+
+      const firstLoad = service.loadSessionOrNew('late-join-requested', config);
+      await defaultsStarted.promise;
+      const secondLoad = service.loadSessionOrNew('late-join-requested', config);
+      await flushAsyncWork();
+
+      expect((service as any).sessionRefCounts.get('late-join-actual')).toBe(2);
+      await service.disposeSession('late-join-actual');
+      expect((service as any).sessions.get('late-join-actual')).toBe(thread);
+      expect((service as any).sessionRefCounts.get('late-join-actual')).toBe(1);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'late-join-actual'),
+      ).toHaveLength(0);
+
+      defaultsGate.resolve({});
+      await expect(Promise.all([firstLoad, secondLoad])).resolves.toEqual([
+        expect.objectContaining({ sessionId: 'late-join-actual' }),
+        expect.objectContaining({ sessionId: 'late-join-actual' }),
+      ]);
+
+      await service.disposeSession('late-join-actual');
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'late-join-actual'),
+      ).toHaveLength(1);
+    });
+
+    it('carries early fallback joins into the rebound actual-id refcount', async () => {
+      const loadGate = createDeferred<{ sessionId: string }>();
+      const loadStarted = createDeferred();
+      const loadSession = jest.fn(() => {
+        loadStarted.resolve();
+        return loadGate.promise;
+      });
+      const newSession = jest.fn().mockResolvedValue({ sessionId: 'early-join-actual' });
+      const thread = createConnectedAcpThread({ loadSession, newSession });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+
+      const firstLoad = service.loadSessionOrNew('early-join-requested', mockAgentProcessConfig);
+      await loadStarted.promise;
+      const secondLoad = service.loadSessionOrNew('early-join-requested', mockAgentProcessConfig);
+      loadGate.reject(new Error('session not found'));
+
+      await expect(Promise.all([firstLoad, secondLoad])).resolves.toEqual([
+        expect.objectContaining({ sessionId: 'early-join-actual' }),
+        expect.objectContaining({ sessionId: 'early-join-actual' }),
+      ]);
+      expect((service as any).sessionRefCounts.get('early-join-actual')).toBe(2);
+
+      await service.disposeSession('early-join-actual');
+      expect((service as any).sessions.get('early-join-actual')).toBe(thread);
+      expect((service as any).sessionRefCounts.get('early-join-actual')).toBe(1);
+      await service.disposeSession('early-join-actual');
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'early-join-actual'),
+      ).toHaveLength(1);
+    });
+
+    it('holds a live-create retirement fence until its blocked cleanup completes', async () => {
+      const defaultsGate = createDeferred<Record<string, never>>();
+      const defaultsStarted = createDeferred();
+      const newSession = jest.fn().mockResolvedValue({
+        sessionId: 'blocked-create-session',
+        configOptions: [{ id: 'permission', type: 'boolean' }],
+      });
+      const setSessionConfigOption = jest.fn(() => {
+        defaultsStarted.resolve();
+        return defaultsGate.promise;
+      });
+      const creatingThread = createConnectedAcpThread({ newSession, setSessionConfigOption });
+      const replacementThread = createConnectedAcpThread({
+        loadSession: jest.fn().mockResolvedValue({ sessionId: 'replacement-session' }),
+      });
+      const factory = jest.fn().mockReturnValueOnce(creatingThread).mockReturnValueOnce(replacementThread);
+      const service = setupServiceWithMockFactory(factory);
+      const config = { ...mockAgentProcessConfig, defaultConfigOptions: { permission: true } };
+
+      const createOutcome = service.createSession(config).then(
+        (result) => result,
+        (error) => error as Error,
+      );
+      await defaultsStarted.promise;
+
+      let disposalSettled = false;
+      const disposal = service.disposeSession('blocked-create-session').then(() => {
+        disposalSettled = true;
+      });
+      await flushAsyncWork();
+      expect(disposalSettled).toBe(false);
+
+      const replacement = await service.loadSession('replacement-session', mockAgentProcessConfig);
+      expect(replacement.processId).toBe(replacementThread.threadId);
+
+      defaultsGate.resolve({});
+      expect(await createOutcome).toBeInstanceOf(Error);
+      await disposal;
+
+      expect((service as any).sessions.get('replacement-session')).toBe(replacementThread);
+      expect(replacementThread.sessionId).toBe('replacement-session');
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'blocked-create-session'),
+      ).toHaveLength(1);
+    });
+
+    it('bounds a stuck thread process kill without losing the retirement operation', async () => {
+      const processKillGate = createDeferred();
+      const thread = createMockThread({ dispose: jest.fn(() => processKillGate.promise) });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+      (service as any).threadPool.push(thread);
+
+      const stopOutcome = await service.stopAgent().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      expect(stopOutcome).toBeInstanceOf(AggregateError);
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      expect((service as any).pendingRetirementOperations.size).toBe(1);
+
+      processKillGate.resolve();
+      await flushAsyncWork();
+      expect((service as any).pendingRetirementOperations.size).toBe(0);
+      await service.stopAgent();
+
+      expect(thread.dispose).toHaveBeenCalledTimes(1);
+      expect((service as any).stopping).toBe(false);
+    });
+
+    it('ends active attachments before disposing their session thread', async () => {
+      expect.hasAssertions();
+      const lifecycle: string[] = [];
+      const threadDisposal = createDeferred();
+      const attachmentSubscription = {
+        dispose: jest.fn(() => {
+          lifecycle.push('attachment-dispose');
+        }),
+      };
+      const thread = createMockThread({
+        dispose: jest.fn(async () => {
+          lifecycle.push('thread-dispose');
+          await threadDisposal.promise;
+        }),
+        onEvent: jest.fn(() => attachmentSubscription),
+      });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).threadPool.push(thread);
+      (service as any).sessions.set('attached-session', thread);
+
+      const attachment = service.attachSession('attached-session');
+      const attachmentEnd = jest.fn();
+      attachment.onEnd(attachmentEnd);
+
+      const stop = service.stopAgent();
+      await flushAsyncWork();
+
+      expect(attachmentEnd).toHaveBeenCalledTimes(1);
+      expect(attachmentSubscription.dispose).toHaveBeenCalledTimes(1);
+      expect(lifecycle).toEqual(['attachment-dispose', 'thread-dispose']);
+
+      const rejectedErrors: Error[] = [];
+      service.attachSession('attached-session').onError((error) => rejectedErrors.push(error));
+      await flushAsyncWork();
+      expect(rejectedErrors).toHaveLength(1);
+      expect(rejectedErrors[0].name).toBe('AcpAgentServiceStoppingError');
+
+      threadDisposal.resolve();
+      await stop;
+    });
+
+    it('releases every session terminal and still clears threads when one release fails', async () => {
+      expect.hasAssertions();
+      const firstThread = createMockThread();
+      const secondThread = createMockThread();
+      const service = setupServiceWithMockFactory(jest.fn());
+      (service as any).threadPool.push(firstThread, secondThread);
+      (service as any).sessions.set('first-session', firstThread);
+      (service as any).sessions.set('second-session', secondThread);
+      const eventEmitterDisposal = jest.spyOn((service as any)._onThreadStatusChange, 'dispose');
+      const releaseError = new Error('terminal cleanup failed');
+      mockTerminalHandler.releaseSessionTerminals.mockImplementation(async (sessionId: string) => {
+        if (sessionId === 'first-session') {
+          throw releaseError;
+        }
+      });
+
+      const outcome = await service.dispose().then(
+        () => undefined,
+        (error) => error as Error,
+      );
+
+      expect(outcome).toBeInstanceOf(AggregateError);
+      expect((outcome as AggregateError).errors).toEqual([releaseError]);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(3);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('first-session');
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledWith('second-session');
+      expect(firstThread.dispose).toHaveBeenCalledTimes(1);
+      expect(secondThread.dispose).toHaveBeenCalledTimes(1);
+      expect(eventEmitterDisposal).toHaveBeenCalledTimes(1);
+      expect((service as any).sessions.size).toBe(0);
+      expect((service as any).threadPool).toHaveLength(0);
+    });
+
+    it('retains a failed terminal release for the next stop without clearing a newer session', async () => {
+      const releaseError = new Error('retry terminal cleanup');
+      mockTerminalHandler.releaseSessionTerminals.mockRejectedValueOnce(releaseError).mockResolvedValue(undefined);
+      const oldThread = createMockThread();
+      const newThread = createMockThread();
+      newThread.newSession.mockImplementation(async () => {
+        newThread._fireEvent({
+          type: 'session_notification',
+          notification: {
+            sessionId: 'new-session',
+            update: { sessionUpdate: 'available_commands_update', availableCommands: [] },
+          },
+        });
+        return { sessionId: 'new-session' };
+      });
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(newThread));
+      (service as any).threadPool.push(oldThread);
+      (service as any).sessions.set('old-session', oldThread);
+
+      const firstOutcome = await service.stopAgent().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+
+      expect(firstOutcome).toBeInstanceOf(AggregateError);
+      expect(firstOutcome?.errors).toEqual([releaseError]);
+      expect((service as any).pendingTerminalReleaseIds).toEqual(new Set(['old-session']));
+      expect((service as any).stopping).toBe(false);
+
+      const created = await service.createSession(mockAgentProcessConfig);
+      expect(created.sessionId).toBe('new-session');
+      expect((service as any).sessions.get('new-session')).toBe(newThread);
+
+      await service.stopAgent();
+
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'old-session'),
+      ).toHaveLength(2);
+      expect(
+        mockTerminalHandler.releaseSessionTerminals.mock.calls.filter(([id]) => id === 'new-session'),
+      ).toHaveLength(1);
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
+      expect((service as any).sessions.size).toBe(0);
+    });
+
+    it('reuses an in-flight terminal release after a stop timeout instead of releasing twice', async () => {
+      const terminalGate = createDeferred();
+      mockTerminalHandler.releaseSessionTerminals.mockReturnValue(terminalGate.promise);
+      const thread = createMockThread();
+      const service = setupServiceWithMockFactory(jest.fn().mockReturnValue(thread));
+      (service as any).stopLeaseMs = 20;
+      (service as any).threadPool.push(thread);
+      (service as any).sessions.set('slow-terminal-session', thread);
+
+      const firstOutcome = await service.stopAgent().then(
+        () => undefined,
+        (error) => error as AggregateError,
+      );
+      expect(firstOutcome).toBeInstanceOf(AggregateError);
+      expect((service as any).stopping).toBe(true);
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+
+      const retry = service.stopAgent();
+      await flushAsyncWork();
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+
+      terminalGate.resolve();
+      await retry;
+
+      expect(mockTerminalHandler.releaseSessionTerminals).toHaveBeenCalledTimes(1);
+      expect((service as any).stopping).toBe(false);
+      expect((service as any).pendingTerminalReleaseIds.size).toBe(0);
     });
 
     it('does not create an incompatible warmup replacement after shutdown begins', async () => {
@@ -2405,7 +3373,7 @@ describe('AcpAgentService (Thread Pool)', () => {
       await flushAsyncWork();
 
       expect(mockFactory).toHaveBeenCalledTimes(1);
-      expect(warmingThread.dispose).not.toHaveBeenCalled();
+      expect(warmingThread.dispose).toHaveBeenCalledTimes(1);
 
       initializeGate.resolve({ protocolVersion: 1, agentCapabilities: {} });
       const [, outcome] = await Promise.all([warmup, createOutcome, stop]);
@@ -2442,6 +3410,30 @@ describe('AcpAgentService (Thread Pool)', () => {
       await service.dispose();
 
       expect(thread.dispose).toHaveBeenCalled();
+    });
+
+    it('should share one disposal when the lifecycle contribution and container both stop it', async () => {
+      const { service } = createService();
+      const stopAgent = jest.spyOn(service, 'stopAgent').mockResolvedValue(undefined);
+
+      const contributionDisposal = service.dispose();
+      const containerDisposal = service.dispose();
+
+      expect(containerDisposal).toBe(contributionDisposal);
+      await Promise.all([contributionDisposal, containerDisposal]);
+      expect(stopAgent).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reject new session acquisition after terminal disposal', async () => {
+      const { service, mockFactory } = createService();
+
+      await service.dispose();
+
+      await expect(service.createSession(mockAgentProcessConfig)).rejects.toMatchObject({
+        name: 'AcpAgentServiceDisposedError',
+        message: 'ACP Agent service is disposed',
+      });
+      expect(mockFactory).not.toHaveBeenCalled();
     });
 
     it('should dispose the container-owned agent service during application shutdown', async () => {
@@ -2567,7 +3559,7 @@ describe('AcpAgentService (Thread Pool)', () => {
       const requestedConfig = {
         ...mockAgentProcessConfig,
         agentId: 'history-agent',
-        args: ['test/bdd/fixtures/acp-agent/mock-acp-agent.mjs', '--fixture=history'],
+        args: ['test/bdd/fixtures/acp-agent/mock-acp-agent.ts', '--fixture=history'],
       };
       const requestedThread = createMockThread({
         listSessions: jest.fn().mockResolvedValue({
@@ -2695,13 +3687,13 @@ describe('AcpAgentService (Thread Pool)', () => {
       const service = setupServiceWithMockFactory(mockFactory);
       const configA = {
         ...mockAgentProcessConfig,
-        args: ['mock-acp-agent.mjs', '--fixture=load-failure'],
+        args: ['mock-acp-agent.ts', '--fixture=load-failure'],
         env: [{ name: 'OPENSUMI_ACP_BDD_FIXTURE', value: 'load-failure' }],
         threadPoolSize: 1,
       };
       const configB = {
         ...mockAgentProcessConfig,
-        args: ['mock-acp-agent.mjs', '--fixture=history'],
+        args: ['mock-acp-agent.ts', '--fixture=history'],
         env: [{ name: 'OPENSUMI_ACP_BDD_FIXTURE', value: 'history' }],
         threadPoolSize: 1,
       };

@@ -6,8 +6,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { ILogger } from '@opensumi/ide-core-common';
-import { AcpWebMcpCallerServiceToken } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import { AcpWebMcpCallerServiceToken, ILogger } from '@opensumi/ide-core-common';
 import { INodeLogger } from '@opensumi/ide-core-node';
 
 import {
@@ -18,11 +17,7 @@ import {
 } from '../../common/webmcp-policy';
 
 import type { AcpWebMcpCallerService } from './acp-webmcp-caller.service';
-import type {
-  OpenSumiMcpServerConnectionInfo,
-  WebMcpGroupDef,
-  WebMcpToolDef,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { OpenSumiMcpServerConnectionInfo, WebMcpGroupDef, WebMcpToolDef } from '@opensumi/ide-core-common';
 
 const OPEN_SUMI_MCP_SERVER_NAME = 'opensumi-ide';
 const LOOPBACK_HOST = '127.0.0.1';
@@ -63,6 +58,13 @@ interface WebMcpSessionState {
   sessionId?: string;
   browserClientId?: string;
   enabledGroups: Set<string>;
+}
+
+interface CallToolRequestLike {
+  params: {
+    name: string;
+    arguments?: Record<string, unknown>;
+  };
 }
 
 interface ResolvedWebMcpTool {
@@ -207,8 +209,7 @@ export class OpenSumiMcpHttpServer {
       const exposedToolCount = exposedGroupDefs.reduce((count, group) => count + group.tools.length, 0);
       const toolStats = this.getToolDefinitionStats(exposedGroupDefs);
       const profileGroup = groupDefs.find((group) => (group as { profile?: string }).profile) as
-        | { profile?: string }
-        | undefined;
+        { profile?: string } | undefined;
       const profile = profileGroup?.profile ?? 'unknown';
       this.logger?.log?.(
         `[OpenSumiMcpHttpServer] tools/list — profile=${profile}, groups=${groupDefs.length}, tools=${toolCount}, exposedTools=${exposedToolCount}, schemaBytes=${toolStats.totalSchemaBytes}, descriptionBytes=${toolStats.totalDescriptionBytes}, totalToolBytes=${toolStats.totalToolBytes}`,
@@ -240,7 +241,9 @@ export class OpenSumiMcpHttpServer {
       };
     });
 
-    server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    // Keep the SDK's Zod schema inference at this boundary. Inferring the full
+    // handler body makes TypeScript recursively expand every MCP result variant.
+    (server.setRequestHandler as any)(CallToolRequestSchema, async (request: CallToolRequestLike) => {
       try {
         const groupDefs = (await this.caller.getGroupDefinitions(
           {

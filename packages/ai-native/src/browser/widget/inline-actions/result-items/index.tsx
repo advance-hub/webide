@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 
-import { ContentWidgetContainerPanel } from '@opensumi/ide-core-browser/lib/components/ai-native/content-widget/containerPanel';
 import {
   AIInlineResult,
+  ContentWidgetContainerPanel,
   IAIInlineResultIconItemsProps,
-} from '@opensumi/ide-core-browser/lib/components/ai-native/index';
+} from '@opensumi/ide-core-browser/components/ai';
 import { localize } from '@opensumi/ide-core-common';
 
 import { EResultKind } from '../../inline-chat/inline-chat.service';

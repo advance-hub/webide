@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { Autowired } from '@opensumi/di';
 import { Deferred, Domain, MarkerSeverity, URI, path } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMarkerService } from '@opensumi/ide-markers';
 import { IWorkspaceService } from '@opensumi/ide-workspace';

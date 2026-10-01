@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Autowired } from '@opensumi/di';
 import { CancellationToken, Deferred, Domain } from '@opensumi/ide-core-common';
 import { ContentSearchResult, IContentSearchClientService } from '@opensumi/ide-search';
-import { ContentSearchClientService } from '@opensumi/ide-search/lib/browser/search.service';
+import { ContentSearchClientService } from '@opensumi/ide-search/service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { IChatInternalService } from '../../../common';

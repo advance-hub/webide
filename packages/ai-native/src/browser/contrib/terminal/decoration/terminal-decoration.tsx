@@ -3,7 +3,7 @@ import React from 'react';
 import { Root, createRoot } from 'react-dom/client';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { AIActionItem } from '@opensumi/ide-core-browser/lib/components/ai-native';
+import { AIActionItem } from '@opensumi/ide-core-browser/components/ai';
 import { Disposable, InlineChatFeatureRegistryToken, runWhenIdle } from '@opensumi/ide-core-common';
 import { ITerminalController } from '@opensumi/ide-terminal-next';
 

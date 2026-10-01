@@ -7,7 +7,8 @@ export type {
   AcpChatRelaySummaryResult,
   AcpChatRelaySummarySession,
 } from './acp-chat-relay-summary-provider';
-export { AcpPermissionBridgeService, ShowPermissionDialogParams } from './permission-bridge.service';
+export { AcpPermissionBridgeService } from './permission-bridge.service';
+export type { ShowPermissionDialogParams } from './permission-bridge.service';
 export { AcpPermissionTitleIndicatorService } from './permission-title-indicator.service';
 export { AcpPermissionRpcService } from './acp-permission-rpc.service';
 export { AcpThreadStatusRpcService } from './acp-thread-status-rpc.service';
@@ -24,9 +25,11 @@ export type {
   AgenticTaskStatus,
   RegisterFirstPromptOptions,
 } from './agentic-task-registry.service';
-export { PermissionDialog, PermissionDialogProps } from './permission-dialog.view';
+export { PermissionDialog } from './permission-dialog.view';
+export type { PermissionDialogProps } from './permission-dialog.view';
 export { default as PermissionDialogStyles } from './permission-dialog.module.less';
-export { WebMcpGroupRegistry, WebMcpGroupRegistration, WebMcpToolExecute } from './webmcp-group-registry';
+export { WebMcpGroupRegistry } from './webmcp-group-registry';
+export type { WebMcpGroupRegistration, WebMcpToolExecute } from './webmcp-group-registry';
 export { createAcpChatGroup } from './webmcp-groups/acp-chat.webmcp-group';
 export { createDiagnosticsGroup } from './webmcp-groups/diagnostics.webmcp-group';
 export { createEditorGroup } from './webmcp-groups/editor.webmcp-group';

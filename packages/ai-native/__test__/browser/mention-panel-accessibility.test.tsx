@@ -4,7 +4,7 @@ import { act } from 'react-dom/test-utils';
 
 import { MentionPanel } from '../../src/browser/components/mention-input/mention-panel';
 
-jest.mock('@opensumi/ide-core-browser/lib/components', () => ({
+jest.mock('@opensumi/ide-core-browser/components', () => ({
   Icon: () => null,
   getIcon: (name: string) => name,
 }));

@@ -1,13 +1,9 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { RPCService } from '@opensumi/ide-connection/lib/common/rpc-service';
-import { WebMcpGroupRegistryToken } from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import { RPCService } from '@opensumi/ide-connection';
+import { WebMcpGroupRegistryToken } from '@opensumi/ide-core-common';
 
 import type { WebMcpGroupDefinitionOptions, WebMcpGroupRegistry } from './webmcp-group-registry';
-import type {
-  IAcpWebMcpBridgeService,
-  WebMcpGroupDef,
-  WebMcpToolResult,
-} from '@opensumi/ide-core-common/lib/types/ai-native/acp-types';
+import type { IAcpWebMcpBridgeService, WebMcpGroupDef, WebMcpToolResult } from '@opensumi/ide-core-common';
 
 /**
  * Browser-side RPC service for WebMCP bridge calls.

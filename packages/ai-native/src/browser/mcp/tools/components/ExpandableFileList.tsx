@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Icon } from '@opensumi/ide-components/lib/icon/icon';
+import { Icon } from '@opensumi/ide-components';
 import { CommandService, LabelService, URI, path, useInjectable } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
