@@ -1,8 +1,12 @@
 'use strict';
 const fs = require('node:fs'),
   path = require('node:path'),
+  os = require('node:os'),
   { spawnSync } = require('node:child_process');
 const root = path.resolve(process.argv[2]);
+const machineHome = path.resolve(process.env.WORKBENCH_MACHINE_HOME || '/workspace/home');
+const machineRoot = path.dirname(machineHome);
+const cache = path.join(machineHome, '.m2/repository');
 const input = JSON.parse(
   process.argv[3].startsWith('@')
     ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
@@ -24,30 +28,49 @@ const size = (dir) => {
 try {
   if (input.action === 'clean-cache') {
     // Protect Maven started manually in a terminal as well as platform jobs.
-    for (const pid of fs.readdirSync('/proc').filter((p) => /^\d+$/.test(p))) {
-      try {
-        const args = fs.readFileSync('/proc/' + pid + '/cmdline', 'utf8');
-        if (/org\.codehaus\.plexus\.classworlds|maven-wrapper/.test(args))
-          throw new Error('检测到终端 Maven 进程，请构建结束后再清理缓存');
-      } catch (e) {
-        if (!e.code) throw e;
-      }
+    let argumentsText;
+    if (process.platform === 'linux') {
+      argumentsText = fs
+        .readdirSync('/proc')
+        .filter((p) => /^\d+$/.test(p))
+        .map((pid) => {
+          try {
+            return fs.readFileSync('/proc/' + pid + '/cmdline', 'utf8');
+          } catch {
+            return '';
+          }
+        })
+        .join('\n');
+    } else {
+      const result =
+        process.platform === 'win32'
+          ? spawnSync(
+              'powershell.exe',
+              ['-NoProfile', '-Command', 'Get-CimInstance Win32_Process | Select-Object -ExpandProperty CommandLine'],
+              { encoding: 'utf8', timeout: 15000 },
+            )
+          : spawnSync('ps', ['-ax', '-o', 'command='], { encoding: 'utf8', timeout: 15000 });
+      if (result.status !== 0) throw new Error('无法确认手动 Maven 进程，暂不清理缓存');
+      argumentsText = result.stdout;
     }
-    const cache = '/workspace/home/.m2/repository';
+    if (/org\.codehaus\.plexus\.classworlds|maven-wrapper/.test(argumentsText))
+      throw new Error('检测到终端 Maven 进程，请构建结束后再清理缓存');
     fs.rmSync(cache, { recursive: true, force: true });
     fs.mkdirSync(cache, { recursive: true, mode: 0o700 });
-  } else if (input.action === 'finish-restore') {
-    fs.rmSync('/workspace/.clouddev-restore-previous', { recursive: true, force: true });
   } else if (input.action !== 'inspect') throw new Error('未知开发机操作');
-  const stat = fs.statfsSync('/workspace');
+  const stat = fs.statfsSync(machineRoot);
   process.stdout.write(
     JSON.stringify({
       diskTotal: stat.blocks * stat.bsize,
       diskFree: stat.bavail * stat.bsize,
-      workspaceBytes: size('/workspace'),
-      mavenCacheBytes: size('/workspace/home/.m2/repository'),
-      memoryUsed: bytes('/sys/fs/cgroup/memory.current') || bytes('/sys/fs/cgroup/memory/memory.usage_in_bytes'),
-      memoryLimit: bytes('/sys/fs/cgroup/memory.max') || bytes('/sys/fs/cgroup/memory/memory.limit_in_bytes'),
+      workspaceBytes: size(machineRoot),
+      mavenCacheBytes: size(cache),
+      memoryUsed:
+        bytes('/sys/fs/cgroup/memory.current') ||
+        bytes('/sys/fs/cgroup/memory/memory.usage_in_bytes') ||
+        os.totalmem() - os.freemem(),
+      memoryLimit:
+        bytes('/sys/fs/cgroup/memory.max') || bytes('/sys/fs/cgroup/memory/memory.limit_in_bytes') || os.totalmem(),
     }),
   );
 } catch (e) {

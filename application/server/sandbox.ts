@@ -29,7 +29,7 @@ export class SandboxService {
       protocol: origin.protocol === 'https:' ? 'https' : 'http',
       apiKey: config.sandboxKey,
       useServerProxy: true,
-      requestTimeoutSeconds: 120,
+      requestTimeoutSeconds: config.sandboxRequestTimeout || 300,
     });
     this.manager = SandboxManager.create({ connectionConfig: this.connection });
   }

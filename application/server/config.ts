@@ -17,10 +17,17 @@ export interface Config {
   storageClass: string;
   sandboxCPU: string;
   sandboxMemory: string;
+  sandboxPlatform?: 'linux/amd64' | 'linux/arm64';
+  sandboxRequestTimeout?: number;
   adminUsers: string[];
   dockerContext: string;
-  volumeBackend: 'docker' | 'external';
+  volumeBackend: 'docker' | 'kubernetes' | 'external';
+  kubernetesURL?: string;
+  kubernetesNamespace?: string;
+  kubernetesTokenFile?: string;
+  kubernetesCAFile?: string;
   gitlabURL: string;
+  gitBridgeURL?: string;
   machineLimit: number;
 }
 
@@ -39,6 +46,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (driver !== 'local' && driver !== 'sandbox') {
     throw new Error('WORKBENCH_RUNTIME_DRIVER must be local or sandbox');
   }
+  if (!localDemo && driver === 'local') {
+    throw new Error('Multi-account deployments require sandbox OS isolation');
+  }
   const nodeWatcherMode = env.OPENSUMI_NODE_WATCHER_MODE || 'per-client';
   if (nodeWatcherMode !== 'per-client' && nodeWatcherMode !== 'shared') {
     throw new Error('OPENSUMI_NODE_WATCHER_MODE must be per-client or shared');
@@ -52,8 +62,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error('WORKBENCH_MACHINE_LIMIT must be between 1 and 20');
   }
   const volumeBackend = env.WORKBENCH_VOLUME_BACKEND || 'external';
-  if (volumeBackend !== 'docker' && volumeBackend !== 'external') {
-    throw new Error('WORKBENCH_VOLUME_BACKEND must be docker or external');
+  const sandboxPlatform = env.OPEN_SANDBOX_PLATFORM || undefined;
+  const sandboxRequestTimeout = Number(env.OPEN_SANDBOX_REQUEST_TIMEOUT_SECONDS || 300);
+  if (!Number.isInteger(sandboxRequestTimeout) || sandboxRequestTimeout < 10 || sandboxRequestTimeout > 1200) {
+    throw new Error('OPEN_SANDBOX_REQUEST_TIMEOUT_SECONDS must be between 10 and 1200');
+  }
+  if (sandboxPlatform && !['linux/amd64', 'linux/arm64'].includes(sandboxPlatform)) {
+    throw new Error('OPEN_SANDBOX_PLATFORM must be linux/amd64 or linux/arm64');
+  }
+  if (!['docker', 'kubernetes', 'external'].includes(volumeBackend)) {
+    throw new Error('WORKBENCH_VOLUME_BACKEND must be docker, kubernetes or external');
   }
   return {
     root,
@@ -72,13 +90,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     storageClass: env.WORKBENCH_STORAGE_CLASS || '',
     sandboxCPU: env.OPEN_SANDBOX_CPU || '2',
     sandboxMemory: env.OPEN_SANDBOX_MEMORY || '2Gi',
+    sandboxPlatform: sandboxPlatform as Config['sandboxPlatform'],
+    sandboxRequestTimeout,
     adminUsers: (env.WORKBENCH_ADMIN_USERS || '')
       .split(',')
       .map((value) => value.trim())
       .filter(Boolean),
     gitlabURL: env.GITLAB_URL || 'https://github.com',
+    gitBridgeURL: env.WORKBENCH_GIT_BRIDGE_URL || undefined,
     dockerContext: env.WORKBENCH_DOCKER_CONTEXT || '',
-    volumeBackend,
+    volumeBackend: volumeBackend as Config['volumeBackend'],
+    kubernetesURL: env.WORKBENCH_KUBERNETES_URL || undefined,
+    kubernetesNamespace: env.WORKBENCH_KUBERNETES_NAMESPACE || 'default',
+    kubernetesTokenFile: env.WORKBENCH_KUBERNETES_TOKEN_FILE || undefined,
+    kubernetesCAFile: env.WORKBENCH_KUBERNETES_CA_FILE || undefined,
     machineLimit,
   };
 }

@@ -7,8 +7,11 @@
   "liveServer.settings.NoBrowser": true,
   "git.autofetch": false,
   "git.enableStatusBarSync": true,
-  "git.showActionButton": { "commit": true, "publish": true, "sync": true },
-  "go.toolsManagement.checkForUpdates": "off",
+  "git.showActionButton": {
+    "commit": true,
+    "publish": true,
+    "sync": true
+  },
   "ai.native.agent.builtInsEnabled": false,
   "ai.native.agent.configs": {
     "opencode": {

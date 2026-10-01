@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { randomBytes } = require('node:crypto');
 const root = path.resolve(process.argv[2]);
 const input = JSON.parse(
   process.argv[3]?.startsWith('@')
@@ -57,13 +58,30 @@ function run() {
       'config',
       '--replace-all',
       'credential.helper',
-      `!node /opt/opensumi/bin/git-credential.cjs '${filename.replaceAll("'", "'\\''")}'`,
+      `!node '${path.join(__dirname, 'git-credential.cjs').replaceAll("'", "'\\''")}' '${filename.replaceAll("'", "'\\''")}'`,
     ]);
     value(['remote', 'set-url', 'origin', input.url]);
     return { configured: true };
   }
   const action = input.action || 'status';
   if (action === 'status') return status();
+  if (action === 'export') {
+    const branch = value(['branch', '--show-current']);
+    if (branch !== input.branch || status().operation) throw new Error('请完成 Git 操作并切回工作区开发分支');
+    const sha = value(['rev-parse', 'HEAD']);
+    const directory = path.join(root, '.platform');
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    const bundle = path.join(directory, 'publish-' + randomBytes(16).toString('hex') + '.bundle');
+    try {
+      value(['bundle', 'create', bundle, 'refs/heads/' + branch]);
+      fs.chmodSync(bundle, 0o600);
+      if (fs.statSync(bundle).size > 512 * 1024 * 1024) throw new Error('提交包超过 512 MiB');
+      return { sha, bundle };
+    } catch (error) {
+      fs.rmSync(bundle, { force: true });
+      throw error;
+    }
+  }
   if (!['fetch', 'pull', 'merge', 'rebase', 'continue', 'abort'].includes(action)) throw new Error('未知 Git 操作');
   const before = status();
   const branch = input.branch || before.branch;

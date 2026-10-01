@@ -58,6 +58,10 @@ export class DockerEngine {
       '\n',
     );
     if (volumes.includes(name)) {
+      const attached = (await this.run(['container', 'ls', '--all', '--quiet', '--filter', `volume=${name}`])).trim();
+      if (attached) {
+        throw new HTTPError(409, '持久卷仍被容器引用，保留卷等待处理');
+      }
       await this.run(['volume', 'rm', '--', name]);
     }
   }

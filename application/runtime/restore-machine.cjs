@@ -17,10 +17,6 @@ const save = (value) => {
 function recover(commit) {
   if (!fs.existsSync(old)) return;
   if (!fs.existsSync(journal)) {
-    if (commit) {
-      remove(old);
-      return;
-    }
     if (
       fs.readdirSync(old).some((n) => n !== 'contents') ||
       (fs.existsSync(contents) && fs.readdirSync(contents).length)

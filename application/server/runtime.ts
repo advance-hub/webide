@@ -1,13 +1,14 @@
 import { type ChildProcess, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { closeSync, existsSync, openSync } from 'node:fs';
-import { copyFile, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 import { type Config, HTTPError } from './config';
 import { type Project, type Repositories, type Workspace, command } from './git';
-import { type Entity, Store, now } from './store';
+import { type Entity, Store, newID, now } from './store';
 
 export interface Machine extends Entity {
   driver: 'local' | 'sandbox';
@@ -35,6 +36,32 @@ export interface RuntimeDriver {
   remove(workspace: Workspace, project: Project, repositories: Repositories): Promise<void>;
   release(machine: Machine): Promise<void>;
   close(): Promise<void>;
+  exportBranch?(workspace: Workspace, target: string): Promise<string>;
+  exportMachine?(machine: Machine, target: string): Promise<void>;
+  restoreMachine?(machine: Machine, action: 'stage' | 'apply' | 'commit' | 'rollback', archive?: string): Promise<void>;
+  upgradeMachine?(machine: Machine): Promise<void>;
+}
+
+export function startupRecord(workspace: Workspace): NonNullable<Workspace['startup']> {
+  return (workspace.startup ||= {
+    steps: [],
+    runtime: { source: workspace.driver || 'local' },
+    development: { configured: false, ready: false },
+  });
+}
+
+export async function runtimeFingerprint(root: string): Promise<string> {
+  const hash = createHash('sha256');
+  const directory = path.join(root, '.cache/runtime-artifacts');
+  const files = await readdir(directory).catch(() => []);
+  for (const name of files.filter((name) => name.endsWith('.json')).sort()) {
+    hash.update(name);
+    hash.update(await readFile(path.join(directory, name)));
+  }
+  for (const name of ['pnpm-lock.yaml', 'server/dist/main.js', 'server/dist/start-server.js']) {
+    hash.update(await readFile(path.join(root, name)));
+  }
+  return hash.digest('hex');
 }
 
 async function availablePort(): Promise<number> {
@@ -110,19 +137,68 @@ export class LocalRuntime implements RuntimeDriver {
     }
     try {
       const endpoint = `http://127.0.0.1:${workspace.idePort}`;
-      const response = await fetch(`${endpoint}/readyz`, {
+      const owner = JSON.parse(await readFile(path.join(this.root(workspace), '.platform/ide-owner.json'), 'utf8')) as {
+        pid: number;
+        token: string;
+      };
+      const response = await fetch(`${endpoint}/runtime/identity`, {
+        headers: { Authorization: `Bearer ${owner.token}`, 'X-Workspace-Id': workspace.id },
+        signal: AbortSignal.timeout(2000),
+      });
+      if (!response.ok) {
+        return { exists, phase: 'unowned', ideReady: false };
+      }
+      const identity = (await response.json()) as {
+        workspace?: { id?: string; directory?: string };
+        pid: number;
+        fingerprint: string;
+        node: string;
+        architecture: string;
+      };
+      if (
+        identity.workspace?.id !== workspace.id ||
+        identity.workspace.directory !== this.projectDirectory(workspace) ||
+        identity.pid !== owner.pid
+      ) {
+        return { exists, phase: 'unowned', ideReady: false };
+      }
+      const readiness = await fetch(`${endpoint}/readyz`, {
         headers: { 'X-Workspace-Id': workspace.id },
         signal: AbortSignal.timeout(2000),
       });
-      return { exists, phase: response.ok ? 'running' : 'unhealthy', ideReady: response.ok, endpoint };
+      return {
+        exists,
+        phase: readiness.ok ? 'running' : 'unhealthy',
+        ideReady: readiness.ok,
+        endpoint,
+        runtime: identity,
+        recovered: !this.children.has(workspace.id),
+      };
     } catch {
+      try {
+        const response = await fetch(`http://127.0.0.1:${workspace.idePort}/health`, {
+          signal: AbortSignal.timeout(1000),
+        });
+        if (response.ok) {
+          return { exists, phase: 'unowned', ideReady: false };
+        }
+      } catch {
+        /* no listener */
+      }
       return { exists, phase: 'stopped', ideReady: false };
     }
   }
 
   async start(workspace: Workspace): Promise<void> {
-    if ((await this.inspect(workspace)).ideReady) {
+    const environment = await this.inspect(workspace);
+    if (environment.phase === 'unowned') {
+      throw new HTTPError(409, 'IDE 进程所有权不匹配，保留进程等待检查');
+    }
+    if (environment.ideReady) {
       return;
+    }
+    if (environment.endpoint) {
+      await this.stop(workspace);
     }
     const entry = path.join(this.config.root, 'server/dist/main.js');
     if (!existsSync(entry)) {
@@ -158,6 +234,8 @@ export class LocalRuntime implements RuntimeDriver {
     workspace.idePort = port;
     workspace.envId = `local-${workspace.machineId}`;
     this.store.put('workspace', workspace);
+    const token = newID() + newID();
+    const fingerprint = await runtimeFingerprint(this.config.root);
     const log = path.join(platform, 'ide.log');
     const descriptor = openSync(log, 'a', 0o600);
     const child = spawn(process.execPath, ['--max-old-space-size=768', entry], {
@@ -174,12 +252,11 @@ export class LocalRuntime implements RuntimeDriver {
         WORKSPACE_ID: workspace.id,
         IDE_ALLOW_ROOT: this.projectDirectory(workspace),
         OPENSUMI_RUNTIME_MODE: 'node',
+        OPENSUMI_RUNTIME_TOKEN: token,
+        OPENSUMI_RUNTIME_FINGERPRINT: fingerprint,
         OPENSUMI_NODE_WATCHER_MODE: this.config.nodeWatcherMode,
-        OPENSUMI_WORKSPACE_AGENT_WATCH_MODE: 'off',
-        OPENSUMI_WORKSPACE_AGENT_SEARCH_MODE: 'off',
-        OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE: 'off',
-        OPENSUMI_WS_GATEWAY_MODE: 'off',
         ENABLE_COLLABORATION: '0',
+        ENABLE_AI: '1',
         OPENSUMI_EXTENSION_DIR: path.join(this.home(workspace), '.sumi/extensions'),
         OPENSUMI_BUILTIN_EXTENSION_DIR: path.join(this.config.root, 'tools/extensions'),
         ...(existsSync(path.join(this.config.root, 'builtin-extensions.manifest.json'))
@@ -203,6 +280,9 @@ export class LocalRuntime implements RuntimeDriver {
       }
     });
     await writeFile(path.join(platform, 'ide.pid'), String(child.pid || ''), { mode: 0o600 });
+    await writeFile(path.join(platform, 'ide-owner.json'), JSON.stringify({ pid: child.pid, token, fingerprint }), {
+      mode: 0o600,
+    });
     for (let attempt = 0; attempt < 120; attempt++) {
       if (spawnError) {
         throw spawnError;
@@ -211,6 +291,12 @@ export class LocalRuntime implements RuntimeDriver {
         break;
       }
       if ((await this.inspect(workspace)).ideReady) {
+        startupRecord(workspace).runtime = {
+          source: 'local',
+          fingerprint,
+          node: process.version,
+          architecture: process.arch,
+        };
         workspace.lastActivityAt = now();
         this.store.put('workspace', workspace);
         return;
@@ -223,11 +309,43 @@ export class LocalRuntime implements RuntimeDriver {
 
   async stop(workspace: Workspace): Promise<void> {
     const child = this.children.get(workspace.id);
-    // Only signal children created by this control process; persisted PIDs alone are not ownership proof.
     if (!child?.pid) {
-      if ((await this.inspect(workspace)).ideReady) {
-        throw new HTTPError(409, 'IDE 由其他控制进程持有，请先关闭该进程');
+      const environment = await this.inspect(workspace);
+      if (!environment.endpoint) {
+        if (environment.phase === 'unowned') {
+          throw new HTTPError(409, 'IDE 进程所有权不匹配，保留进程等待检查');
+        }
+        return;
       }
+      const owner = JSON.parse(await readFile(path.join(this.root(workspace), '.platform/ide-owner.json'), 'utf8')) as {
+        pid: number;
+        token: string;
+      };
+      const response = await fetch(`${environment.endpoint}/runtime/shutdown`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${owner.token}`, 'X-Workspace-Id': workspace.id },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (response.status !== 202) {
+        throw new HTTPError(409, '孤儿 IDE 未接受关闭请求');
+      }
+      const deadline = Date.now() + 35000;
+      for (;;) {
+        try {
+          process.kill(owner.pid, 0);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ESRCH') {
+            break;
+          }
+          throw error;
+        }
+        if (Date.now() >= deadline) {
+          throw new HTTPError(409, '孤儿 IDE 未退出，保留记录等待检查');
+        }
+        await delay(100);
+      }
+      await rm(path.join(this.root(workspace), '.platform/ide-owner.json'), { force: true });
+      await rm(path.join(this.root(workspace), '.platform/ide.pid'), { force: true });
       return;
     }
     const signal = (value: NodeJS.Signals) => {
@@ -249,9 +367,29 @@ export class LocalRuntime implements RuntimeDriver {
     }
     this.children.delete(workspace.id);
     await rm(path.join(this.root(workspace), '.platform/ide.pid'), { force: true });
+    await rm(path.join(this.root(workspace), '.platform/ide-owner.json'), { force: true });
   }
 
   async helper(workspace: Workspace, name: string, input: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (name === 'editor-connections' || (name === 'git' && input.action === 'configure')) {
+      const temporary = path.join(this.root(workspace), '.platform', `private-${newID()}.json`);
+      await mkdir(path.dirname(temporary), { recursive: true, mode: 0o700 });
+      try {
+        await writeFile(temporary, JSON.stringify(name === 'git' ? input : input.spec || {}), {
+          mode: 0o600,
+          flag: 'wx',
+        });
+        const args =
+          name === 'git'
+            ? [this.root(workspace), `@${temporary}`]
+            : [input.action === 'remove' ? 'remove' : 'install', this.root(workspace), temporary];
+        return JSON.parse(
+          await command(process.execPath, [path.join(this.config.root, `application/runtime/${name}.cjs`), ...args]),
+        );
+      } finally {
+        await rm(temporary, { force: true });
+      }
+    }
     if (
       ![
         'git',
@@ -295,6 +433,64 @@ export class LocalRuntime implements RuntimeDriver {
       throw new HTTPError(400, String(result.error));
     }
     return result;
+  }
+
+  async upgradeMachine(machine: Machine): Promise<void> {
+    await command(
+      process.execPath,
+      ['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', path.join(this.config.root, 'scripts/build-runtime.ts')],
+      { cwd: this.config.root, timeout: 1200000 },
+    );
+    machine.runtimeFingerprint = await runtimeFingerprint(this.config.root);
+    this.store.put('machine', machine);
+  }
+
+  async exportMachine(machine: Machine, target: string): Promise<void> {
+    await command(
+      process.execPath,
+      [
+        path.join(this.config.root, 'application/runtime/machine-archive.cjs'),
+        this.machineRoot(machine.id),
+        'export',
+        target,
+      ],
+      { timeout: 1200000 },
+    );
+  }
+  async restoreMachine(
+    machine: Machine,
+    action: 'stage' | 'apply' | 'commit' | 'rollback',
+    archive?: string,
+  ): Promise<void> {
+    const root = this.machineRoot(machine.id);
+    if (action === 'stage') {
+      await command(
+        process.execPath,
+        [path.join(this.config.root, 'application/runtime/machine-archive.cjs'), root, action, archive!],
+        { timeout: 1200000 },
+      );
+    } else {
+      await command(process.execPath, [
+        path.join(this.config.root, 'application/runtime/restore-machine.cjs'),
+        root,
+        action,
+        path.join(root, '.clouddev-restore-next'),
+      ]);
+      if (action === 'commit' || action === 'rollback') {
+        await rm(path.join(root, '.clouddev-restore-next'), { recursive: true, force: true });
+      }
+    }
+  }
+
+  async exportBranch(workspace: Workspace, target: string): Promise<string> {
+    const result = await this.helper(workspace, 'git', { action: 'export', branch: workspace.branch });
+    const source = String(result.bundle);
+    try {
+      await copyFile(source, target);
+      return String(result.sha);
+    } finally {
+      await rm(source, { force: true });
+    }
   }
 
   async remove(workspace: Workspace): Promise<void> {

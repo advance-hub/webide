@@ -1,14 +1,17 @@
-import { createReadStream } from 'node:fs';
+import { createReadStream, createWriteStream } from 'node:fs';
 import path from 'node:path';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 import { Sandbox, type Volume } from '@alibaba-group/opensandbox';
 
 import { type Config, HTTPError } from './config';
 import { DockerEngine } from './docker';
 import { type Project, type Repositories, type Workspace } from './git';
-import { type Environment, type Machine, type RuntimeDriver } from './runtime';
+import { type Environment, type Machine, type RuntimeDriver, startupRecord } from './runtime';
 import { SandboxService, shellQuote as q } from './sandbox';
-import { type Store, now } from './store';
+import { type Store, hash, newID, now } from './store';
+import { KubernetesVolumes } from './volumes';
 
 export class SandboxRuntime implements RuntimeDriver {
   readonly name = 'sandbox' as const;
@@ -63,9 +66,13 @@ export class SandboxRuntime implements RuntimeDriver {
     };
   }
 
-  private async ensure(machine: Machine): Promise<void> {
+  private async ensure(machine: Machine, image = this.config.sandboxImage): Promise<void> {
     const metadata = { 'opensumi.workspace': machine.id, application: 'opensumi-workbench' };
+    const owner = hash(machine.owner).slice(0, 32);
     const matches = (await this.service.list(metadata)).filter((info) => !info.metadata?.['opensumi.gc']);
+    if (matches.some((info) => info.metadata?.['opensumi.owner'] && info.metadata['opensumi.owner'] !== owner)) {
+      throw new HTTPError(409, '沙箱账户所有权不匹配');
+    }
     if (matches.length > 1) {
       throw new HTTPError(409, '多个沙箱持有同一开发机，请管理员处理');
     }
@@ -73,16 +80,19 @@ export class SandboxRuntime implements RuntimeDriver {
       throw new HTTPError(409, '原沙箱已丢失，文件保存在沙箱内；请从备份恢复，不能创建空环境覆盖记录');
     }
     if (!matches.length) {
-      if (!this.config.sandboxImage) {
+      if (!image) {
         throw new HTTPError(409, '请配置 OPEN_SANDBOX_IMAGE');
       }
       let sandbox: Sandbox | undefined;
       try {
         sandbox = await Sandbox.create({
           connectionConfig: this.service.connection,
-          image: this.config.sandboxImage,
+          image,
+          platform: this.config.sandboxPlatform
+            ? { os: 'linux', arch: this.config.sandboxPlatform === 'linux/amd64' ? 'amd64' : 'arm64' }
+            : undefined,
           entrypoint: ['/bin/sh', '-c', 'exec sleep infinity'],
-          metadata,
+          metadata: { ...metadata, 'opensumi.owner': owner },
           resource: { cpu: this.config.sandboxCPU, memory: this.config.sandboxMemory },
           timeoutSeconds: null,
           skipHealthCheck: true,
@@ -136,11 +146,12 @@ rm -f -- ${q(root + '/.platform/development-init.json')}`,
     }
     const sha = await repositories.pinWorkspace(project, workspace);
     const bundle = `${root}/.platform/baseline.bundle`;
+    // Execd's SDK takes octal digits as decimal JSON (700/600), unlike fs modes.
     await this.service.withSandbox(env, async (sandbox) => {
-      await sandbox.files.createDirectories([{ path: `${root}/.platform`, mode: 0o700 }]);
+      await sandbox.files.createDirectories([{ path: `${root}/.platform`, mode: 700 }]);
       await sandbox.files.writeFiles([
-        { path: bundle, data: createReadStream(repositories.bundle(project, sha)), mode: 0o600 },
-        { path: `${root}/.platform/workspace-id`, data: workspace.id, mode: 0o600 },
+        { path: bundle, data: createReadStream(repositories.bundle(project, sha)), mode: 600 },
+        { path: `${root}/.platform/workspace-id`, data: workspace.id, mode: 600 },
       ]);
     });
     await this.service.run(
@@ -167,13 +178,15 @@ rm -f -- ${q(bundle)}`,
     }
     await this.service.run(
       this.environment(workspace),
-      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node OPENSUMI_NODE_WATCHER_MODE=${q(this.config.nodeWatcherMode)} PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
+      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node OPENSUMI_NODE_WATCHER_MODE=${q(this.config.nodeWatcherMode)} OPENSUMI_RUNTIME_TOKEN=${q(newID() + newID())} OPENSUMI_RUNTIME_FINGERPRINT="$(cat /app/.runtime-fingerprint)" PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
       180,
     );
     const state = await this.inspect(workspace);
     if (!state.ideReady) {
       throw new HTTPError(502, '沙箱 IDE 启动后未通过就绪检查');
     }
+    const runtime = state.runtime as { fingerprint?: string; node?: string; architecture?: string } | undefined;
+    startupRecord(workspace).runtime = { source: 'sandbox', ...runtime };
     workspace.lastActivityAt = now();
     this.store.put('workspace', workspace);
   }
@@ -207,13 +220,45 @@ rm -f -- ${q(bundle)}`,
         headers: { ...endpoint.headers, 'X-Workspace-Id': workspace.id },
         signal: AbortSignal.timeout(8000),
       });
-      return { ...base, ...endpoint, ideReady: response.ok };
+      const data = (await response.json()) as {
+        runtime?: {
+          workspace?: { id?: string; directory?: string };
+          fingerprint?: string;
+          node?: string;
+          architecture?: string;
+        };
+      };
+      const owned =
+        data.runtime?.workspace?.id === workspace.id &&
+        data.runtime.workspace.directory === this.projectDirectory(workspace);
+      return { ...base, ...endpoint, ideReady: response.ok && owned, runtime: data.runtime };
     } catch {
       return base;
     }
   }
 
   async helper(workspace: Workspace, name: string, input: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (name === 'editor-connections' || (name === 'git' && input.action === 'configure')) {
+      const temporary = `${this.root(workspace)}/.platform/editor-connections-${newID()}.json`;
+      return this.service.withSandbox(this.environment(workspace), async (sandbox) => {
+        try {
+          await sandbox.files.createDirectories([{ path: path.posix.dirname(temporary), mode: 700 }]);
+          await sandbox.files.writeFiles([
+            { path: temporary, data: JSON.stringify(name === 'git' ? input : input.spec || {}), mode: 600 },
+          ]);
+          return JSON.parse(
+            await this.service.run(
+              this.environment(workspace),
+              name === 'git'
+                ? `node /opt/opensumi/bin/git.cjs ${q(this.root(workspace))} ${q('@' + temporary)}`
+                : `node /opt/opensumi/bin/editor-connections.cjs ${input.action === 'remove' ? 'remove' : 'install'} ${q(this.root(workspace))} ${q(temporary)}`,
+            ),
+          );
+        } finally {
+          await sandbox.files.deleteFiles([temporary]);
+        }
+      });
+    }
     if (
       ![
         'git',
@@ -245,6 +290,132 @@ rm -f -- ${q(bundle)}`,
     return result;
   }
 
+  async upgradeMachine(machine: Machine): Promise<void> {
+    if (this.config.storageMode !== 'pvc') {
+      throw new HTTPError(409, '保留沙箱模式不能替换容器，请先备份并迁移到持久卷模式');
+    }
+    if (!this.config.sandboxImage) {
+      throw new HTTPError(409, '请配置目标 OPEN_SANDBOX_IMAGE');
+    }
+    const instances = await this.service.list({ 'opensumi.workspace': machine.id, application: 'opensumi-workbench' });
+    if (
+      instances.some(
+        (info) =>
+          info.metadata?.['opensumi.owner'] && info.metadata['opensumi.owner'] !== hash(machine.owner).slice(0, 32),
+      )
+    ) {
+      throw new HTTPError(409, '沙箱账户所有权不匹配');
+    }
+    if (instances.length > 1) {
+      throw new HTTPError(409, '多个沙箱持有同一开发机，不能升级');
+    }
+    machine.runtimePreviousImage ||= instances[0]?.image?.uri;
+    machine.runtimeTargetImage = this.config.sandboxImage;
+    this.store.put('machine', machine);
+    for (const info of instances) {
+      await this.service.manager.killSandbox(info.id);
+    }
+    try {
+      await this.ensure(machine, this.config.sandboxImage);
+      machine.runtimeImage = this.config.sandboxImage;
+      machine.runtimePreviousImage = undefined;
+      this.store.put('machine', machine);
+    } catch (error) {
+      throw new HTTPError(502, '目标运行时未就绪，持久卷已保留，请恢复升级任务', { cause: error });
+    }
+  }
+
+  async exportMachine(machine: Machine, target: string): Promise<void> {
+    if (!machine.envId) {
+      throw new HTTPError(409, '开发机环境不存在');
+    }
+    const temporary = `/tmp/webide-backup-${newID()}.tgz`;
+    let size = 0;
+    await this.service.withSandbox(
+      machine.envId,
+      async (sandbox) => {
+        try {
+          await this.service.run(
+            machine.envId!,
+            `node /opt/opensumi/bin/machine-archive.cjs /workspace export ${q(temporary)}`,
+            1200,
+          );
+          await pipeline(
+            Readable.from(sandbox.files.readBytesStream(temporary)),
+            new Transform({
+              transform(chunk, _encoding, done) {
+                size += chunk.length;
+                done(size > 5 * 1024 * 1024 * 1024 ? new Error('备份超过 5 GiB') : null, chunk);
+              },
+            }),
+            createWriteStream(target, { flags: 'wx', mode: 0o600 }),
+          );
+        } finally {
+          await sandbox.files.deleteFiles([temporary]);
+        }
+      },
+      1215,
+    );
+  }
+  async restoreMachine(
+    machine: Machine,
+    action: 'stage' | 'apply' | 'commit' | 'rollback',
+    archive?: string,
+  ): Promise<void> {
+    if (!machine.envId) {
+      throw new HTTPError(409, '开发机环境不存在');
+    }
+    if (action === 'stage') {
+      const temporary = `/tmp/webide-restore-${newID()}.tgz`;
+      await this.service.withSandbox(
+        machine.envId,
+        async (sandbox) => {
+          try {
+            await sandbox.files.writeFiles([{ path: temporary, data: createReadStream(archive!), mode: 600 }]);
+            await this.service.run(
+              machine.envId!,
+              `node /opt/opensumi/bin/machine-archive.cjs /workspace stage ${q(temporary)}`,
+              1200,
+            );
+          } finally {
+            await sandbox.files.deleteFiles([temporary]);
+          }
+        },
+        1215,
+      );
+    } else {
+      await this.service.run(
+        machine.envId,
+        `node /opt/opensumi/bin/restore-machine.cjs /workspace ${action} /workspace/.clouddev-restore-next`,
+      );
+      if (action === 'commit' || action === 'rollback') {
+        await this.service.run(machine.envId, 'rm -rf -- /workspace/.clouddev-restore-next');
+      }
+    }
+  }
+
+  async exportBranch(workspace: Workspace, target: string): Promise<string> {
+    const result = await this.helper(workspace, 'git', { action: 'export', branch: workspace.branch });
+    let size = 0;
+    return this.service.withSandbox(this.environment(workspace), async (sandbox) => {
+      try {
+        await pipeline(
+          Readable.from(sandbox.files.readBytesStream(String(result.bundle))),
+          new Transform({
+            transform(chunk, _encoding, done) {
+              size += chunk.length;
+              done(size > 512 * 1024 * 1024 ? new Error('提交包超过 512 MiB') : null, chunk);
+            },
+          }),
+          createWriteStream(target, { flags: 'wx', mode: 0o600 }),
+        );
+        return String(result.sha);
+      } finally {
+        await sandbox.files.deleteFiles([String(result.bundle)]);
+      }
+    });
+  }
+
   async remove(workspace: Workspace): Promise<void> {
     await this.stop(workspace);
     await this.service.run(
@@ -256,20 +427,32 @@ rm -rf -- ${q(this.root(workspace))}`,
   }
 
   async release(machine: Machine): Promise<void> {
-    if (this.config.storageMode === 'pvc' && machine.envId && this.config.volumeBackend !== 'docker') {
+    if (this.config.storageMode === 'pvc' && this.config.volumeBackend === 'external') {
       throw new HTTPError(
         409,
         '持久卷由外部平台管理；请配置相同 Docker 守护进程的 WORKBENCH_VOLUME_BACKEND=docker 后回收',
       );
     }
     const instances = await this.service.list({ 'opensumi.workspace': machine.id, application: 'opensumi-workbench' });
+    if (
+      instances.some(
+        (info) =>
+          info.metadata?.['opensumi.owner'] && info.metadata['opensumi.owner'] !== hash(machine.owner).slice(0, 32),
+      )
+    ) {
+      throw new HTTPError(409, '沙箱账户所有权不匹配');
+    }
     for (const info of instances) {
       await this.service.manager.killSandbox(info.id);
     }
-    if (this.config.storageMode !== 'pvc' || !machine.envId) {
+    if (this.config.storageMode !== 'pvc') {
       return;
     }
-    await new DockerEngine(this.config).removeMachineVolume(machine.id);
+    if (this.config.volumeBackend === 'kubernetes') {
+      await new KubernetesVolumes(this.config, this.store).remove(machine);
+    } else {
+      await new DockerEngine(this.config).removeMachineVolume(machine.id);
+    }
   }
 
   async close(): Promise<void> {

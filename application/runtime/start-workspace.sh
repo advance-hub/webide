@@ -44,7 +44,7 @@ fi
 export JAVA_HOME=/opt/java/openjdk
 if [ -f /opt/opensumi/bin/toolchain.cjs ]; then JAVA_HOME=$(node /opt/opensumi/bin/toolchain.cjs "$root"); export JAVA_HOME; fi
 export MAVEN_HOME=/opt/maven
-export PATH="/opt/opensumi/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:/usr/local/go/bin:/opt/go-tools/bin:$PATH"
+export PATH="/opt/opensumi/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
 export MAVEN_OPTS="${MAVEN_OPTS:--Xmx256m}"
 export NODE_ENV=production
 export OPENSUMI_RUNTIME_MODE=${OPENSUMI_RUNTIME_MODE:-node}

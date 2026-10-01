@@ -34,13 +34,30 @@ function loadConfig(root, service, supplied, initializing = false) {
   if (!supplied && fs.statSync(filename).size > 32768) throw new Error(`${configName} exceeds 32 KiB`);
   let config = supplied || JSON.parse(fs.readFileSync(filename, 'utf8'));
   const services = config.services;
-  let serviceIndex = 0, serviceName = 'default';
+  let serviceIndex = 0,
+    serviceName = 'default';
   if (services !== undefined) {
-    if (!Array.isArray(services) || services.length < 1 || services.length > 8 || config.run || new Set(services.map(s => s?.name)).size !== services.length || services.some(s => !s || !/^[a-z][a-z0-9-]{0,31}$/.test(s.name) || s.name === 'default' || Object.keys(s).some(k => !['name','cwd','command','port','healthPath','portMode'].includes(k)))) throw new Error('services 必须包含 1–8 个名称唯一的任务，且不能同时配置 run');
-    serviceIndex = service ? services.findIndex(s => s.name === service) : 0;
+    if (
+      !Array.isArray(services) ||
+      services.length < 1 ||
+      services.length > 8 ||
+      config.run ||
+      new Set(services.map((s) => s?.name)).size !== services.length ||
+      services.some(
+        (s) =>
+          !s ||
+          !/^[a-z][a-z0-9-]{0,31}$/.test(s.name) ||
+          s.name === 'default' ||
+          Object.keys(s).some((k) => !['name', 'cwd', 'command', 'port', 'healthPath', 'portMode'].includes(k)),
+      )
+    )
+      throw new Error('services 必须包含 1–8 个名称唯一的任务，且不能同时配置 run');
+    serviceIndex = service ? services.findIndex((s) => s.name === service) : 0;
     if (serviceIndex < 0) throw new Error('服务不存在');
-    const selected = services[serviceIndex]; serviceName = selected.name;
-    const { name, cwd, ...run } = selected; config = { ...config, cwd: initializing ? config.cwd : cwd || config.cwd, run };
+    const selected = services[serviceIndex];
+    serviceName = selected.name;
+    const { name, cwd, ...run } = selected;
+    config = { ...config, cwd: initializing ? config.cwd : cwd || config.cwd, run };
   }
   if (
     !config ||
@@ -90,8 +107,6 @@ function fingerprint(config) {
     'package-lock.json',
     'pnpm-lock.yaml',
     'yarn.lock',
-    'go.mod',
-    'go.sum',
     'pom.xml',
     'requirements.txt',
     'uv.lock',
@@ -118,12 +133,15 @@ function ownsProcess(state) {
   }
 }
 
-function platformPath(root, service = 'default') { return service === 'default' ? path.join(root,'.platform') : path.join(root,'.platform','services',service); }
+function platformPath(root, service = 'default') {
+  return service === 'default' ? path.join(root, '.platform') : path.join(root, '.platform', 'services', service);
+}
 async function stop(root, service) {
   if (!service) {
     await stop(root, 'default');
-    const dir = path.join(root,'.platform','services');
-    for (const name of fs.existsSync(dir) ? fs.readdirSync(dir) : []) if (/^[a-z][a-z0-9-]{0,31}$/.test(name)) await stop(root,name);
+    const dir = path.join(root, '.platform', 'services');
+    for (const name of fs.existsSync(dir) ? fs.readdirSync(dir) : [])
+      if (/^[a-z][a-z0-9-]{0,31}$/.test(name)) await stop(root, name);
     return { configured: false };
   }
   const statePath = path.join(platformPath(root, service), 'development-process.json');
@@ -221,7 +239,8 @@ async function run(root, phase, service) {
   let state = json(statePath);
   if (!ownsProcess(state) || state.fingerprint !== digest) {
     await stop(root, config.serviceName);
-    if (await occupied(config.run.port)) throw new Error('预览端口已被其他项目占用；请使用分配的 PORT 环境变量，或调整 run.port');
+    if (await occupied(config.run.port))
+      throw new Error('预览端口已被其他项目占用；请使用分配的 PORT 环境变量，或调整 run.port');
     const token = crypto.randomBytes(16).toString('hex');
     const jobPath = path.join(platform, `development-job-${token}.json`);
     write(jobPath, { command: config.run.command, cwd: config.cwd, port: config.run.port });
@@ -308,27 +327,53 @@ async function main() {
     return;
   }
   const result =
-    phase === 'inspect' ? inspect(root, argument) : phase === 'stop' ? await stop(root) : phase === 'start' ? await startAll(root) : await run(root, phase);
+    phase === 'inspect'
+      ? inspect(root, argument)
+      : phase === 'stop'
+        ? await stop(root)
+        : phase === 'start'
+          ? await startAll(root)
+          : await run(root, phase);
   process.stdout.write(JSON.stringify(result));
 }
 async function services(root) {
   const config = loadConfig(root);
   if (!config) return { configured: false, ready: false, services: [] };
-  const names = config.services ? config.services.map(s => s?.name) : config.run ? ['default'] : [];
+  const names = config.services ? config.services.map((s) => s?.name) : config.run ? ['default'] : [];
   const rows = [];
   for (const name of names) {
     const item = loadConfig(root, name === 'default' ? undefined : name);
-    const state = json(path.join(platformPath(root,name), 'development-process.json'));
-    const running = ownsProcess(state), ready = running && await probe(item.run.port,item.run.healthPath || '/');
-    rows.push({ name, port: item.run.port, healthPath: item.run.healthPath || '/', ready, running, error: !running ? '尚未运行' : !ready ? '健康检查未通过' : '' });
+    const state = json(path.join(platformPath(root, name), 'development-process.json'));
+    const running = ownsProcess(state),
+      ready = running && (await probe(item.run.port, item.run.healthPath || '/'));
+    rows.push({
+      name,
+      port: item.run.port,
+      healthPath: item.run.healthPath || '/',
+      ready,
+      running,
+      error: !running ? '尚未运行' : !ready ? '健康检查未通过' : '',
+    });
   }
-  return { configured: true, ready: rows.some(s=>s.ready), port: rows.find(s=>s.ready)?.port || rows[0]?.port, healthPath: rows.find(s=>s.ready)?.healthPath || '/', services: rows };
+  return {
+    configured: true,
+    ready: rows.some((s) => s.ready),
+    port: rows.find((s) => s.ready)?.port || rows[0]?.port,
+    healthPath: rows.find((s) => s.ready)?.healthPath || '/',
+    services: rows,
+  };
 }
 async function startAll(root) {
   const config = loadConfig(root);
-  if (!config?.services) return run(root,'start');
+  if (!config?.services) return run(root, 'start');
   const failures = {};
-  for (const service of config.services) { try { await run(root,'start',service.name); } catch(e) { failures[service.name] = e.message; } }
+  for (const service of config.services) {
+    try {
+      await run(root, 'start', service.name);
+    } catch (e) {
+      failures[service.name] = e.message;
+    }
+  }
   const report = await services(root);
   for (const service of report.services) if (failures[service.name]) service.error = failures[service.name];
   if (Object.keys(failures).length) report.error = '部分任务启动失败，请查看各自日志';
