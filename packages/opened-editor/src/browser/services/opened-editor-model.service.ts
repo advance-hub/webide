@@ -8,17 +8,17 @@ import {
   Emitter,
   Event,
   IContextKeyService,
+  LabelService,
   ThrottledDelayer,
   URI,
   formatLocalize,
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
-import { IEditorGroup, IResource, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IEditorGroup, IResource, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import { ExplorerOpenedEditorViewId } from '../../common/index';

@@ -1,20 +1,21 @@
 import { PreferenceService, URI } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import {
   BrowserEditorContribution,
   EditorComponentRegistry,
   EditorOpenType,
   IEditorOpenType,
   IResource,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/lib/browser/component';
-import { FileSystemEditorComponentContribution } from '@opensumi/ide-file-scheme/lib/browser/file-scheme.contribution';
+} from '@opensumi/ide-editor/browser';
+import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/runtime';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { ILanguageService } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages/language';
 import { StandaloneServices } from '@opensumi/monaco-editor-core/esm/vs/editor/standalone/browser/standaloneServices';
 
-const createMockResource = (uriString: string) => ({ uri: new URI(uriString) } as any as IResource);
+import { FileSystemEditorComponentContribution } from '../../src/browser/file-scheme.contribution';
+
+const createMockResource = (uriString: string) => ({ uri: new URI(uriString) }) as any as IResource;
 
 const mockFileService = {
   onFilesChanged: jest.fn(),

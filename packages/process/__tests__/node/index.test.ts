@@ -1,7 +1,7 @@
 import path from 'path';
 import stream from 'stream';
 
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { IProcessFactory, IProcessManage } from '../../src/';
 import { IProcessStartEvent, ProcessErrorEvent } from '../../src/common';
@@ -28,7 +28,7 @@ describe('Process test', () => {
     await new Promise<IProcessStartEvent>(async (resolve, reject) => {
       const args = ['-e', 'process.exit(3)'];
       const rawProcess = processFactory.create({ command: process.execPath, args });
-      rawProcess.onStart(() => resolve(true));
+      rawProcess.onStart(() => resolve({}));
       rawProcess.onError(reject);
       rawProcess.onExit(reject);
     });

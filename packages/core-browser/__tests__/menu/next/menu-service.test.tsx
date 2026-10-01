@@ -1,12 +1,12 @@
 import React from 'react';
 
 import { Injector } from '@opensumi/di';
-import { Command } from '@opensumi/ide-core-common';
-import { CommandRegistry, CoreCommandRegistryImpl, DisposableStore } from '@opensumi/ide-core-common';
+import { Command, CommandRegistry, CoreCommandRegistryImpl, DisposableStore } from '@opensumi/ide-core-common';
+import { MenuNode as SharedMenuNode } from '@opensumi/ide-core-common/menus';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
-import { MockContextKeyService } from '../../../../monaco/__mocks__/monaco.context-key.service';
 import { IContextKeyService } from '../../../src/context-key';
 import {
   AbstractMenuService,
@@ -14,6 +14,7 @@ import {
   IComponentMenuItemProps,
   IMenuRegistry,
   MenuId,
+  MenuNode,
   MenuRegistryImpl,
   MenuServiceImpl,
   SeparatorMenuItemNode,
@@ -93,6 +94,8 @@ describe('test for packages/core-browser/src/menu/next/menu-service.ts', () => {
   });
 
   it('basic property check', () => {
+    expect.hasAssertions();
+    expect(MenuNode).toBe(SharedMenuNode);
     disposables.add(
       menuRegistry.registerMenuItem(MenuId.CommandPalette, {
         command: 'a',

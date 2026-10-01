@@ -1,12 +1,11 @@
-import { Disposable, IContextKeyService, StorageProvider, URI } from '@opensumi/ide-core-browser';
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { Disposable, IContextKeyService, LabelService, StorageProvider, URI } from '@opensumi/ide-core-browser';
+import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { IDecorationsService } from '@opensumi/ide-decoration';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { createMockedMonaco } from '@opensumi/ide-dev-tool/mocks/monaco';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { createMockedMonaco } from '@opensumi/ide-monaco/__mocks__/monaco';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
 import { IThemeService } from '@opensumi/ide-theme';
 
 import styles from '../../src/browser/file-tree-node.modules.less';

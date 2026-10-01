@@ -1,4 +1,5 @@
-import { MockContextKeyService } from '../../monaco/__mocks__/monaco.context-key.service';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+
 import { RawContextKey } from '../src/raw-context-key';
 
 const contextKeyService = new (class extends MockContextKeyService {

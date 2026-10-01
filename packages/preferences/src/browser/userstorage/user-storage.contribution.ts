@@ -1,7 +1,7 @@
 import { Autowired } from '@opensumi/di';
 import { ClientAppContribution, Domain, Schemes } from '@opensumi/ide-core-browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
 
 import { IUserStorageService } from '../../common';
 

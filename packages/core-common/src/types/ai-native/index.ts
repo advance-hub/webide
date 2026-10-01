@@ -1,6 +1,5 @@
-import { CancellationToken, IDisposable, MaybePromise, Uri } from '@opensumi/ide-utils';
-import { Event } from '@opensumi/ide-utils/lib/event';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { CancellationToken, Event, IDisposable, MaybePromise, Uri } from '@opensumi/ide-utils';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { FileType } from '../file';
 import { IMarkdownString } from '../markdown';
@@ -359,7 +358,10 @@ export class ReplyResponse {
 }
 
 export class ErrorResponse {
-  constructor(readonly error: any, readonly message?: string) {}
+  constructor(
+    readonly error: any,
+    readonly message?: string,
+  ) {}
 
   static is(response: any): boolean {
     return response instanceof ErrorResponse || (typeof response === 'object' && response.error !== undefined);

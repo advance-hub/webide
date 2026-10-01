@@ -9,10 +9,14 @@ import {
   KeybindingService,
   SpecialCases,
 } from '@opensumi/ide-core-browser';
+import { KeyboardLayoutChangeNotifierService, KeyboardNativeLayoutService } from '@opensumi/ide-core-common';
 import {
-  KeyboardLayoutChangeNotifierService,
-  KeyboardNativeLayoutService,
-} from '@opensumi/ide-core-common/lib/keyboard/keyboard-layout-provider';
+  Keybinding as SharedKeybinding,
+  KeybindingScope as SharedKeybindingScope,
+  KeybindingsResultCollection as SharedKeybindingsResultCollection,
+} from '@opensumi/ide-core-common/keybindings';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import {
   ContextKeyDefinedExpr,
   ContextKeyEqualsExpr,
@@ -22,13 +26,17 @@ import {
   ContextKeyRegexExpr,
 } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { KeybindingsResultCollection } from '../../src';
 import { KeyboardLayoutService } from '../../src/keyboard/keyboard-layout-service';
 import { GlobalBrowserStorageService, IStatusBarService } from '../../src/services';
 
 describe('KeybindingRegistry', () => {
+  test('browser and shared entries preserve keybinding contract identity', () => {
+    expect(Keybinding).toBe(SharedKeybinding);
+    expect(KeybindingScope).toBe(SharedKeybindingScope);
+    expect(KeybindingsResultCollection.KeybindingsResult).toBe(SharedKeybindingsResultCollection.KeybindingsResult);
+  });
+
   let keybindingRegistry: KeybindingRegistry;
   let injector: MockInjector;
 

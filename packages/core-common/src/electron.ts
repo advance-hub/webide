@@ -123,7 +123,8 @@ export interface IElectronMainUIServiceShape {
 }
 
 export interface IElectronMainUIService
-  extends IElectronMainUIServiceShape,
+  extends
+    IElectronMainUIServiceShape,
     IElectronMainApi<'fullScreenStatusChange' | 'windowClosed' | 'maximizeStatusChange'> {}
 
 export const IElectronMainUIService = 'IElectronMainUIService';

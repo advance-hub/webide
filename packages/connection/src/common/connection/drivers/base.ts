@@ -1,6 +1,5 @@
-import { IDisposable } from '@opensumi/ide-core-common';
-
-import { IConnectionShape } from '../types';
+import type { IConnectionShape } from '../types';
+import type { IDisposable } from '@opensumi/ide-core-common';
 
 export abstract class BaseConnection<T> implements IConnectionShape<T> {
   abstract send(data: T): void;

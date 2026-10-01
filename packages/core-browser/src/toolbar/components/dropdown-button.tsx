@@ -2,7 +2,7 @@ import cls from 'classnames';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { DropDownProps, DropdownButton } from '@opensumi/ide-components';
-import { Menu } from '@opensumi/ide-components/lib/menu';
+import { Menu } from '@opensumi/ide-components/menu';
 import { Emitter } from '@opensumi/ide-core-common';
 
 import { IToolbarActionDropdownButtonProps, IToolbarActionElementProps, IToolbarActionReactElement } from '../types';

@@ -7,9 +7,14 @@ import {
   TreeModel,
   TreeNodeType,
 } from '@opensumi/ide-components';
-import { CancellationToken, CancellationTokenSource, ViewState, localize } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks';
+import {
+  CancellationToken,
+  CancellationTokenSource,
+  ViewState,
+  localize,
+  useInjectable,
+} from '@opensumi/ide-core-browser';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 
 import styles from './index.module.less';
 import { EditorTreeNode } from './opened-editor-node';

@@ -1,6 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { DisposableCollection, URI } from '@opensumi/ide-core-browser';
-import { PreferenceProvider, PreferenceScope } from '@opensumi/ide-core-browser/lib/preferences';
+import { DisposableCollection, PreferenceProvider, PreferenceScope, URI } from '@opensumi/ide-core-browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { WorkspaceFilePreferenceProviderFactory } from './workspace-file-preference-provider';

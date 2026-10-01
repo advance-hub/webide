@@ -3,6 +3,8 @@ import { Event, IDisposable, MaybePromise, URI } from '@opensumi/ide-utils';
 
 import { ContributionProvider } from './contribution-provider';
 
+export { StorageService } from './session-storage';
+
 export const StorageProvider = Symbol('StorageProvider');
 export type StorageProvider = (storageId: URI) => Promise<IStorage>;
 

@@ -1,4 +1,4 @@
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { Uri } from '@opensumi/ide-utils';
 
 import { IMarker, MarkerSeverity } from '../../../src';

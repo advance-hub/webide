@@ -1,6 +1,6 @@
 import { INativeCryptoService } from '@opensumi/ide-core-common';
+import { MockInjector, createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { MockInjector, createNodeInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { CryptoService } from '../../src/common-module/crypto.server';
 
 describe('test for core-browser/src/services/crypto-service.ts', () => {

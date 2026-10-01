@@ -5,11 +5,8 @@ import { dirname, join } from 'path';
 import { ensureDir, readFile, writeFile } from 'fs-extra';
 
 import { URI, iconvDecode, iconvEncode } from '@opensumi/ide-core-common';
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 import { FileStat, IFileService } from '@opensumi/ide-file-service';
 
 import { IFileSchemeDocNodeService } from '../../src/common';

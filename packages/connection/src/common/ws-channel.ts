@@ -44,17 +44,20 @@ class StateTracer {
   }
 
   success(traceId: string) {
-    this.map.set(traceId, MessageDeliveryState.Success);
     const timer = this.timerMap.get(traceId);
     if (timer) {
       clearTimeout(timer);
     }
+    this.timerMap.delete(traceId);
+    this.map.delete(traceId);
   }
 
   dispose() {
     this.timerMap.forEach((timer) => {
       clearTimeout(timer);
     });
+    this.timerMap.clear();
+    this.map.clear();
   }
 
   stop(traceId: string) {
@@ -62,6 +65,8 @@ class StateTracer {
     if (timer) {
       clearTimeout(timer);
     }
+    this.timerMap.delete(traceId);
+    this.map.delete(traceId);
   }
 
   send(
@@ -86,6 +91,7 @@ class StateTracer {
     }
 
     const newTimer = setTimeout(() => {
+      this.timerMap.delete(traceId);
       this.set(traceId, MessageDeliveryState.ReSend);
       options.whenRetry();
     }, this.deliveryTimeout);
@@ -99,8 +105,11 @@ export class WSChannel {
     new EventEmitter<{
       message: [data: string];
       open: [id: string];
+      willResume: [];
       reopen: [];
+      willClose: [code?: number, reason?: string];
       close: [code?: number, reason?: string];
+      error: [code: ErrorMessageCode, message: string];
       binary: [data: Uint8Array];
     }>(),
   );
@@ -122,7 +131,10 @@ export class WSChannel {
 
   logger: ILogger = console;
 
-  constructor(public connection: IConnectionShape<ChannelMessage>, options: IWSChannelCreateOptions) {
+  constructor(
+    public connection: IConnectionShape<ChannelMessage>,
+    options: IWSChannelCreateOptions,
+  ) {
     const { id, logger, ensureServerReady } = options;
     this.id = id;
     this.LOG_TAG = `[WSChannel id:${this.id}]`;
@@ -200,6 +212,10 @@ export class WSChannel {
 
   resume() {
     this._isServerReady = true;
+    // Restore the logical RPC epoch before flushing work queued while the
+    // channel was closed. A transport may deliver a response synchronously
+    // from send(), so resuming only from the later reopen event is too late.
+    this.emitter.emit('willResume');
     if (this.sendQueue) {
       for (const item of this.sendQueue) {
         this.connection.send(item);
@@ -226,6 +242,9 @@ export class WSChannel {
         break;
       case 'error':
         this.logger.error(this.LOG_TAG, `receive error: id: ${msg.id}, code: ${msg.code}, error: ${msg.message}`);
+        if (msg.traceId) {
+          this.stateTracer.stop(msg.traceId);
+        }
         switch (msg.code) {
           case ErrorMessageCode.ChannelNotFound:
             // 有 channelPath 说明该 channel 曾经被打开过
@@ -235,6 +254,11 @@ export class WSChannel {
               this.pause();
               this.open(this.channelPath, this.clientId);
             }
+            break;
+          case ErrorMessageCode.ChannelDraining:
+            this.stateTracer.dispose();
+            this.emitter.emit('error', msg.code, msg.message);
+            this.close(1013, msg.message);
             break;
         }
         break;
@@ -276,9 +300,16 @@ export class WSChannel {
       binary: data,
     });
   }
-  onError() {}
+  onError(cb: (code: ErrorMessageCode, message: string) => void) {
+    return this.emitter.on('error', cb);
+  }
   close(code?: number, reason?: string) {
     this.pause();
+    // Messages queued before this close belong to the old physical epoch.
+    // New work created by close listeners is queued after this reset and can
+    // be flushed when the replacement server scope is ready.
+    this.sendQueue = [];
+    this.emitter.emit('willClose', code, reason);
     this.emitter.emit('close', code, reason);
   }
   fireReopen() {
@@ -293,7 +324,7 @@ export class WSChannel {
 
   createConnection() {
     return {
-      onceClose: (cb: (code: number, reason: string) => void) => this.onceClose(cb),
+      onceClose: (cb: (code: number, reason: string) => void) => this.emitter.once('willClose', cb),
       onMessage: (cb: (data: Uint8Array) => any) => this.onBinary(cb),
       send: (data: Uint8Array) => {
         this.sendBinary(data);
@@ -303,7 +334,16 @@ export class WSChannel {
   }
 
   createSumiConnection(options: ISumiConnectionOptions = {}) {
-    const conn = new SumiConnection(this.createConnection(), options);
+    const conn = new SumiConnection(this.createConnection(), {
+      ...options,
+      reconnectable: options.reconnectable ?? this._ensureServerReady,
+    });
+    // A logical channel is the owner of every RPC epoch created from it. A
+    // terminal channel rejection must therefore reject queued RPC work instead
+    // of leaving a reconnectable SumiConnection detached from the handler map.
+    this._disposables.add(conn);
+    this.emitter.on('willResume', () => conn.resumeAfterReconnect());
+    this.onReopen(() => conn.resumeAfterReconnect());
     return conn;
   }
 
@@ -332,7 +372,10 @@ export class WSServerChannel extends WSChannel {
   messageQueue: ChannelMessage[] = [];
 
   clientId: string;
-  constructor(public connection: IConnectionShape<ChannelMessage>, options: IWSServerChannelCreateOptions) {
+  constructor(
+    public connection: IConnectionShape<ChannelMessage>,
+    options: IWSServerChannelCreateOptions,
+  ) {
     super(connection, options);
     this.clientId = options.clientId;
   }

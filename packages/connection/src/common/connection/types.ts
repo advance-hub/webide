@@ -1,4 +1,4 @@
-import { IDisposable } from '@opensumi/ide-core-common';
+import type { IDisposable } from '@opensumi/ide-core-common';
 
 export interface IConnectionShape<T> {
   send(data: T): void;

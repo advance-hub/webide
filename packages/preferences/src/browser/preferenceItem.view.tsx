@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Autowired, Injectable } from '@opensumi/di';
 import { Button, CheckBox, Input, Option, Select, ValidateInput, ValidateMessage } from '@opensumi/ide-components';
-import { DefaultMarkedRenderer, Markdown, linkify } from '@opensumi/ide-components/lib/markdown/index';
+import { DefaultMarkedRenderer, Markdown, linkify } from '@opensumi/ide-components/markdown';
 import {
   DisposableCollection,
   ILogger,

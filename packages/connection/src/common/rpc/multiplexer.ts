@@ -1,31 +1,12 @@
 import { BaseConnection } from '../connection';
 import { ExtObjectTransfer } from '../fury-extends/any';
+import { IRPCProtocol, ProxyIdentifier } from '../rpc-contracts';
 
 import { ISumiConnectionOptions, SumiConnection } from './connection';
 import { AnyProtocolSerializer, MessageIO } from './message-io';
 import { TSumiProtocol } from './types';
 
-export class ProxyIdentifier<T = any> {
-  public static count = 0;
-
-  public readonly serviceId: string;
-  public readonly countId: number;
-  constructor(serviceId: string) {
-    this.serviceId = serviceId;
-    this.countId = ++ProxyIdentifier.count;
-  }
-
-  static for(serviceId: string) {
-    return new ProxyIdentifier(serviceId);
-  }
-}
-
-export const IRPCProtocol = Symbol('IRPCProtocol');
-export interface IRPCProtocol {
-  getProxy<T>(proxyId: ProxyIdentifier<T>): T;
-  set<T>(identifier: ProxyIdentifier<T>, instance: T): T;
-  get<T>(identifier: ProxyIdentifier<T>): T;
-}
+export { IRPCProtocol, ProxyIdentifier } from '../rpc-contracts';
 
 /**
  *
@@ -70,7 +51,10 @@ export class SumiConnectionMultiplexer extends SumiConnection implements IRPCPro
 
   io: MessageIO;
 
-  constructor(protected socket: BaseConnection<Uint8Array>, protected options: ISumiConnectionOptions = {}) {
+  constructor(
+    protected socket: BaseConnection<Uint8Array>,
+    protected options: ISumiConnectionOptions = {},
+  ) {
     super(socket, {
       ...options,
       io: options.io || createExtMessageIO(),

@@ -1,29 +1,22 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
-import { Command, CommandRegistry, CommandService, Event, IDisposable, isMacintosh } from '@opensumi/ide-core-common';
+import { Command, CommandRegistry, CommandService, isMacintosh } from '@opensumi/ide-core-common';
+import { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
 
-import { IContextKeyService } from '../../context-key';
 import { KeybindingRegistry } from '../../keybinding';
 
 import { IComponentMenuItem, IComponentMenuItemProps, IMenuActionDisplayType, ISubmenuItem, MenuNode } from './base';
 import { MenuId } from './menu-id';
 import { ICtxMenuRenderer } from './renderer/ctxmenu/base';
 
-export type TupleMenuNodeResult = [MenuNode[], MenuNode[]];
+import type { IContextMenu, IMenuConfig, IMenuNodeOptions, IMenu as SharedMenu } from '@opensumi/ide-core-common/menus';
 
-export interface IMenuNodeOptions {
-  /**
-   * 固定参数可从这里传入
-   */
-  args?: any[];
-  contextDom?: HTMLElement;
-}
-
-export type IMenuSeparator = 'navigation' | 'inline';
-
-export interface IMenuConfig extends IMenuNodeOptions {
-  separator?: IMenuSeparator;
-  withAlt?: boolean; // 尚未支持
-}
+export type {
+  IContextMenu,
+  TupleMenuNodeResult,
+  IMenuNodeOptions,
+  IMenuConfig,
+  IMenuSeparator,
+} from '@opensumi/ide-core-common/menus';
 
 @Injectable()
 export class MenuItemNode extends MenuNode {
@@ -213,41 +206,10 @@ export class LabelMenuItemNode extends MenuNode {
   }
 }
 
-export interface IMenu extends IDisposable {
-  /**
-   * menu-id
-   */
-  menuId: string | MenuId;
-  readonly onDidChange: Event<IMenu | undefined>;
-  getMenuNodes(
-    options?: IMenuNodeOptions,
-  ): Array<[string, Array<MenuItemNode | SubmenuItemNode | ComponentMenuItemNode>]>;
-  onDispose: Event<void>;
-}
+export type IMenu = SharedMenu<MenuItemNode | SubmenuItemNode | ComponentMenuItemNode>;
 
 export function isIMenu(menus: IMenu | IContextMenu): menus is IMenu {
   return 'getMenuNodes' in menus && typeof menus.getMenuNodes === 'function';
-}
-
-export interface IContextMenu extends IDisposable {
-  /**
-   * menu-id
-   */
-  menuId: string | MenuId;
-  /**
-   * menu 重新生成后事件，监听即可拿到最新的 menu
-   */
-  readonly onDidChange: Event<string>;
-
-  /**
-   * 获得已分好组并合并的 MenuNodes 列表
-   */
-  getMergedMenuNodes(): MenuNode[];
-
-  /**
-   * 获得已分好组的 MenuNodes 列表
-   */
-  getGroupedMenuNodes(): TupleMenuNodeResult;
 }
 
 export abstract class AbstractMenuService {

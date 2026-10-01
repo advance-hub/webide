@@ -6,6 +6,7 @@ import { ILayoutViewSize } from '../layout/constants';
 
 import type { IPreferences, LayoutConfig } from '../bootstrap';
 import type { Injector } from '@opensumi/di';
+import type { WSChannelPreflight } from '@opensumi/ide-connection';
 import type {
   ExtensionBrowserStyleSheet,
   ExtensionCandidate,
@@ -176,7 +177,7 @@ export interface AppConfig {
   /**
    * @ClientOption
    * 额外的 ConfigProvider
-   * 可以让 OpenSumi 内部的 ReactDOM.render 调用时
+   * 可以让 OpenSumi 内部的 React 根节点渲染时
    * 都被其包裹一层，以达到额外的 context 传递效果
    */
   extraContextProvider?: React.ComponentType<React.PropsWithChildren<any>>;
@@ -290,6 +291,11 @@ export interface AppConfig {
    * 支持的通信协议类型
    */
   connectionProtocols?: string[];
+  /**
+   * Product-owned proof that the Browser and remote runtime were composed
+   * from compatible feature plans. The connection layer only sequences it.
+   */
+  runtimeTopologyPreflight?: WSChannelPreflight;
   /**
    * 埋点上报的配置
    */

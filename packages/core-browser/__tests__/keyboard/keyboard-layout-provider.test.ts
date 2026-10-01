@@ -4,9 +4,8 @@ import {
   Key,
   KeyboardNativeLayoutService,
 } from '@opensumi/ide-core-browser';
-
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 describe('BrowserKeyboardLayoutService should be work', () => {
   let keyboardNativeLayoutService: BrowserKeyboardLayoutImpl;

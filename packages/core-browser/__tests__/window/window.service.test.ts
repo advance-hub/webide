@@ -1,10 +1,10 @@
-import { WindowService } from '@opensumi/ide-core-browser/lib/window/window.service';
-import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { IElectronMainLifeCycleService, IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { IWindowService, URI } from '../../src';
 import { IExternalUriService } from '../../src/services';
+import { WindowService } from '../../src/window/window.service';
 
 describe('test windowService on Electron env', () => {
   let injector: MockInjector;

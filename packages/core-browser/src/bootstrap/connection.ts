@@ -1,9 +1,10 @@
 import { Injector, Provider } from '@opensumi/di';
 import { RPCServiceCenter, initRPCService } from '@opensumi/ide-connection';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
-import { ISumiConnectionOptions } from '@opensumi/ide-connection/lib/common/rpc/connection';
-import { RPCServiceChannelPath } from '@opensumi/ide-connection/lib/common/server-handler';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
+import { ISumiConnectionOptions } from '@opensumi/ide-connection/rpc';
+import { RPCServiceChannelPath } from '@opensumi/ide-connection/server';
 import {
+  BackService,
   BasicModule,
   BrowserConnectionCloseEvent,
   BrowserConnectionErrorEvent,
@@ -12,7 +13,6 @@ import {
   ILogger,
   IReporterService,
 } from '@opensumi/ide-core-common';
-import { BackService } from '@opensumi/ide-core-common/lib/module';
 
 import { ClientAppStateService } from '../application';
 import { Logger } from '../logger';
@@ -41,15 +41,6 @@ export async function createConnectionService(
     });
   };
 
-  if (channelHandler.connection.isOpen()) {
-    onOpen();
-  }
-
-  // reconnecting will still emit the open event
-  channelHandler.connection.onOpen(() => {
-    onOpen();
-  });
-
   channelHandler.connection.onClose(() => {
     stateService.reachedState('core_module_initialized').then(() => {
       eventBus.fire(new BrowserConnectionCloseEvent());
@@ -70,6 +61,11 @@ export async function createConnectionService(
   });
 
   const channel = await channelHandler.openChannel(RPCServiceChannelPath);
+  // Physical transport availability is not application readiness. With a
+  // topology preflight, the Browser is online only after that proof and the
+  // RPC logical channel have both reached server-ready.
+  onOpen();
+  channel.onReopen(onOpen);
 
   const clientCenter = new RPCServiceCenter();
   clientCenter.setSumiConnection(channel.createSumiConnection(options));

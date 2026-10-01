@@ -1,7 +1,7 @@
 import net from 'net';
 
 import { IWSChannelCreateOptions } from '@opensumi/ide-connection';
-import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/lib/utils/ipc';
+import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/node/ipc';
 
 import { copy } from '../../src/common/buffers/buffers';
 import { NetSocketConnection } from '../../src/common/connection';

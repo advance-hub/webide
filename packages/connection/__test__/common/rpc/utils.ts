@@ -6,13 +6,13 @@ import { MessageChannel, MessagePort } from 'worker_threads';
 import { Type, TypeDescription } from '@furyjs/fury';
 
 import { ProxyJson } from '@opensumi/ide-connection';
-import { NetSocketConnection } from '@opensumi/ide-connection/lib/common/connection';
-import { createWebSocketConnection } from '@opensumi/ide-connection/lib/common/message';
 import { Deferred, isUint8Array } from '@opensumi/ide-core-common';
-import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/lib/utils/ipc';
+import { normalizedIpcHandlerPathAsync } from '@opensumi/ide-core-common/node/ipc';
 import { MessageConnection } from '@opensumi/vscode-jsonrpc';
 
+import { NetSocketConnection } from '../../../src/common/connection';
 import { NodeMessagePortConnection } from '../../../src/common/connection/drivers/node-message-port';
+import { createWebSocketConnection } from '../../../src/common/message';
 import { SumiConnection } from '../../../src/common/rpc/connection';
 import { MessageIO } from '../../../src/common/rpc/message-io';
 import { ProxySumi } from '../../../src/common/rpc-service/proxy/sumi';

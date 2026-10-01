@@ -1,6 +1,6 @@
 import { CommonServerPath, IApplicationService, OS } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { ApplicationService } from '../../src/application/application.service';
 
 describe('packages/core-browser/src/application/application.service.ts', () => {
@@ -36,7 +36,7 @@ describe('packages/core-browser/src/application/application.service.ts', () => {
 
   it('async get backend os', async () => {
     await applicationService.initializeData();
-    expect(applicationService.getBackendOS()).resolves.toBe('fakeOS');
+    await expect(applicationService.getBackendOS()).resolves.toBe('fakeOS');
   });
 });
 

@@ -10,8 +10,8 @@ const { deepClone } = objects;
 interface TaskDefinition {
   extensionId: string;
   taskType: string;
-  required: string[];
-  properties: IJSONSchemaMap;
+  required?: string[];
+  properties?: IJSONSchemaMap;
 }
 
 export interface TaskIdentifier {
@@ -103,9 +103,9 @@ export class TaskDefinitionRegistryImpl implements ITaskDefinitionRegistry {
     const literal: { type: string; [name: string]: any } = Object.create(null);
     literal.type = definition.taskType;
     const required: Set<string> = new Set();
-    definition.required.forEach((element) => required.add(element));
+    definition.required?.forEach((element) => required.add(element));
 
-    const properties = definition.properties;
+    const properties = definition.properties || {};
     for (const property of Object.keys(properties)) {
       const value = external[property];
       if (value !== undefined && value !== null) {
@@ -151,7 +151,7 @@ export class TaskDefinitionRegistryImpl implements ITaskDefinitionRegistry {
           type: 'object',
           additionalProperties: false,
         };
-        if (definition.required.length > 0) {
+        if (definition.required && definition.required.length > 0) {
           schema.required = definition.required.slice(0);
         }
         if (definition.properties !== undefined) {

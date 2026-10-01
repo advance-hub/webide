@@ -10,28 +10,16 @@ import {
   transformErrorForSerialization,
 } from '@opensumi/ide-core-common';
 
-import { IRPCProtocol, ProxyIdentifier } from './rpc/multiplexer';
+import { IRPCProtocol, ProxyIdentifier } from './rpc-contracts';
 
-export enum RPCProtocolEnv {
-  MAIN,
-  EXT,
-}
-
-export interface IProxyIdentifier {
-  serviceId: string;
-  countId: number;
-}
-
-export { IRPCProtocol, ProxyIdentifier };
-
-export function createExtHostContextProxyIdentifier<T>(serviceId: string): ProxyIdentifier<T> {
-  const identifier = new ProxyIdentifier<T>(serviceId);
-  return identifier;
-}
-export function createMainContextProxyIdentifier<T>(identifier: string): ProxyIdentifier<T> {
-  const result = new ProxyIdentifier<T>(identifier);
-  return result;
-}
+export {
+  IRPCProtocol,
+  ProxyIdentifier,
+  RPCProtocolEnv,
+  createExtHostContextProxyIdentifier,
+  createMainContextProxyIdentifier,
+} from './rpc-contracts';
+export type { IProxyIdentifier } from './rpc-contracts';
 
 export interface IMessagePassingProtocol {
   send(msg): void;

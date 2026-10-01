@@ -4,7 +4,7 @@ import {
   IElectronMainLifeCycleService,
   IElectronMainUIService,
   IElectronURLService,
-} from '@opensumi/ide-core-common/lib/electron';
+} from '@opensumi/ide-core-common/electron';
 
 import { ICtxMenuRenderer } from '../../../menu/next';
 import {

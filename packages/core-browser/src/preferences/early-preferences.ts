@@ -68,12 +68,7 @@ export function getPreferenceLanguageId(defaultPreferences?: IPreferences): stri
 // 默认使用 localStorage
 export function registerLocalStorageProvider(key: string, workspaceFolder?: string, prefix = '') {
   function getScopePrefix(scope: PreferenceScope) {
-    let text: string = '';
-    if (scope === PreferenceScope.Workspace && workspaceFolder) {
-      text = workspaceFolder;
-    } else {
-      text = scope.toString();
-    }
+    const text = scope === PreferenceScope.Workspace && workspaceFolder ? workspaceFolder : scope.toString();
 
     if (prefix) {
       return prefix + ':' + text;

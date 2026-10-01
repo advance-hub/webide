@@ -1,9 +1,9 @@
 import { Injector } from '@opensumi/di';
 import { CommandRegistry, CoreCommandRegistryImpl, DisposableStore } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
-import { MockContextKeyService } from '../../../../monaco/__mocks__/monaco.context-key.service';
 import { IContextKeyService } from '../../../src/context-key';
 import {
   AbstractMenuService,
@@ -67,7 +67,7 @@ describe('test for packages/core-browser/src/menu/next/menubar-service.ts', () =
     warnSpy.mockReset();
   });
 
-  it('basic check for onDidMenuChange', () => {
+  it('basic check for onDidMenubarChange', () => {
     disposables.add(
       menubarService.onDidMenubarChange(() => {
         jest.runAllTimers();

@@ -4,18 +4,18 @@ import * as fs from 'fs-extra';
 import temp from 'temp';
 
 import { Injectable, Injector } from '@opensumi/di';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import { AppConfig, Disposable, FileUri, STORAGE_SCHEMA, URI } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { Storage } from '@opensumi/ide-storage/lib/browser/storage';
-import { DatabaseStorageContribution } from '@opensumi/ide-storage/lib/browser/storage.contribution';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { FileSystemError, IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
+import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/node/watchers';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { StorageModule } from '../../src/browser';
+import { Storage } from '../../src/browser/storage';
+import { DatabaseStorageContribution } from '../../src/browser/storage.contribution';
 import {
   IGlobalStorageServer,
   IStoragePathServer,
@@ -48,6 +48,7 @@ export class MockDatabaseStoragePathServer implements IStoragePathServer {
 describe('WorkspaceStorage should be work', () => {
   let workspaceStorage: IStorageServer;
   let globalStorage: IStorageServer;
+  let fileServiceClient: FileServiceClient;
   let injector: Injector;
   let databaseStorageContribution: DatabaseStorageContribution;
   const storageName = 'testStorage';
@@ -95,12 +96,12 @@ describe('WorkspaceStorage should be work', () => {
           setClient: () => void 0,
           watch: (() => 1) as any,
           unWatch: () => void 0,
-          createProcess: () => void 0,
+          createProcess: () => Promise.resolve(undefined),
           setWatcherFileExcludes: () => void 0,
         },
       },
     );
-    const fileServiceClient: FileServiceClient = injector.get(IFileServiceClient);
+    fileServiceClient = injector.get(IFileServiceClient);
     fileServiceClient.registerProvider('file', injector.get(IDiskFileProvider));
     workspaceStorage = injector.get(IWorkspaceStorageServer);
     globalStorage = injector.get(IGlobalStorageServer);
@@ -205,6 +206,25 @@ describe('WorkspaceStorage should be work', () => {
       expect(res.id).toBe(undefined);
       expect(res.name).toBe(updateRequest.insert!.name);
     });
+
+    it('reloads and retries a global storage update after a concurrent write conflict', async () => {
+      const conflictStorageName = 'concurrentStorage';
+      await globalStorage.updateItems(conflictStorageName, { insert: { first: 'kept' } });
+      const originalSetContent = fileServiceClient.setContent.bind(fileServiceClient);
+      const setContent = jest
+        .spyOn(fileServiceClient, 'setContent')
+        .mockRejectedValueOnce(FileSystemError.FileIsOutOfSync(conflictStorageName))
+        .mockImplementation(originalSetContent);
+
+      await globalStorage.updateItems(conflictStorageName, { insert: { second: 'written' } });
+
+      const persisted = JSON.parse(
+        fs.readFileSync(path.join(root.path.toString(), `${conflictStorageName}.json`), 'utf8'),
+      );
+      expect(setContent).toHaveBeenCalledTimes(2);
+      expect(persisted).toEqual({ first: 'kept', second: 'written' });
+      setContent.mockRestore();
+    });
   });
 
   describe('05 #Storage', () => {
@@ -219,6 +239,57 @@ describe('WorkspaceStorage should be work', () => {
       expect(globalStorage).toBeDefined();
       expect((globalStorage as Storage).whenReady).toBeDefined();
       expect(MockWorkspaceService.onWorkspaceChanged).toHaveBeenCalledTimes(2);
+    });
+
+    it('preserves writes made while the backend snapshot initializes', async () => {
+      let resolveBackendInit!: () => void;
+      const backendInit = new Promise<void>((resolve) => {
+        resolveBackendInit = resolve;
+      });
+      const database = {
+        close: jest.fn(async () => undefined),
+        getItems: jest.fn(async () => ({ layout: JSON.stringify({ hidden: false }) })),
+        init: jest.fn(() => backendInit),
+        updateItems: jest.fn(async () => undefined),
+      };
+      const browserLocalStorage = {
+        getData: jest.fn(() => ({ layout: JSON.stringify({ hidden: false }) })),
+        setData: jest.fn(),
+      };
+      const storage = new Storage(
+        database as unknown as IStorageServer,
+        MockWorkspaceService as unknown as IWorkspaceService,
+        {} as AppConfig,
+        'layout',
+        false,
+        browserLocalStorage as any,
+      );
+
+      await storage.whenReady;
+      const pendingWrite = storage.set('layout', { hidden: true });
+
+      expect(storage.get('layout')).toEqual({ hidden: true });
+      expect(browserLocalStorage.setData).toHaveBeenLastCalledWith(
+        'layout',
+        expect.objectContaining({ layout: JSON.stringify({ hidden: true }) }),
+      );
+
+      resolveBackendInit();
+      await pendingWrite;
+
+      expect(storage.get('layout')).toEqual({ hidden: true });
+      expect(database.updateItems).toHaveBeenCalledWith(
+        'layout',
+        expect.objectContaining({ insert: expect.objectContaining({ layout: JSON.stringify({ hidden: true }) }) }),
+      );
+
+      const pendingDelete = storage.delete('layout');
+      expect(browserLocalStorage.setData).toHaveBeenLastCalledWith(
+        'layout',
+        expect.not.objectContaining({ layout: expect.anything() }),
+      );
+      await pendingDelete;
+      await storage.close();
     });
   });
 });

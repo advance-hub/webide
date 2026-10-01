@@ -1,5 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { ReconnectingWebSocketConnection } from '@opensumi/ide-connection/lib/common/connection/drivers/reconnecting-websocket';
+import { ReconnectingWebSocketConnection } from '@opensumi/ide-connection/drivers';
 import { UrlProvider, uuid } from '@opensumi/ide-core-common';
 
 import { BaseConnectionHelper } from '../base-socket';

@@ -7,8 +7,8 @@ import {
   getAvailableLanguages,
   localize,
 } from '@opensumi/ide-core-common';
-import { LOCALE_TYPES } from '@opensumi/ide-core-common/lib/const';
-import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/lib/preferences/file-watch';
+import { LOCALE_TYPES } from '@opensumi/ide-core-common/const';
+import { defaultFilesWatcherExcludes } from '@opensumi/ide-core-common/file-watch/preferences';
 
 import { PreferenceProxy, PreferenceService, createPreferenceProxy } from './preferences';
 

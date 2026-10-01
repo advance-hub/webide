@@ -1,4 +1,4 @@
-import Ajv from 'ajv';
+import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 
 import { Autowired, Injectable, Injector } from '@opensumi/di';
 import {
@@ -9,13 +9,11 @@ import {
   IDisposable,
   ILogger,
   Mutable,
-} from '@opensumi/ide-core-common';
-import {
   PreferenceDataProperty,
   PreferenceDataSchema,
   PreferenceItem,
   PreferenceSchema,
-} from '@opensumi/ide-core-common/lib/preferences/preference-schema';
+} from '@opensumi/ide-core-common';
 
 import { AppConfig } from '../react-providers/config-provider';
 
@@ -61,7 +59,7 @@ const getDefaultSchema = () => ({ type: 'object', properties: {}, patternPropert
 export class PreferenceSchemaProvider extends PreferenceProvider {
   @Autowired(PreferenceContribution)
   protected readonly preferenceContributions: ContributionProvider<PreferenceContribution>;
-  private _validateFunction: Ajv.ValidateFunction | undefined;
+  private _validateFunction: ValidateFunction | undefined;
 
   @Autowired(PreferenceConfigurations)
   protected readonly configurations: PreferenceConfigurations;
@@ -77,17 +75,17 @@ export class PreferenceSchemaProvider extends PreferenceProvider {
   protected readonly onDidPreferenceSchemaChangedEmitter = new Emitter<void>();
   public readonly onDidPreferenceSchemaChanged: Event<void> = this.onDidPreferenceSchemaChangedEmitter.event;
 
-  private validationFunctions = new Map<string, Ajv.ValidateFunction>();
+  private validationFunctions = new Map<string, ValidateFunction>();
 
   protected fireDidPreferenceSchemaChanged(): void {
     this.onDidPreferenceSchemaChangedEmitter.fire(undefined);
   }
 
-  protected get validateFunction(): Ajv.ValidateFunction {
+  protected get validateFunction(): ValidateFunction {
     if (!this._validateFunction) {
       this.doUpdateValidate();
     }
-    return this._validateFunction as Ajv.ValidateFunction;
+    return this._validateFunction as ValidateFunction;
   }
 
   constructor() {
@@ -126,7 +124,7 @@ export class PreferenceSchemaProvider extends PreferenceProvider {
 
       delete this.combinedSchema.properties[preferenceName];
 
-      if (typeof newValue === undefined) {
+      if (typeof newValue === 'undefined') {
         delete this.preferences[preferenceName];
       } else {
         inverseChange.newValue = newValue;
@@ -212,7 +210,7 @@ export class PreferenceSchemaProvider extends PreferenceProvider {
     for (const sectionName of this.configurations.getSectionNames()) {
       delete schema.properties[sectionName];
     }
-    this._validateFunction = new Ajv().compile(schema);
+    this._validateFunction = new Ajv({ strict: false }).compile(schema);
   }
 
   protected readonly unsupportedPreferences = new Set<string>();
@@ -372,6 +370,6 @@ export class DefaultPreferenceProvider extends PreferenceProvider {
   }
 }
 
-function normalizeAjvValidationError(error: Ajv.ErrorObject) {
+function normalizeAjvValidationError(error: ErrorObject) {
   return error.message;
 }

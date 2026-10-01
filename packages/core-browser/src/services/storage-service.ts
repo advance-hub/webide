@@ -1,5 +1,6 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { isObject, isUndefinedOrNull, runWhenIdle } from '@opensumi/ide-core-common';
+import { StorageService } from '@opensumi/ide-core-common/storage';
 
 import { Logger } from '../logger';
 import { AppConfig } from '../react-providers/index';
@@ -7,31 +8,7 @@ import { AppConfig } from '../react-providers/index';
 export const GLOBAL_BROWSER_STORAGE_PREFIX = 'global';
 export const SCOPED_BROWSER_STORAGE_PREFIX = 'scoped';
 
-export const StorageService = Symbol('IStorageService');
-/**
- * StorageService用于提供给插件或模块进行session级别的数据存储能力
- */
-export interface StorageService {
-  /**
-   * 值设置
-   */
-  setData<T>(key: string, data: T): void;
-  setData<T>(key: string, data: T): Promise<void> | void;
-
-  /**
-   * 获取值
-   */
-  getData<T>(key: string, defaultValue: T): Promise<T>;
-  getData<T>(key: string, defaultValue: T): T;
-  getData<T>(key: string): Promise<T | undefined>;
-  getData<T>(key: string): T | undefined;
-
-  /**
-   * 删除值
-   */
-  removeData(key: string): Promise<void> | void;
-  removeData(key: string): void;
-}
+export { StorageService };
 
 @Injectable()
 abstract class BaseBrowserStorageService implements StorageService {

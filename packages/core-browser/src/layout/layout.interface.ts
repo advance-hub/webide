@@ -4,8 +4,8 @@ import { Layout } from '../components/layout/index';
 
 import type { IContextMenu, IMenu } from '../menu/next';
 import type { SlotLocation } from '../react-providers';
+import type { ViewBadge } from '@opensumi/ide-core-common/workbench';
 import type React from 'react';
-import type { ViewBadge } from 'vscode';
 
 export type Side = 'view' | 'extendView' | 'panel';
 

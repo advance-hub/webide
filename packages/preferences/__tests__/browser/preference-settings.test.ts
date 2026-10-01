@@ -7,16 +7,17 @@ import {
   PreferenceService,
   URI,
 } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { PreferenceSettingId } from '@opensumi/ide-preferences';
-import { PREFERENCE_COMMANDS } from '@opensumi/ide-preferences/lib/browser/preference-contribution';
+
+import { PREFERENCE_COMMANDS } from '../../src/browser/preference-contribution';
 import {
   PreferenceSettingsService,
   defaultSettingGroup,
   defaultSettingSections,
-} from '@opensumi/ide-preferences/lib/browser/preference-settings.service';
+} from '../../src/browser/preference-settings.service';
 
 describe('PreferenceSettingService should be work', () => {
   let injector: MockInjector;

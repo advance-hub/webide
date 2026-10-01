@@ -6,11 +6,17 @@ import ws from 'ws';
 export abstract class WebSocketHandler {
   abstract handlerId: string;
   abstract handleUpgrade(pathname: string, request: any, socket: any, head: any): boolean;
+  beginDrain?(): void;
   init?(): void;
+  dispose?(): void;
 }
 
 export interface CommonChannelHandlerOptions {
   wsServerOptions?: ws.ServerOptions;
+  heartbeatInterval?: number;
+  maxConnections?: number;
+  maxBufferedAmount?: number;
+  shouldAcceptConnection?: () => boolean;
   pathMatchOptions?: {
     // When true the regexp will match to the end of the string.
     end?: boolean;
@@ -21,6 +27,11 @@ export class WebSocketServerRoute {
   public server: http.Server;
   public port?: number;
   private wsServerHandlerArr: WebSocketHandler[];
+
+  private upgradeListener: ((request: http.IncomingMessage, socket: any, head: Buffer) => void) | undefined;
+
+  private disposed = false;
+  private deferHandlerDisposal = false;
 
   constructor(
     server: http.Server,
@@ -56,7 +67,8 @@ export class WebSocketServerRoute {
     const handlerIndex = this.wsServerHandlerArr.findIndex((handler) => handler.handlerId === handlerId);
 
     if (handlerIndex !== -1) {
-      this.wsServerHandlerArr.splice(handlerIndex, 1);
+      const [removedHandler] = this.wsServerHandlerArr.splice(handlerIndex, 1);
+      removedHandler.dispose?.();
       return true;
     } else {
       return false;
@@ -84,10 +96,13 @@ export class WebSocketServerRoute {
     });
   }
   private handleUpgrade() {
+    if (this.upgradeListener) {
+      return;
+    }
     const server = this.server;
     const wsServerHandlerArr = this.wsServerHandlerArr;
 
-    server.on('upgrade', (request, socket, head) => {
+    this.upgradeListener = (request, socket, head) => {
       assert(request.url, 'cannot parse url from http request');
 
       // request.url: `/path?query=a#hash`
@@ -109,6 +124,47 @@ export class WebSocketServerRoute {
         this.logger.error(`request.url ${request.url} mismatch!`);
         socket.destroy();
       }
+    };
+    server.on('upgrade', this.upgradeListener);
+    server.once('close', () => {
+      if (this.deferHandlerDisposal) {
+        this.stopAccepting();
+      } else {
+        this.dispose();
+      }
     });
+  }
+
+  /** Keep upgraded connections alive until their owning connection scopes drain. */
+  public deferHandlerDisposalOnServerClose() {
+    this.deferHandlerDisposal = true;
+  }
+
+  public stopAccepting() {
+    this.wsServerHandlerArr.forEach((handler) => handler.beginDrain?.());
+    if (this.upgradeListener) {
+      this.server.off('upgrade', this.upgradeListener);
+      this.upgradeListener = undefined;
+    }
+  }
+
+  public dispose() {
+    if (this.disposed) {
+      return;
+    }
+    this.disposed = true;
+    this.stopAccepting();
+    let firstError: unknown;
+    for (const handler of this.wsServerHandlerArr.splice(0)) {
+      try {
+        handler.dispose?.();
+      } catch (error) {
+        firstError ??= error;
+        this.logger.error(`websocket handler ${handler.handlerId} dispose failed`, error);
+      }
+    }
+    if (firstError) {
+      throw firstError;
+    }
   }
 }

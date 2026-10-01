@@ -11,13 +11,13 @@ import {
 } from '@opensumi/ide-components';
 import {
   CommandService,
+  LabelService,
   OPEN_EDITORS_COMMANDS,
   URI,
   getIcon,
   localize,
   useDesignStyles,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import { EDITOR_WEBVIEW_SCHEME } from '@opensumi/ide-webview';
 
 import { EditorFile, EditorFileGroup } from './opened-editor-node.define';
@@ -152,69 +152,47 @@ export const EditorTreeNode: React.FC<EditorNodeRenderedProps> = ({
   };
 
   const renderAction = () => {
-    let actions: any[] = [];
-    if (EditorFileGroup.is(item)) {
-      actions = [
-        {
-          icon: getIcon('save-all'),
-          title: localize('opened.editors.save.byGroup'),
-          command: OPEN_EDITORS_COMMANDS.SAVE_BY_GROUP.id,
-        },
-        {
-          icon: getIcon('clear'),
-          title: localize('opened.editors.close.byGroup'),
-          command: OPEN_EDITORS_COMMANDS.CLOSE_BY_GROUP.id,
-        },
-      ];
-      return (
-        <div className={styles.opened_editor_right_actions}>
-          {actions.map((action) => {
-            const clickHandler = (event: React.MouseEvent) => {
-              event.stopPropagation();
-              event.preventDefault();
-              commandService.executeCommand(action.command, item);
-            };
-            return (
-              <Button
-                type='icon'
-                key={`${item.id}-${action.command}`}
-                iconClass={cls(styles.action_icon, action.icon)}
-                title={action.title}
-                onClick={clickHandler}
-              />
-            );
-          })}
-        </div>
-      );
-    } else {
-      actions = [
-        {
-          icon: getIcon('window-close'),
-          title: localize('file.close'),
-          command: OPEN_EDITORS_COMMANDS.CLOSE.id,
-        },
-      ];
-      return (
-        <div className={styles.opened_editor_left_actions}>
-          {actions.map((action) => {
-            const clickHandler = (event: React.MouseEvent) => {
-              event.stopPropagation();
-              event.preventDefault();
-              commandService.executeCommand(action.command, item);
-            };
-            return (
-              <Button
-                type='icon'
-                key={`${item.id}-${action.command}`}
-                iconClass={cls(styles.action_icon, action.icon)}
-                title={action.title}
-                onClick={clickHandler}
-              />
-            );
-          })}
-        </div>
-      );
-    }
+    const isGroup = EditorFileGroup.is(item);
+    const actions = isGroup
+      ? [
+          {
+            icon: getIcon('save-all'),
+            title: localize('opened.editors.save.byGroup'),
+            command: OPEN_EDITORS_COMMANDS.SAVE_BY_GROUP.id,
+          },
+          {
+            icon: getIcon('clear'),
+            title: localize('opened.editors.close.byGroup'),
+            command: OPEN_EDITORS_COMMANDS.CLOSE_BY_GROUP.id,
+          },
+        ]
+      : [
+          {
+            icon: getIcon('window-close'),
+            title: localize('file.close'),
+            command: OPEN_EDITORS_COMMANDS.CLOSE.id,
+          },
+        ];
+    return (
+      <div className={isGroup ? styles.opened_editor_right_actions : styles.opened_editor_left_actions}>
+        {actions.map((action) => {
+          const clickHandler = (event: React.MouseEvent) => {
+            event.stopPropagation();
+            event.preventDefault();
+            commandService.executeCommand(action.command, item);
+          };
+          return (
+            <Button
+              type='icon'
+              key={`${item.id}-${action.command}`}
+              iconClass={cls(styles.action_icon, action.icon)}
+              title={action.title}
+              onClick={clickHandler}
+            />
+          );
+        })}
+      </div>
+    );
   };
 
   const renderActionBar = () => <div className={styles.opened_editor_action_bar}>{renderAction()}</div>;

@@ -6,10 +6,10 @@ import {
   Event,
   FileStat,
   IDisposable,
+  PreferenceScope,
   URI,
   isEmptyObject,
 } from '@opensumi/ide-core-common';
-import { PreferenceScope } from '@opensumi/ide-core-common/lib/preferences/preference-scope';
 
 import { JSONUtils, JSONValue } from '../utils';
 

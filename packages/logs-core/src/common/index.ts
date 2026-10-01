@@ -1,2 +1,2 @@
-export * from '@opensumi/ide-core-common/lib/log';
+export * from '@opensumi/ide-core-common/log';
 export * from './log-core';

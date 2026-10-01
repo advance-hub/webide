@@ -1,48 +1,19 @@
-import { BasicEvent, Event } from '@opensumi/ide-core-common';
-import { ContextKeyService } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/browser/contextKeyService';
-import {
-  ContextKeyExpr,
-  ContextKeyValue,
-  IContextKeyServiceTarget,
-  IContextKeyService as IMonacoContextKeyService,
-} from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
+import { IContextKeyService as ContextKeyServiceToken } from '@opensumi/ide-core-common/contextkeys';
 
-export interface IContextKey<T extends ContextKeyValue = ContextKeyValue> {
-  set(value: T | undefined): void;
-  reset(): void;
-  get(): T | undefined;
-}
+import type { IContextKeyService as SharedContextKeyService } from '@opensumi/ide-core-common/contextkeys';
+import type { ContextKeyService } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/browser/contextKeyService';
+import type { IContextKeyServiceTarget } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
 
-export const IContextKeyService = Symbol('IContextKeyService');
+export { ContextKeyChangeEvent } from '@opensumi/ide-core-common/contextkeys';
+export type { IContextKey, IContextKeyChangeEventPayload, IReadableSet } from '@opensumi/ide-core-common/contextkeys';
 
-export interface IContextKeyService {
-  onDidChangeContext: Event<ContextKeyChangeEvent>;
+export const IContextKeyService: typeof ContextKeyServiceToken = ContextKeyServiceToken;
 
-  bufferChangeEvents(callback: Function): void;
-
-  getValue<T>(key: string): T | undefined;
-  createKey<T extends ContextKeyValue = any>(key: string, defaultValue: T | undefined): IContextKey<T>;
-  match(expression: string | ContextKeyExpr | undefined, context?: HTMLElement | null): boolean;
-  getKeysInWhen(when: string | ContextKeyExpr | undefined): string[];
-  getContextKeyValue<T>(key: string): T | undefined;
-  contextKeyService: IMonacoContextKeyService;
-
+/** Browser integration also accepts an existing Monaco context scope. */
+export interface IContextKeyService extends SharedContextKeyService {
   createScoped(target?: IContextKeyServiceTarget | ContextKeyService): IScopedContextKeyService;
-
-  parse(when: string | undefined): ContextKeyExpr | undefined;
-  dispose(): void;
 }
 
 export interface IScopedContextKeyService extends IContextKeyService {
   attachToDomNode(domNode: HTMLElement): void;
 }
-
-export interface IContextKeyChangeEventPayload {
-  affectsSome(keys: IReadableSet<string>): boolean;
-}
-
-export interface IReadableSet<T> {
-  has(value: T): boolean;
-}
-
-export class ContextKeyChangeEvent extends BasicEvent<IContextKeyChangeEventPayload> {}

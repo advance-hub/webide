@@ -1,11 +1,33 @@
+import { MessageChannel } from 'worker_threads';
+
+import { createMainContextProxyIdentifier } from '@opensumi/ide-connection/rpc-contracts';
 import { Emitter, Uri } from '@opensumi/ide-core-common';
-import { createMockPairRPCProtocol } from '@opensumi/ide-extension/__mocks__/initRPCProtocol';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 
 import { ProxyIdentifier } from '../../src';
+import { NodeMessagePortConnection } from '../../src/common/connection/drivers/node-message-port';
 import { SimpleConnection } from '../../src/common/connection/drivers/simple';
 import { SumiConnectionMultiplexer } from '../../src/common/rpc/multiplexer';
 
 describe('connection', () => {
+  it('calls a service registered through the shared contract from the legacy package entry', async () => {
+    expect.hasAssertions();
+    const { port1, port2 } = new MessageChannel();
+    const server = new SumiConnectionMultiplexer(new NodeMessagePortConnection(port1));
+    const client = new SumiConnectionMultiplexer(new NodeMessagePortConnection(port2));
+    try {
+      const id = createMainContextProxyIdentifier<{ $read(path: string): string }>('@test/files');
+      server.set(id, { $read: (path: string) => `content:${path}` });
+      const proxy = client.getProxy(ProxyIdentifier.for('@test/files'));
+      await expect(proxy.$read('/README.md')).resolves.toBe('content:/README.md');
+    } finally {
+      server.dispose();
+      client.dispose();
+      port1.close();
+      port2.close();
+    }
+  });
+
   it('RPCProtocol', async () => {
     const { rpcProtocolExt: aProtocol, rpcProtocolMain: bProtocol } = createMockPairRPCProtocol();
 

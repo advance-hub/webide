@@ -1,6 +1,5 @@
 import { Autowired } from '@opensumi/di';
-import { ContributionProvider } from '@opensumi/ide-core-common/lib/contribution-provider';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper/index';
+import { ContributionProvider, Domain } from '@opensumi/ide-core-common';
 
 import { ClientAppContribution } from '../common/common.define';
 

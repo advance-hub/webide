@@ -17,11 +17,11 @@ import {
   Schemes,
   URI,
 } from '@opensumi/ide-core-browser';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { IEditorDocumentModelContentProvider } from '@opensumi/ide-editor/lib/browser';
-import { BaseFileSystemEditorDocumentProvider } from '@opensumi/ide-editor/lib/browser/fs-resource/fs-editor-doc';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { IEditorDocumentModelContentProvider } from '@opensumi/ide-editor/browser';
+import { BaseFileSystemEditorDocumentProvider } from '@opensumi/ide-editor/resources';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { EOL } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { EOL } from '@opensumi/ide-monaco/types';
 
 import { FILE_SAVE_BY_CHANGE_THRESHOLD, IFileSchemeDocClient } from '../common';
 

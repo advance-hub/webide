@@ -1,8 +1,7 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { CommandRegistry, Disposable, Emitter, Event } from '@opensumi/ide-core-common';
+import { ContextKeyChangeEvent, IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
 import { ContextKeyExpr } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
-
-import { ContextKeyChangeEvent, IContextKeyService } from '../../context-key';
 
 import { IComponentMenuItem, IMenuItem, IMenuRegistry, ISubmenuItem, isIComponentMenuItem, isIMenuItem } from './base';
 import { MenuId } from './menu-id';
@@ -161,16 +160,12 @@ class Menu extends Disposable implements IMenu {
         // menu.enabledWhen 的优先级高于 Command.isEnabled
         // 若设置了 menu.enabledWhen 则忽略 Command.isEnabled
         const commandEnablement = command ? this.commandRegistry.isEnabled(menuCommand.id, ...args) : true;
-        let disabled = true;
-
-        if (item.enabledWhen !== undefined) {
-          disabled = !this.contextKeyService.match(item.enabledWhen, options.contextDom);
-        } else if (command?.enablement) {
-          // 若 command 设置了 enablement 则匹配 enablement
-          disabled = !this.contextKeyService.match(command.enablement, options.contextDom);
-        } else {
-          disabled = !commandEnablement;
-        }
+        const disabled =
+          item.enabledWhen !== undefined
+            ? !this.contextKeyService.match(item.enabledWhen, options.contextDom)
+            : command?.enablement
+              ? !this.contextKeyService.match(command.enablement, options.contextDom)
+              : !commandEnablement;
 
         // menu.toggledWhen 的优先级高于 Command.isToggled
         // 若设置了 menu.toggledWhen 则忽略 Command.isToggled

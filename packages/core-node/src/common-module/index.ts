@@ -1,6 +1,7 @@
 import { Injectable } from '@opensumi/di';
-import { CommonServerProtocol } from '@opensumi/ide-connection/lib/common/protocols/common-server';
+import { CommonServerProtocol } from '@opensumi/ide-connection/protocols';
 import {
+  BackService,
   CommonServerPath,
   CryptoServicePath,
   ICommonServer,
@@ -33,7 +34,7 @@ export class ServerCommonModule extends NodeModule {
       useClass: CryptoService,
     },
   ];
-  backServices = [
+  backServices: BackService[] = [
     {
       servicePath: CommonServerPath,
       token: ICommonServer,

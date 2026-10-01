@@ -1,32 +1,30 @@
-import { IApplicationService, IJSONSchemaRegistry, ISchemaStore, localize } from '@opensumi/ide-core-browser';
-import { DefaultUriLabelProvider } from '@opensumi/ide-core-browser/lib/services';
-import { CommonServerPath } from '@opensumi/ide-core-common';
+import {
+  DefaultUriLabelProvider,
+  IApplicationService,
+  IJSONSchemaRegistry,
+  ISchemaStore,
+  localize,
+} from '@opensumi/ide-core-browser';
 import {
   BinaryBuffer,
+  CommonServerPath,
   Disposable,
   OperatingSystem,
   SaveTaskErrorCause,
   SaveTaskResponseState,
   URI,
 } from '@opensumi/ide-core-common';
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { EditorPreferences } from '@opensumi/ide-editor/lib/browser';
-import { FileSystemResourceProvider } from '@opensumi/ide-editor/lib/browser/fs-resource/fs-resource';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
+import { EditorPreferences, IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { FileSystemResourceProvider } from '@opensumi/ide-editor/resources';
 import { FileSchemeDocNodeServicePath } from '@opensumi/ide-file-scheme';
-import {
-  FileSchemeDocumentProvider,
-  VscodeSchemeDocumentProvider,
-} from '@opensumi/ide-file-scheme/lib/browser/file-doc';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
 import { IDialogService } from '@opensumi/ide-overlay';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { FileSchemeModule } from '../../src/browser';
+import { FileSchemeDocumentProvider, VscodeSchemeDocumentProvider } from '../../src/browser/file-doc';
 
 describe('file scheme tests', () => {
   const injector = createBrowserInjector([FileSchemeModule]);

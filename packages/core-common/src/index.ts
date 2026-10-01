@@ -37,3 +37,5 @@ export * from './ai-native';
 export * from './remote-service';
 export * from './collections';
 export * from './language';
+export * from './feature';
+export type { IEventSubscriber } from './event-subscriber';

@@ -1,5 +1,5 @@
 import { Event as BaseEvent, Disposable, Emitter, IDisposable, isWebKit } from '@opensumi/ide-core-common';
-import { space } from '@opensumi/ide-utils/lib/strings';
+import { space } from '@opensumi/ide-utils/strings';
 
 import fastdom from './fastdom';
 

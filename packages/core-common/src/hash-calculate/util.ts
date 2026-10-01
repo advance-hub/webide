@@ -6,7 +6,7 @@
 
 // copy and modified from https://github.com/Daninet/hash-wasm/blob/bd3a205ca5603fc80adf71d0966fc72e8d4fa0ef/lib/util.ts
 
-export { IDataType, ITypedArray, getUInt8Buffer } from '@opensumi/ide-utils/lib/buffer';
+export { IDataType, ITypedArray, getUInt8Buffer } from '@opensumi/ide-utils';
 
 export function intArrayToString(arr: Uint8Array, len: number): string {
   return String.fromCharCode(...arr.subarray(0, len));
@@ -41,14 +41,13 @@ const alpha = 'a'.charCodeAt(0) - 10;
 const digit = '0'.charCodeAt(0);
 export function getDigestHex(tmpBuffer: Uint8Array, input: Uint8Array, hashLength: number): string {
   let p = 0;
-  /* eslint-disable no-plusplus */
+
   for (let i = 0; i < hashLength; i++) {
     let nibble = input[i] >>> 4;
     tmpBuffer[p++] = nibble > 9 ? nibble + alpha : nibble + digit;
     nibble = input[i] & 0xf;
     tmpBuffer[p++] = nibble > 9 ? nibble + alpha : nibble + digit;
   }
-  /* eslint-enable no-plusplus */
 
   return String.fromCharCode.apply(null, tmpBuffer as unknown as number[]);
 }

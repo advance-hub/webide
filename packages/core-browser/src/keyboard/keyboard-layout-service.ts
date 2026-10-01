@@ -16,13 +16,15 @@
 // Some code copied and modified from https://github.com/eclipse-theia/theia/tree/v1.14.0/packages/core/src/browser/keyboard/keyboard-layout-service.ts
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { Emitter, Event, isWindows } from '@opensumi/ide-core-common';
 import {
+  Emitter,
+  Event,
   IWindowsKeyMapping,
   KeyboardLayoutChangeNotifierService,
   KeyboardNativeLayoutService,
   KeymapInfo,
-} from '@opensumi/ide-core-common/lib/keyboard';
+  isWindows,
+} from '@opensumi/ide-core-common';
 
 import { KeyValidator } from './keyboard-layout-provider';
 import { Key, KeyCode } from './keys';

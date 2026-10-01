@@ -1,13 +1,6 @@
-import {
-  ComponentMenuItemNode,
-  IMenu,
-  IMenuConfig,
-  IMenuSeparator,
-  MenuItemNode,
-  SeparatorMenuItemNode,
-  SubmenuItemNode,
-  TupleMenuNodeResult,
-} from './menu.interface';
+import { IMenuConfig, IMenuSeparator, SeparatorMenuItemNode, TupleMenuNodeResult } from './menu.interface';
+
+import type { IMenu, MenuNode } from '@opensumi/ide-core-common/menus';
 
 export const isPrimaryGroup = (group: string) => group === 'navigation';
 export const isInlineGroup = (group: string) => /^inline/.test(group);
@@ -17,7 +10,7 @@ export const isInlineGroup = (group: string) => /^inline/.test(group);
  * todo: 支持返回结果合并成一个 group
  */
 export function splitMenuItems(
-  groups: Array<[string, Array<MenuItemNode | SubmenuItemNode | ComponentMenuItemNode>]>,
+  groups: Array<[string, MenuNode[]]>,
   separator: IMenuSeparator = 'navigation',
 ): TupleMenuNodeResult {
   const result: TupleMenuNodeResult = [[], []];

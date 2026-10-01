@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@opensumi/di';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { LogModule } from '../../src/browser';
 import { LoggerManagerClient } from '../../src/browser/log-manager';

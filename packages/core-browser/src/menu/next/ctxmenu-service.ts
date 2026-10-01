@@ -1,7 +1,6 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { Disposable, Emitter, Event, IDisposable } from '@opensumi/ide-core-common';
-
-import { IContextKeyService } from '../../context-key';
+import { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
 
 import { MenuNode } from './base';
 import { generateCtxMenu, generateMergedCtxMenu, mergeTupleMenuNodeResult } from './menu-util';

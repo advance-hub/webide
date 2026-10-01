@@ -1,4 +1,4 @@
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { EventBusImpl, IEventBus } from '../src/event-bus/index';
 

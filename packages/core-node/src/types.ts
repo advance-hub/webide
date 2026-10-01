@@ -1,18 +1,74 @@
 import { NodeModule } from './node-module';
 
 import type { Injector } from '@opensumi/di';
-import type { WebSocketHandler } from '@opensumi/ide-connection/lib/node';
+import type { WSChannel } from '@opensumi/ide-connection';
+import type { WebSocketHandler } from '@opensumi/ide-connection/node';
 import type { ConstructorOf, ILogService, LogLevel, MaybePromise } from '@opensumi/ide-core-common';
 import type cp from 'child_process';
 import type http from 'http';
 import type https from 'https';
 import type Koa from 'koa';
+import type net from 'net';
 import type ws from 'ws';
 
 export { NodeModule };
 
+export type ExtensionHostRuntimePhase =
+  'created' | 'listening' | 'starting' | 'ready' | 'stopping' | 'stopped' | 'failed' | 'crashed';
+
+export interface ExtensionHostRuntimeStatus {
+  servicePhase: 'running' | 'draining' | 'disposed';
+  active: number;
+  pendingCreations: number;
+  disconnected: number;
+  clientServiceProxies: number;
+  mainThreadConnections: number;
+  mainThreadBridges: number;
+  limit: number;
+  saturated: boolean;
+  phaseCounts: Record<ExtensionHostRuntimePhase, number>;
+  counters: {
+    created: number;
+    crashed: number;
+    disposed: number;
+    reclaimed: number;
+    rejected: number;
+    startupTimeouts: number;
+  };
+  activationDiagnostics?: {
+    reportedHosts: number;
+    topExtensions: Array<{
+      extensionId: string;
+      reportingHosts: number;
+      activationCount: number;
+      failureCount: number;
+      maxActivationDurationMs: number;
+      maxModuleCount: number;
+      maxSubscriptionCount: number;
+      maxObservedHeapUsedBytes: number;
+      maxObservedRssBytes: number;
+      maxPositiveHeapUsedDeltaBytes: number;
+      maxPositiveRssDeltaBytes: number;
+    }>;
+  };
+}
+
 export type ModuleConstructor = ConstructorOf<NodeModule>;
 export type ContributionConstructor = ConstructorOf<ServerAppContribution>;
+
+/**
+ * Product-owned compatibility proof for one Browser -> Node transport epoch.
+ * Core Node only orchestrates the reserved logical channel and asks for RPC
+ * admission; product-profile validation remains outside this package.
+ */
+export interface IRuntimeTopologyHandshakeServer {
+  readonly channelPath: string;
+  handleChannel(channel: WSChannel): void;
+  admitRPC(connection: object): {
+    readonly accepted: boolean;
+    readonly reason?: string;
+  };
+}
 
 export const AppConfig = Symbol('AppConfig');
 
@@ -70,9 +126,27 @@ interface Config {
    */
   processCloseExitThreshold?: number;
   /**
+   * 插件进程优雅关闭的最长等待时间，超时后强制结束
+   */
+  extensionHostShutdownTimeout?: number;
+  /**
+   * 插件进程完成启动握手的最长等待时间，超时后强制结束并释放名额
+   */
+  extensionHostStartupTimeout?: number;
+  /**
+   * 收集插件激活阶段的有界内存、模块与订阅诊断。
+   * 该诊断会暴露插件标识并增加少量采样开销，生产环境默认关闭。
+   */
+  extensionHostActivationDiagnostics?: boolean;
+  /**
    * 终端 pty 进程退出时间
    */
   terminalPtyCloseThreshold?: number;
+  /**
+   * 最后一个客户端断开后，持久化终端允许被恢复的最长时间。
+   * 超时后必须结束 pty，避免永久遗留无人持有的 shell。
+   */
+  terminalPersistentSessionTimeout?: number;
   /**
    * 访问静态资源允许的 origin
    */
@@ -91,9 +165,17 @@ interface Config {
    */
   onDidCreateExtensionHostProcess?: (cp: cp.ChildProcess) => void;
   /**
+   * 扩展宿主数量与生命周期状态变化回调，用于服务健康检查和容量观测
+   */
+  onDidChangeExtensionHostStatus?: (status: ExtensionHostRuntimeStatus) => void;
+  /**
    * Watcher Node 进程入口文件
    */
   watcherHost?: string;
+  /**
+   * 文件监听子进程 fork 配置
+   */
+  watcherHostForkOptions?: Partial<cp.ForkOptions>;
   /**
    * 插件 Node 进程入口文件
    */
@@ -116,6 +198,11 @@ interface Config {
    * default -1，it means disable
    */
   rpcMessageTimeout?: number;
+  /**
+   * Maximum time a naturally disconnected connection keeps its child scope
+   * alive while already-admitted RPC handlers react to cancellation.
+   */
+  rpcDisconnectGraceMs?: number;
   collaborationOptions?: ICollaborationServerOpts;
 }
 
@@ -125,14 +212,35 @@ export interface AppConfig extends Partial<Config> {
 
 export interface ICollaborationServerOpts {
   port?: number;
+  maxPayload?: number;
+  maxConnections?: number;
+  maxBufferedAmount?: number;
+  maxDocuments?: number;
+  maxDocumentBytes?: number;
+  maxStateBytes?: number;
+  maxPendingDocuments?: number;
+  idleTimeout?: number;
+  shouldAcceptConnection?: () => boolean;
 }
 
 export interface IServerAppOpts extends Partial<Config> {
+  /**
+   * `server-app` preserves the framework's standalone SIGINT/SIGTERM behavior.
+   * Products with additional ingress owners must choose `external` and call
+   * `stop()` from their own coordinated signal handler.
+   */
+  processSignalHandling?: 'server-app' | 'external';
   modules?: ModuleConstructor[];
   contributions?: ContributionConstructor[];
   modulesInstances?: NodeModule[];
   webSocketHandler?: WebSocketHandler[];
   wsServerOptions?: ws.ServerOptions;
+  wsHeartbeatInterval?: number;
+  wsMaxConnections?: number;
+  wsMaxBufferedAmount?: number;
+  wsShouldAcceptConnection?: () => boolean;
+  runtimeTopologyHandshake?: IRuntimeTopologyHandshakeServer;
+  netChannelMode?: 'direct' | 'multiplex-v1';
   pathMatchOptions?: {
     // When true the regexp will match to the end of the string.
     end?: boolean;
@@ -141,16 +249,133 @@ export interface IServerAppOpts extends Partial<Config> {
   use?(middleware: Koa.Middleware<Koa.ParameterizedContext<any, any>>): void;
 }
 
+/**
+ * Tracks the connection-scoped injectors owned by the Node runtime.
+ *
+ * The registry deliberately does not own shutdown deadlines. ServerApp applies
+ * one deadline across the whole shutdown sequence so that every phase reports
+ * against the same budget.
+ */
+export const IServerConnectionRegistry = Symbol('IServerConnectionRegistry');
+
+/**
+ * A connection-child scope remains fully owned while its physical transport is
+ * live. Natural disconnect retirement is a separate, terminal signal used by
+ * connection-scoped resources to fence work that can no longer report back to
+ * that transport epoch.
+ */
+export const IConnectionScopeRetirement = Symbol('IConnectionScopeRetirement');
+
+export interface IConnectionScopeRetirement {
+  readonly retired: boolean;
+  readonly whenRetired: Promise<void>;
+  retire(): void;
+}
+
+export interface ServerConnectionDrainHooks {
+  beginDrain?: () => void;
+  whenInboundIdle?: () => Promise<void>;
+  /** Retire the closed physical epoch after its disconnect grace expires. */
+  retireDisconnectedInbound?: () => void;
+  /** Fence connection-child resources after the same physical-disconnect lease. */
+  retireDisconnectedScope?: () => void;
+}
+
+export interface IServerConnectionRegistry {
+  readonly activeConnectionCount: number;
+  /** Whether a transport may construct and register another connection scope. */
+  readonly acceptsConnections: boolean;
+  /** Register the physical transport's admission and final-disposal hooks. */
+  registerTransportDisposer(dispose: () => void, beginDrain?: () => void): void;
+  /** Register one admitted RPC channel and its connection-scoped owner. */
+  trackConnection(
+    channel: WSChannel,
+    clientId: string,
+    dispose: () => Promise<void>,
+    drainHooks?: ServerConnectionDrainHooks,
+  ): boolean;
+  /** Stop transport and RPC admission while keeping admitted work able to finish. */
+  beginDrain(): MaybePromise<void>;
+  /** Observe completion after child-scope reclamation has started. */
+  waitForIdle(): Promise<void>;
+  /** Reclaim every connection child scope and wait for all cleanup. */
+  dispose(): MaybePromise<void>;
+}
+
+export type ServerRuntimeState = 'created' | 'starting' | 'running' | 'draining' | 'stopping' | 'stopped' | 'failed';
+
+export interface ServerRuntimeStopOptions {
+  /** Total budget shared by every shutdown phase. Defaults to 30 seconds. */
+  deadlineMs?: number;
+  /** Product-level reason, such as SIGTERM or an operator initiated restart. */
+  reason?: string;
+  /**
+   * External listener owners may register an already-started idle barrier here.
+   * It is awaited with connection cleanup before contributions and the root
+   * injector are disposed. Only the first stop caller owns this barrier.
+   */
+  beforeSharedOwners?: () => MaybePromise<void>;
+}
+
+export type ServerRuntimeStopPhase = 'server' | 'contributions' | 'connections' | 'injector';
+export type ServerRuntimeStopPhaseStatus = 'completed' | 'failed' | 'timed_out' | 'skipped';
+
+export interface ServerRuntimeStopError {
+  name: string;
+  message: string;
+}
+
+export interface ServerRuntimeStopPhaseReport {
+  phase: ServerRuntimeStopPhase;
+  status: ServerRuntimeStopPhaseStatus;
+  startedAt: number;
+  finishedAt: number;
+  durationMs: number;
+  error?: ServerRuntimeStopError;
+}
+
+export interface ServerRuntimeStopReport {
+  reason?: string;
+  startedAt: number;
+  finishedAt: number;
+  durationMs: number;
+  deadlineMs: number;
+  timedOut: boolean;
+  activeConnections: number;
+  phases: ServerRuntimeStopPhaseReport[];
+}
+
 export const ServerAppContribution = Symbol('ServerAppContribution');
 
+/** Narrow host surface available to lifecycle contributions. */
+export interface IServerAppHost {
+  use(middleware: Koa.Middleware<Koa.ParameterizedContext<any, any>>): void;
+}
+
 export interface ServerAppContribution {
+  /** Abort startup if this contribution cannot initialize or start its required service. */
+  readonly startupRequired?: boolean;
   initialize?(app: IServerApp): MaybePromise<void>;
   onStart?(app: IServerApp): MaybePromise<void>;
   onStop?(app: IServerApp): MaybePromise<void>;
   onWillUseElectronMain?(): void;
 }
 
-export interface IServerApp {
-  use(middleware: Koa.Middleware<Koa.ParameterizedContext<any, any>>): void;
+export interface IServerApp extends IServerAppHost {
   start(server: http.Server | https.Server): Promise<void>;
+}
+
+/**
+ * Full lifecycle surface implemented by the built-in Node runtime.
+ *
+ * Kept separate from {@link IServerApp} so existing products that implement
+ * or mock the long-standing contribution host contract do not have to grow
+ * lifecycle ownership methods they never use.
+ */
+export interface IServerRuntimeApp extends IServerApp {
+  readonly state: ServerRuntimeState;
+  start(server: http.Server | https.Server | net.Server): Promise<void>;
+  drain(): Promise<void>;
+  stop(options?: ServerRuntimeStopOptions): Promise<ServerRuntimeStopReport>;
+  dispose(options?: ServerRuntimeStopOptions): Promise<ServerRuntimeStopReport>;
 }

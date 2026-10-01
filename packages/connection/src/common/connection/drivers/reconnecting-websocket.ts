@@ -92,7 +92,10 @@ export class ReconnectingWebSocketConnection extends BaseConnection<Uint8Array> 
   }
 
   dispose(): void {
-    // do nothing
+    // A disposed runtime connection is terminal. In particular, a rejected
+    // startup preflight must not leave the reconnect loop running behind a
+    // fatal compatibility screen.
+    this.socket.close(1000, 'runtime connection disposed');
   }
 
   static forURL(url: UrlProvider, protocols?: string | string[], options?: ReconnectingWebSocketOptions) {

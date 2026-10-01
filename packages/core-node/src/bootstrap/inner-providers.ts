@@ -7,10 +7,7 @@ import {
   ReporterMetadata,
   ReporterService,
 } from '@opensumi/ide-core-common';
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
 
 import { INodeLogger, NodeLogger } from '../logger/node-logger';
 

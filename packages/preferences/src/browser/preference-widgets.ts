@@ -9,9 +9,9 @@ import {
   ISubmenuItem,
   MenuCommandDesc,
   MenuId,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import { CommandRegistry, Disposable, IDisposable, PreferenceScope, URI, localize } from '@opensumi/ide-core-common';
-import { IEditor, IEditorDocumentModelService, IEditorFeatureContribution } from '@opensumi/ide-editor/lib/browser';
+import { IEditor, IEditorDocumentModelService, IEditorFeatureContribution } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import * as monaco from '@opensumi/ide-monaco';
 import { MarkdownString } from '@opensumi/monaco-editor-core/esm/vs/base/common/htmlContent';

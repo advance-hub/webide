@@ -1,15 +1,19 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { Deferred, Emitter, ILogger, isOSX, isWindows } from '@opensumi/ide-core-common';
 import {
+  Deferred,
+  Emitter,
   IKeymapInfo,
   ILinuxKeyboardLayoutInfo,
+  ILogger,
   IMacKeyboardLayoutInfo,
   KeyValidationInput,
   KeyboardLayoutChangeNotifierService,
   KeyboardNativeLayoutService,
   KeymapInfo,
   getKeyboardLayoutId,
-} from '@opensumi/ide-core-common/lib/keyboard';
+  isOSX,
+  isWindows,
+} from '@opensumi/ide-core-common';
 
 import { GlobalBrowserStorageService } from '../services';
 

@@ -62,6 +62,7 @@ export interface OpenMessage extends BaseMessage {
 
 export enum ErrorMessageCode {
   ChannelNotFound = 1,
+  ChannelDraining = 2,
 }
 
 export interface ErrorMessage extends BaseMessage {

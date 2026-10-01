@@ -4,9 +4,9 @@ import * as fs from 'fs-extra';
 import temp from 'temp';
 
 import { toLocalISOString } from '@opensumi/ide-core-common';
-import { AppConfig } from '@opensumi/ide-core-node/lib/types';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { AppConfig } from '@opensumi/ide-core-node/types';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { ILogServiceManager, LogLevel, SupportLogNamespace } from '../../src/common';
 import { LogServiceModule } from '../../src/node';

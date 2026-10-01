@@ -6,8 +6,8 @@ import {
   OPEN_EDITORS_COMMANDS,
   URI,
 } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 
 import { OpenedEditorModule } from '../../src/browser';

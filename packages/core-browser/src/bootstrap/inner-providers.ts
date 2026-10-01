@@ -18,6 +18,8 @@ import {
   IReporter,
   IReporterService,
   ITaskDefinitionRegistry,
+  KeyboardLayoutChangeNotifierService,
+  KeyboardNativeLayoutService,
   ProblemMatchersRegistryImpl,
   ProblemPatternRegistryImpl,
   REPORT_HOST,
@@ -26,14 +28,7 @@ import {
   TaskDefinitionRegistryImpl,
   createContributionProvider,
 } from '@opensumi/ide-core-common';
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
-import {
-  KeyboardLayoutChangeNotifierService,
-  KeyboardNativeLayoutService,
-} from '@opensumi/ide-core-common/lib/keyboard/keyboard-layout-provider';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
 
 import { AIReporter } from '../ai-native/ai-reporter';
 import { ClientAppStateService } from '../application/application-state-service';

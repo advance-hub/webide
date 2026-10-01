@@ -73,6 +73,8 @@ export enum AINativeSettingSectionsId {
    */
   DefaultAgentType = 'ai.native.agent.defaultType',
 
+  AgentBuiltInsEnabled = 'ai.native.agent.builtInsEnabled',
+
   TerminalAutoRun = 'ai.native.terminal.autorun',
 
   /**

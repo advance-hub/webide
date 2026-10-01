@@ -22,7 +22,7 @@ import {
   VSCODE_WORKSPACE_CONFIGURATION_DIR_NAME,
   isUndefined,
 } from '@opensumi/ide-core-browser';
-import { EditorDocumentModelSavedEvent } from '@opensumi/ide-editor/lib/browser';
+import { EditorDocumentModelSavedEvent } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { IPreferenceTask } from '../common';

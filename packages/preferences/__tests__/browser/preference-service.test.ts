@@ -4,7 +4,7 @@ import path from 'path';
 import * as fs from 'fs-extra';
 
 import { Injectable, Provider } from '@opensumi/di';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   BrowserModule,
   Domain,
@@ -27,16 +27,17 @@ import {
   isObject,
   isString,
 } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClientModule } from '@opensumi/ide-file-service/lib/browser';
-import { FileServiceContribution } from '@opensumi/ide-file-service/lib/browser/file-service-contribution';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { PreferencesModule } from '@opensumi/ide-preferences/lib/browser';
-import { UserStorageContribution } from '@opensumi/ide-preferences/lib/browser/userstorage';
+import { FileServiceClientModule } from '@opensumi/ide-file-service/browser';
+import { FileServiceContribution } from '@opensumi/ide-file-service/browser/contribution';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
+import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/node/watchers';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
+
+import { PreferencesModule } from '../../src/browser';
+import { UserStorageContribution } from '../../src/browser/userstorage';
 
 @Injectable()
 export class AddonModule extends BrowserModule {
@@ -213,7 +214,7 @@ describe('PreferenceService should be work', () => {
           setClient: () => void 0,
           watch: (() => 1) as any,
           unWatch: () => void 0,
-          createProcess: () => void 0,
+          createProcess: () => Promise.resolve(undefined),
         },
       },
     );
@@ -341,35 +342,35 @@ describe('PreferenceService should be work', () => {
       defaultValue = [0, 1, 2];
       preferenceService['cachedPreference'].delete('test.array'); // clean cache
       value = preferenceService.getValid('test.array', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
 
       value = preferenceService.getValid('test.int', '10');
       expect(isNumber(value)).toBeTruthy();
       defaultValue = 100;
       preferenceService['cachedPreference'].delete('test.int'); // clean cache
       value = preferenceService.getValid('test.int', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
 
       value = preferenceService.getValid('test.number', '10');
       expect(isNumber(value)).toBeTruthy();
       defaultValue = 100;
       preferenceService['cachedPreference'].delete('test.number'); // clean cache
       value = preferenceService.getValid('test.number', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
 
       value = preferenceService.getValid('test.string_array', '10');
       expect(isArray(value)).toBeTruthy();
       defaultValue = ['hello', 'world'];
       preferenceService['cachedPreference'].delete('test.string_array'); // clean cache
       value = preferenceService.getValid('test.string_array', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
 
       value = preferenceService.getValid('test.boolean', '10');
       expect(isBoolean(value)).toBeTruthy();
       defaultValue = true;
       preferenceService['cachedPreference'].delete('test.boolean'); // clean cache
       value = preferenceService.getValid('test.boolean', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
 
       value = preferenceService.getValid('test.null', '10');
       expect(isNull(value)).toBeTruthy();
@@ -379,7 +380,7 @@ describe('PreferenceService should be work', () => {
       defaultValue = { test: 'test' };
       preferenceService['cachedPreference'].delete('test.object'); // clean cache
       value = preferenceService.getValid('test.object', defaultValue);
-      expect(defaultValue).toBe(defaultValue);
+      expect(value).toBe(defaultValue);
     });
   });
 });

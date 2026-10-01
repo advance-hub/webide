@@ -1,4 +1,5 @@
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+
 import { URI } from '../../src';
 import { IOpener, IOpenerService } from '../../src/opener';
 import { DefaultOpener } from '../../src/opener/default-opener';

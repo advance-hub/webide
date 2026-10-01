@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { EventEmitter } from '@opensumi/events';
 import { IBasicRecycleTreeHandle } from '@opensumi/ide-components';
-import { IVirtualListHandle } from '@opensumi/ide-components/lib/virtual-list/types';
+import { IVirtualListHandle } from '@opensumi/ide-components/virtual-list';
 import {
   CommandService,
   Dispatcher,
@@ -31,7 +31,7 @@ import {
   isString,
   replaceLocalizePlaceholder,
 } from '@opensumi/ide-core-browser';
-import { SearchSettingId } from '@opensumi/ide-core-common/lib/settings/search';
+import { SearchSettingId } from '@opensumi/ide-core-common';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { ESectionItemKind, PreferenceSettingId, getPreferenceItemLabel, toPreferenceReadableName } from '../common';

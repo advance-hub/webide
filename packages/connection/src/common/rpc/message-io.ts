@@ -3,7 +3,7 @@ import { generateSerializer } from '@furyjs/fury/dist/lib/gen';
 import { PlatformBuffer } from '@furyjs/fury/dist/lib/platformBuffer';
 import { BinaryReader, BinaryWriter } from '@furyjs/fury/dist/lib/type';
 
-import { parseError, stringifyError } from '@opensumi/ide-core-common/lib/utils';
+import { parseError, stringifyError } from '@opensumi/ide-core-common';
 
 import { AnySerializer, IObjectTransfer } from '../fury-extends/any';
 import { furyFactory } from '../fury-extends/shared';
@@ -49,7 +49,10 @@ class SumiProtocolSerializer implements IProtocolSerializer {
   request: TSerializer;
   result: TSerializer;
 
-  constructor(methodProtocol: TSumiProtocolMethod, public fury: Fury) {
+  constructor(
+    methodProtocol: TSumiProtocolMethod,
+    public fury: Fury,
+  ) {
     const argsTuple = [] as TypeDescription[];
 
     for (const element of methodProtocol.request) {
@@ -85,7 +88,11 @@ class SumiProtocolSerializer implements IProtocolSerializer {
 export class AnyProtocolSerializer implements IProtocolSerializer {
   protected anySerializer: AnySerializer;
 
-  constructor(public writer: BinaryWriter, public reader: BinaryReader, objectTransfer?: IObjectTransfer) {
+  constructor(
+    public writer: BinaryWriter,
+    public reader: BinaryReader,
+    objectTransfer?: IObjectTransfer,
+  ) {
     this.anySerializer = new AnySerializer(this.writer, this.reader, objectTransfer);
   }
 
@@ -141,11 +148,7 @@ export interface RPCCancelMessage {
 }
 
 export type RPCMessage =
-  | RPCRequestMessage
-  | RPCNotificationMessage
-  | RPCResponseMessage
-  | RPCErrorMessage
-  | RPCCancelMessage;
+  RPCRequestMessage | RPCNotificationMessage | RPCResponseMessage | RPCErrorMessage | RPCCancelMessage;
 
 export abstract class IMessageIO<T = any> {
   abstract loadProtocolMethod?(

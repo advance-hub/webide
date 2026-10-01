@@ -1,7 +1,6 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { WSChannel } from '@opensumi/ide-connection';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
-import { IRuntimeSocketConnection } from '@opensumi/ide-connection/lib/common/connection';
+import { IRuntimeSocketConnection, WSChannel } from '@opensumi/ide-connection';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import { IReporterService, getDebugLogger } from '@opensumi/ide-core-common';
 
 import { ModuleConstructor, createConnectionService } from '../../bootstrap';
@@ -29,8 +28,15 @@ export abstract class BaseConnectionHelper {
     const clientId: string = this.appConfig.clientId ?? this.getDefaultClientId();
     const channelHandler = new WSChannelHandler(connection, clientId, {
       logger: initialLogger,
+      preflight: this.appConfig.runtimeTopologyPreflight,
     });
 
-    return createConnectionService(this.injector, modules, channelHandler);
+    try {
+      return await createConnectionService(this.injector, modules, channelHandler);
+    } catch (error) {
+      channelHandler.dispose();
+      connection.dispose();
+      throw error;
+    }
   }
 }

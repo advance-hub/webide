@@ -1,7 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { ITreeNodeOrCompositeTreeNode, Tree, TreeNodeType } from '@opensumi/ide-components';
-import { Schemes, URI, formatLocalize, path } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService, Schemes, URI, formatLocalize, path } from '@opensumi/ide-core-browser';
 import { IEditorGroup, IResource, ResourceService, WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
@@ -55,12 +54,10 @@ export class OpenedEditorService extends Tree {
     } else if (EditorFileRoot.is(parent)) {
       // 重置 `_isGroupTree` 状态
       this._isGroupTree = false;
-      let groupOrResource: OpenedEditorData[] = [];
-      if (this.workbenchEditorService.sortedEditorGroups.length <= 1) {
-        groupOrResource = this.workbenchEditorService.sortedEditorGroups[0].resources.slice();
-      } else {
-        groupOrResource = this.workbenchEditorService.sortedEditorGroups;
-      }
+      const groupOrResource: OpenedEditorData[] =
+        this.workbenchEditorService.sortedEditorGroups.length <= 1
+          ? this.workbenchEditorService.sortedEditorGroups[0].resources.slice()
+          : this.workbenchEditorService.sortedEditorGroups;
       for (const item of groupOrResource) {
         if (!(item as IEditorGroup).resources) {
           const tooltip = await this.getReadableTooltip((item as IResource).uri);

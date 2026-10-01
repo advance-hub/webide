@@ -3,6 +3,7 @@ import React, { PropsWithChildren } from 'react';
 
 import { Button } from '@opensumi/ide-components';
 import { getDebugLogger, localize } from '@opensumi/ide-core-common';
+import { SlotLocation } from '@opensumi/ide-core-common/workbench';
 
 import { LayoutConfig } from '../bootstrap';
 import { IClientApp } from '../browser-module';
@@ -12,27 +13,9 @@ import { useInjectable } from '../react-hooks';
 import { ConfigContext } from './config-provider';
 import styles from './slot.module.less';
 
+export { SlotLocation };
+
 const logger = getDebugLogger();
-export type SlotLocation = string;
-export const SlotLocation = {
-  top: 'top',
-  view: 'view',
-  extendView: 'extendView',
-  main: 'main',
-  statusBar: 'statusBar',
-  panel: 'panel',
-  extra: 'extra',
-  float: 'float',
-  action: 'action',
-  // @deprecated ->
-  bottomBar: 'bottomBar',
-  bottomPanel: 'bottomPanel',
-  leftBar: 'leftBar',
-  leftPanel: 'leftPanel',
-  rightBar: 'rightBar',
-  rightPanel: 'rightPanel',
-  // <- @deprecated
-};
 
 export function getSlotLocation(moduleName: string, layoutConfig: LayoutConfig) {
   if (!layoutConfig) {

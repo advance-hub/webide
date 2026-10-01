@@ -1,7 +1,7 @@
 import { CommandRegistry, ProgressLocation } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../tools/dev-tool/src/mock-injector';
 import { IProgressService } from '../src/progress';
 import { ProgressService } from '../src/progress/progress.service';
 import { StatusBarEntry } from '../src/services';

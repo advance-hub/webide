@@ -14,9 +14,9 @@ import {
   StorageProvider,
   URI,
 } from '@opensumi/ide-core-browser';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { StorageModule } from '../../src/browser';

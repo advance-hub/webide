@@ -1,5 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
 import {
   BasicTextLines,
   CancellationToken,

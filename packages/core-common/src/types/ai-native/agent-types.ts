@@ -142,7 +142,7 @@ export interface AcpTargetConfigRequest {
  */
 export const IACPConfigProvider = Symbol('IACPConfigProvider');
 
-export { EnvVariable } from './acp-types';
+export type { EnvVariable } from './acp-types';
 
 export interface IACPConfigProvider {
   /**

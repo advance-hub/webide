@@ -1,8 +1,7 @@
 import React, { memo } from 'react';
 
-import { Disposable, URI, useInjectable } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
-import { IResource, ReactEditorComponent } from '@opensumi/ide-editor/lib/browser';
+import { Disposable, StaticResourceService, URI, useInjectable } from '@opensumi/ide-core-browser';
+import { IResource, ReactEditorComponent } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import styles from './style.module.less';

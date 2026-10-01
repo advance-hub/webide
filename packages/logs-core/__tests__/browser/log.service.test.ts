@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@opensumi/di';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
 import { LogModule } from '../../src/browser';
 import { LogServiceClient } from '../../src/browser/log.service';

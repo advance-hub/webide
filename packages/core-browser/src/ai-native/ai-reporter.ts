@@ -1,11 +1,12 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IReporterService, uuid } from '@opensumi/ide-core-common';
 import {
   AIServiceType,
   AI_REPORTER_NAME,
   IAIReporter,
+  IReporterService,
   ReportInfo,
-} from '@opensumi/ide-core-common/lib/types/ai-native/reporter';
+  uuid,
+} from '@opensumi/ide-core-common';
 
 @Injectable()
 export class AIReporter implements IAIReporter {

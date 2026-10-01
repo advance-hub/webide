@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { PreferenceScope, URI } from '@opensumi/ide-core-browser';
 import { FileStat } from '@opensumi/ide-file-service';
-import { IWorkspaceService } from '@opensumi/ide-workspace/lib/common';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { AbstractResourcePreferenceProvider } from './abstract-resource-preference-provider';
 

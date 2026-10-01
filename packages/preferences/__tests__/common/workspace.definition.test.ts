@@ -1,7 +1,7 @@
 import { FileStat } from '@opensumi/ide-core-common';
 import { URI } from '@opensumi/ide-utils';
 import { DEFAULT_WORKSPACE_SUFFIX_NAME } from '@opensumi/ide-workspace';
-import { WorkspaceData } from '@opensumi/ide-workspace/lib/browser/workspace-data';
+import { WorkspaceData } from '@opensumi/ide-workspace/data';
 
 describe('WorkspaceData methods', () => {
   it('is method should be work', () => {

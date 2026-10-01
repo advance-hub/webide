@@ -1,4 +1,5 @@
-import { IContextKeyService } from '../../../../context-key';
+import { IContextKeyService } from '@opensumi/ide-core-common/contextkeys';
+
 import { MenuNode } from '../../base';
 import { MenuId } from '../../menu-id';
 import { IMenuNodeOptions } from '../../menu.interface';

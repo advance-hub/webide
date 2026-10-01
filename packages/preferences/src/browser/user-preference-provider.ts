@@ -1,6 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { Schemes, URI } from '@opensumi/ide-core-browser';
-import { PreferenceScope } from '@opensumi/ide-core-browser/lib/preferences';
+import { PreferenceScope, Schemes, URI } from '@opensumi/ide-core-browser';
 
 import { AbstractResourcePreferenceProvider } from './abstract-resource-preference-provider';
 

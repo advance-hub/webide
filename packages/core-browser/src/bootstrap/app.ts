@@ -37,8 +37,8 @@ import {
   DEFAULT_APPLICATION_NAME,
   DEFAULT_APPLICATION_WEB_HOST,
   DEFAULT_URI_SCHEME,
-} from '@opensumi/ide-core-common/lib/const/application';
-import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/lib/electron';
+} from '@opensumi/ide-core-common/const';
+import { IElectronMainLifeCycleService } from '@opensumi/ide-core-common/electron';
 
 import { ClientAppStateService } from '../application';
 import { ConnectionHelperFactory, ESupportRuntime } from '../application/runtime';

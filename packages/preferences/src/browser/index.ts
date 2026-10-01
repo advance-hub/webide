@@ -1,11 +1,11 @@
 import { Injectable, Injector, Provider } from '@opensumi/di';
-import { BrowserModule } from '@opensumi/ide-core-browser';
 import {
+  BrowserModule,
   IPreferenceSettingsService,
   PreferenceConfigurations,
   PreferenceProvider,
   PreferenceScope,
-} from '@opensumi/ide-core-browser/lib/preferences';
+} from '@opensumi/ide-core-browser';
 
 import { IUserStorageService, SettingContribution } from '../common';
 

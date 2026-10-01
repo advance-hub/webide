@@ -2,7 +2,7 @@ import cls from 'classnames';
 import React, { useMemo, useState } from 'react';
 
 import { Button, CheckBox, Icon } from '@opensumi/ide-components';
-import { ClickParam, Menu } from '@opensumi/ide-components/lib/menu';
+import { ClickParam, Menu } from '@opensumi/ide-components/menu';
 import { isBoolean, strings } from '@opensumi/ide-core-common';
 
 import {
@@ -490,7 +490,21 @@ export const TitleActionList: React.FC<
         {Array.isArray(extraNavActions) && extraNavActions.length ? (
           <>
             {primary.length && <span className={styles.divider} />}
-            {extraNavActions}
+            {extraNavActions.map((item) => {
+              const menuNode = item instanceof MenuNode ? item : new MenuNode(item);
+              return (
+                <InlineActionWidget
+                  id={menuNode.id}
+                  key={`extra-nav-${menuNode.id}`}
+                  className={cls({ [styles.selected]: menuNode.checked })}
+                  type={type}
+                  data={menuNode}
+                  afterClick={afterClick}
+                  context={context}
+                  iconService={iconService}
+                />
+              );
+            })}
           </>
         ) : null}
         {!moreAtFirst && moreAction}

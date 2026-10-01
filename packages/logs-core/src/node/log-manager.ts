@@ -2,7 +2,7 @@ import path from 'path';
 
 import { ConstructorOf, Injectable, Optional } from '@opensumi/di';
 import { Emitter } from '@opensumi/ide-core-common';
-import { AppConfig } from '@opensumi/ide-core-node/lib/types';
+import { AppConfig } from '@opensumi/ide-core-node/types';
 
 import {
   Archive,

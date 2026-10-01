@@ -7,7 +7,7 @@ import {
   REPORT_NAME,
   randomString,
 } from '@opensumi/ide-core-common';
-import { addElement } from '@opensumi/ide-utils/lib/arrays';
+import { addElement } from '@opensumi/ide-utils/arrays';
 
 import { METHOD_NOT_REGISTERED } from '../constants';
 import { TSumiProtocol } from '../rpc';
@@ -35,7 +35,10 @@ export class RPCServiceCenter implements IDisposable {
   private deferred = new Deferred<void>();
   private logger: ILogger;
 
-  constructor(private bench?: IBench, logger?: ILogger) {
+  constructor(
+    private bench?: IBench,
+    logger?: ILogger,
+  ) {
     this.uid = randomString(6);
     this.logger = logger || console;
   }

@@ -1,13 +1,13 @@
 import { Event, Uri } from '@opensumi/ide-utils';
-import { IReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { IReadableStream } from '@opensumi/ide-utils/stream';
 
 import { FileChangeEvent, FileWatcherFailureParams, FileWatcherOverflowParams } from './file-watch';
 
 export * from './file-watch';
 
 /**
- * @deprecated please import it from '@opensumi/ide-file-service/lib/common'
- * `import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';`
+ * @deprecated please import it from '@opensumi/ide-file-service'
+ * `import { IFileServiceClient } from '@opensumi/ide-file-service';`
  */
 export const IFileServiceClient = Symbol('IFileServiceClient');
 

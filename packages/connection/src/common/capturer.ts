@@ -5,7 +5,7 @@ import {
   randomString,
   transformErrorForSerialization,
 } from '@opensumi/ide-core-common';
-import { DevtoolsLantencyCommand, EDevtoolsEvent } from '@opensumi/ide-core-common/lib/devtools';
+import { DevtoolsLantencyCommand, EDevtoolsEvent } from '@opensumi/ide-core-common/devtools';
 
 declare global {
   interface Window {

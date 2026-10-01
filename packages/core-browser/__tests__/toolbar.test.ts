@@ -1,4 +1,5 @@
-import { createBrowserInjector } from '../../../tools/dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+
 import { NextToolbarRegistryImpl } from '../src/toolbar/toolbar.registry';
 
 describe('toolbar tests', () => {

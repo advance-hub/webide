@@ -1,6 +1,6 @@
-import { NetSocketConnection } from '@opensumi/ide-connection/lib/common/connection';
-import { IDisposable } from '@opensumi/ide-core-common';
-import { IElectronMainApi } from '@opensumi/ide-core-common/lib/electron';
+import { NetSocketConnection } from '@opensumi/ide-connection';
+import { Disposable, IDisposable } from '@opensumi/ide-core-common';
+import { IElectronMainApi } from '@opensumi/ide-core-common/electron';
 
 declare const ElectronIpcRenderer: IElectronIpcRenderer;
 
@@ -30,6 +30,17 @@ const getCapturer = () => {
 export function createElectronMainApi(name: string, enableCaptured?: boolean): IElectronMainApi<any> {
   let id = 0;
   const capturer = getCapturer();
+  // Calling into the preload bridge outside Electron would throw a bare
+  // ReferenceError deep inside React effects and take the tree down. Fail
+  // with a readable error instead.
+  if (typeof ElectronIpcRenderer === 'undefined') {
+    const unavailable = () =>
+      Promise.reject(new Error('ElectronIpcRenderer unavailable: ' + name + ' requires the Electron preload bridge'));
+    return new Proxy(
+      { on: () => Disposable.NULL },
+      { get: (target, method) => target[method] || unavailable },
+    ) as IElectronMainApi<any>;
+  }
   const capture = (message: IPCMessage) => {
     if (capturer) {
       capturer(message);

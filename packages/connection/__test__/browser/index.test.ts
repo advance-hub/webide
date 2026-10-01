@@ -1,9 +1,9 @@
 import { furySerializer } from '@opensumi/ide-connection';
-import { ReconnectingWebSocketConnection } from '@opensumi/ide-connection/lib/common/connection/drivers/reconnecting-websocket';
 import { sleep } from '@opensumi/ide-core-common';
 import { Server, WebSocket } from '@opensumi/mock-socket';
 
 import { WSChannelHandler } from '../../src/browser/ws-channel-handler';
+import { ReconnectingWebSocketConnection } from '../../src/common/connection/drivers/reconnecting-websocket';
 (global as any).WebSocket = WebSocket;
 
 const randomPortFn = () => Math.floor(Math.random() * 10000) + 10000;

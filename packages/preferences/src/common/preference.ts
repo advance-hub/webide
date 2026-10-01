@@ -1,4 +1,6 @@
-import { IPreferenceViewDesc, localize } from '@opensumi/ide-core-browser';
+import { localize } from '@opensumi/ide-core-common';
+
+import type { IPreferenceViewDesc } from '@opensumi/ide-core-common/preferences';
 
 export const PREF_SCHEME = 'pref';
 

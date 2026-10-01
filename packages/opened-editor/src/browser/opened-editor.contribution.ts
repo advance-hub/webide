@@ -8,13 +8,14 @@ import {
   EDITOR_COMMANDS,
   FILE_COMMANDS,
   OPEN_EDITORS_COMMANDS,
+  TabBarToolbarContribution,
+  ToolbarRegistry,
   URI,
   localize,
 } from '@opensumi/ide-core-browser';
-import { TabBarToolbarContribution, ToolbarRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/lib/browser/explorer-contribution';
+import { EXPLORER_CONTAINER_ID } from '@opensumi/ide-explorer/contribution';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import { ExplorerOpenedEditorViewId } from '../common/index';

@@ -4,11 +4,9 @@ import {
   IAIBackService,
   IAIBackServiceOption,
   IAIBackServiceResponse,
-  IAICompletionOption,
-  IAIReportCompletionOption,
   IChatProgress,
 } from '@opensumi/ide-core-common';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 export class ChatReadableStream extends SumiReadableStream<IChatProgress> {}
 
