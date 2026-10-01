@@ -33,6 +33,9 @@ interface SharedWatch {
   key: string;
   ready: Promise<number>;
   clients: Map<number, SharedNodeWatcherLease>;
+  uri: UriComponents;
+  options: NodeWatchOptions;
+  hostId?: number;
 }
 
 interface HostGroup {
@@ -42,6 +45,11 @@ interface HostGroup {
   watches: Map<string, SharedWatch>;
   byHostId: Map<number, SharedWatch>;
   cancelStartup(): void;
+  backend?: RecursiveWatcherBackend;
+  closed: boolean;
+  recovering: boolean;
+  started: boolean;
+  aborted: Promise<never>;
 }
 
 /** Server-owned transport; connection leases only own their subscriptions. */
@@ -59,44 +67,21 @@ export class SharedNodeWatcherPool {
     }
     let group = this.groups.get(backend);
     if (!group) {
-      const host = this.createHost();
       group = {
-        host,
+        host: this.createHost(),
         ready: Promise.resolve(0),
         leases: new Set(),
         watches: new Map(),
         byHostId: new Map(),
         cancelStartup: () => undefined,
+        backend,
+        closed: false,
+        recovering: false,
+        started: false,
+        aborted: new Promise(() => undefined),
       };
       this.groups.set(backend, group);
-      const owner = group;
-      host.setClient({
-        onDidFilesChanged: (event) => this.dispatch(owner, event as SharedWatchEvent<DidFilesChangedParams>, 'changes'),
-        onWatcherOverflow: (event) =>
-          this.dispatch(owner, event as SharedWatchEvent<FileWatcherOverflowParams>, 'overflow'),
-        onWatcherFailed: (event) =>
-          this.dispatch(owner, event as SharedWatchEvent<FileWatcherFailureParams>, 'failure'),
-      });
-      group.ready = (async () => {
-        let timer: NodeJS.Timeout | undefined;
-        try {
-          return await Promise.race([
-            (async () => {
-              const pid = await host.createProcess('shared-node-watcher', backend);
-              await host.whenReady;
-              return pid!;
-            })(),
-            new Promise<never>((_, reject) => {
-              timer = setTimeout(() => reject(new Error('Shared Node watcher startup timed out')), 15_000);
-            }),
-            new Promise<never>((_, reject) => {
-              owner.cancelStartup = () => reject(new Error('Shared Node watcher startup was retired'));
-            }),
-          ]);
-        } finally {
-          clearTimeout(timer);
-        }
-      })();
+      group.ready = this.startHost(group);
     }
     const lease = new SharedNodeWatcherLease(this, group, backend, client);
     group.leases.add(lease);
@@ -110,6 +95,127 @@ export class SharedNodeWatcherPool {
       await lease.dispose();
       throw error;
     }
+  }
+
+  private startHost(group: HostGroup): Promise<number> {
+    const host = group.host;
+    group.aborted = new Promise<never>((_, reject) => {
+      group.cancelStartup = () => reject(new Error('Shared Node watcher startup was retired'));
+    });
+    void group.aborted.catch(() => undefined);
+    host.setClient({
+      onDidFilesChanged: (event) => this.dispatch(group, event as SharedWatchEvent<DidFilesChangedParams>, 'changes'),
+      onWatcherOverflow: (event) =>
+        this.dispatch(group, event as SharedWatchEvent<FileWatcherOverflowParams>, 'overflow'),
+      onWatcherFailed: (event) => this.dispatch(group, event as SharedWatchEvent<FileWatcherFailureParams>, 'failure'),
+    });
+    host.setUnexpectedExitHandler?.(() => {
+      if (group.host !== host || group.closed) {
+        return;
+      }
+      group.cancelStartup();
+      if (group.started && !group.recovering) {
+        this.recover(group);
+      }
+    });
+    return (async () => {
+      let timer: NodeJS.Timeout | undefined;
+      try {
+        return await Promise.race([
+          (async () => {
+            const pid = await host.createProcess('shared-node-watcher', group.backend);
+            await host.whenReady;
+            group.started = true;
+            return pid!;
+          })(),
+          group.aborted,
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error('Shared Node watcher startup timed out')), 15_000);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+  }
+
+  private install(group: HostGroup, entry: SharedWatch): Promise<number> {
+    const host = group.host;
+    const hostId = this.nextId();
+    entry.hostId = hostId;
+    group.byHostId.set(hostId, entry);
+    return Promise.race([host.watch(entry.uri, { ...entry.options, sharedWatchId: hostId }), group.aborted])
+      .then(async (returnedId) => {
+        if (returnedId !== hostId) {
+          throw new Error('Shared Node watcher returned an unexpected subscription identity');
+        }
+        if (!entry.clients.size || group.closed) {
+          group.byHostId.delete(hostId);
+          await host.unWatch(hostId);
+        }
+        return hostId;
+      })
+      .catch((error) => {
+        group.byHostId.delete(hostId);
+        throw error;
+      });
+  }
+
+  private recover(group: HostGroup): void {
+    group.recovering = true;
+    group.byHostId.clear();
+    for (const entry of group.watches.values()) {
+      for (const lease of new Set(entry.clients.values())) {
+        // Native events lost while the host was down require a client rescan.
+        lease.deliver('overflow', {
+          resolvedUri: URI.revive(entry.uri).toString(),
+          backend: group.backend,
+          eventCount: 1,
+          limit: 0,
+          timestamp: Date.now(),
+        });
+      }
+    }
+    group.ready = (async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 3 && !group.closed; attempt++) {
+        const previous = group.host;
+        try {
+          await previous.dispose();
+          if (group.closed) {
+            throw new Error('Shared Node watcher startup was retired');
+          }
+          group.host = this.createHost();
+          group.started = false;
+          const pid = await this.startHost(group);
+          for (const entry of group.watches.values()) {
+            if (!entry.clients.size) {
+              continue;
+            }
+            entry.ready = this.install(group, entry);
+            await entry.ready;
+          }
+          return pid;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      for (const entry of group.watches.values()) {
+        for (const lease of new Set(entry.clients.values())) {
+          lease.deliver('failure', {
+            resolvedUri: URI.revive(entry.uri).toString(),
+            backend: group.backend,
+            message: 'Shared Node watcher recovery failed',
+            attempts: 3,
+            timestamp: Date.now(),
+          });
+        }
+      }
+      throw lastError || new Error('Shared Node watcher startup was retired');
+    })().finally(() => {
+      group.recovering = false;
+    });
+    void group.ready.catch(() => undefined);
   }
 
   private dispatch(
@@ -131,6 +237,12 @@ export class SharedNodeWatcherPool {
   }
 
   async attach(group: HostGroup, id: number, lease: SharedNodeWatcherLease, subscription: Subscription): Promise<void> {
+    if (group.recovering) {
+      await group.ready;
+    }
+    if (group.closed) {
+      throw new Error('Shared Node watcher connection is disposed');
+    }
     const excludes = [...new Set([...lease.excludes, ...(subscription.options?.excludes || [])])].sort();
     const options = {
       excludes,
@@ -141,27 +253,19 @@ export class SharedNodeWatcherPool {
     const key = JSON.stringify([uri, options]);
     let entry = group.watches.get(key);
     if (!entry) {
-      const hostId = this.nextId();
-      entry = { key, ready: Promise.resolve(hostId), clients: new Map([[id, lease]]) };
+      entry = { key, ready: Promise.resolve(0), clients: new Map([[id, lease]]), uri: subscription.uri, options };
       group.watches.set(key, entry);
-      group.byHostId.set(hostId, entry);
       const ownedEntry = entry;
-      const hostOptions: NodeWatchOptions = { ...options, sharedWatchId: hostId };
-      entry.ready = group.host
-        .watch(subscription.uri, hostOptions)
-        .then((returnedId) => {
-          if (returnedId !== hostId) {
-            throw new Error('Shared Node watcher returned an unexpected subscription identity');
-          }
-          return hostId;
-        })
-        .catch((error) => {
-          group.byHostId.delete(hostId);
-          if (group.watches.get(key) === ownedEntry) {
-            group.watches.delete(key);
-          }
-          throw error;
-        });
+      entry.ready = this.install(group, entry).catch(async (error) => {
+        if (group.recovering && !group.closed) {
+          await group.ready;
+          return ownedEntry.hostId!;
+        }
+        if (group.watches.get(key) === ownedEntry) {
+          group.watches.delete(key);
+        }
+        throw error;
+      });
     }
     subscription.entry = entry;
     entry.clients.set(id, lease);
@@ -194,6 +298,10 @@ export class SharedNodeWatcherPool {
       // Failed registration has no acknowledged watch to release.
       return;
     }
+    // A crash already retired this correlation; never send it to the new host.
+    if (!group.byHostId.has(hostId)) {
+      return;
+    }
     group.byHostId.delete(hostId);
     await group.host.unWatch(hostId);
   }
@@ -206,6 +314,7 @@ export class SharedNodeWatcherPool {
     if (this.groups.get(backend) === group) {
       this.groups.delete(backend);
     }
+    group.closed = true;
     group.cancelStartup();
     const retirement = group.host.dispose().finally(() => {
       group.byHostId.clear();

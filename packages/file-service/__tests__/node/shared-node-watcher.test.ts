@@ -9,7 +9,11 @@ import type { FileSystemWatcherClient } from '@opensumi/ide-core-common/file-wat
 
 function fixture() {
   let emit: FileSystemWatcherClient;
+  let exit: () => void;
   const host = {
+    setUnexpectedExitHandler: jest.fn((handler) => {
+      exit = handler;
+    }),
     setClient: jest.fn((client) => {
       emit = client;
     }),
@@ -26,7 +30,7 @@ function fixture() {
     onWatcherOverflow: jest.fn(),
     onWatcherFailed: jest.fn(),
   }));
-  return { pool, host, createHost, clients, emit: () => emit! };
+  return { pool, host, createHost, clients, emit: () => emit!, crash: () => exit() };
 }
 
 describe('server-scoped shared Node watchers', () => {
@@ -70,6 +74,56 @@ describe('server-scoped shared Node watchers', () => {
     await f.pool.dispose();
     expect(f.host.unWatch).toHaveBeenCalledTimes(1);
     expect(f.host.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-subscribes surviving leases after a crash and rejects stale host events', async () => {
+    expect.hasAssertions();
+    const f = fixture();
+    const a = await f.pool.acquire(f.clients[0]);
+    const b = await f.pool.acquire(f.clients[1]);
+    const id = await a.watch(URI.file('/one').codeUri, { recursive: true });
+    await b.watch(URI.file('/two').codeUri, { recursive: true });
+    const oldId = f.host.watch.mock.calls[0][1].sharedWatchId;
+    f.crash();
+    await b.dispose();
+    await a.pid;
+    expect(f.createHost).toHaveBeenCalledTimes(2);
+    expect(f.clients[0].onWatcherOverflow).toHaveBeenCalledTimes(1);
+    f.emit().onDidFilesChanged({ sharedWatchId: oldId, changes: [] } as any);
+    expect(f.clients[0].onDidFilesChanged).not.toHaveBeenCalled();
+    const newId = f.host.watch.mock.calls.at(-1)![1].sharedWatchId;
+    f.emit().onDidFilesChanged({ sharedWatchId: newId, changes: [] } as any);
+    expect(f.clients[0].onDidFilesChanged).toHaveBeenCalledTimes(1);
+    expect(f.clients[1].onDidFilesChanged).not.toHaveBeenCalled();
+    await a.unWatch(id);
+    await f.pool.dispose();
+  });
+
+  it('bounds recovery failures and reports them to surviving subscribers', async () => {
+    expect.hasAssertions();
+    const f = fixture();
+    const lease = await f.pool.acquire(f.clients[0]);
+    await lease.watch(URI.file('/project').codeUri, { recursive: true });
+    f.host.createProcess.mockRejectedValue(new Error('restart failed'));
+    f.crash();
+    await expect(lease.pid).rejects.toThrow('restart failed');
+    expect(f.createHost).toHaveBeenCalledTimes(4);
+    expect(f.clients[0].onWatcherFailed).toHaveBeenCalledWith(expect.objectContaining({ attempts: 3 }));
+    await f.pool.dispose();
+  });
+
+  it('cancels recovery when the last lease closes', async () => {
+    expect.hasAssertions();
+    const f = fixture();
+    const lease = await f.pool.acquire(f.clients[0]);
+    await lease.watch(URI.file('/project').codeUri, { recursive: true });
+    Object.defineProperty(f.host, 'whenReady', { value: new Promise(() => undefined) });
+    f.crash();
+    const recovery = lease.pid.catch((error) => error);
+    await lease.dispose();
+    await expect(recovery).resolves.toBeInstanceOf(Error);
+    await f.pool.dispose();
+    expect(f.createHost.mock.calls.length).toBeLessThanOrEqual(2);
   });
 
   it('keeps paths and per-connection exclusion changes isolated', async () => {

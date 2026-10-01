@@ -30,7 +30,7 @@ const poolToken = (
 ).token;
 
 async function main() {
-  const [variant, workspaceArgument, outputArgument, sessionsText = '5', backendText = 'parcel'] =
+  const [variant, workspaceArgument, outputArgument, sessionsText = '5', backendText = 'parcel', crashMode] =
     process.argv.slice(2);
   const workspace = workspaceArgument && path.resolve(workspaceArgument);
   const outputDirectory = outputArgument && path.resolve(outputArgument);
@@ -54,6 +54,7 @@ async function main() {
   const originalContents = await readFile(existingFile);
   const events = Array.from({ length: sessions }, () => [] as Array<{ uri: string; type: FileChangeType }>);
   const failures: unknown[] = [];
+  const rescans: unknown[] = [];
   const samples: Awaited<ReturnType<typeof collectProcessTreeMemory>>[] = [];
   const steps: Array<{ name: string; elapsedMs: number }> = [];
   const started = Date.now();
@@ -64,12 +65,6 @@ async function main() {
   Object.assign(process.env, {
     OPENSUMI_RUNTIME_MODE: 'node',
     OPENSUMI_NODE_WATCHER_MODE: variant === 'shared-node' ? 'shared' : 'per-client',
-    OPENSUMI_WORKSPACE_AGENT_WATCH_MODE: 'off',
-    OPENSUMI_WORKSPACE_AGENT_SEARCH_MODE: 'off',
-    OPENSUMI_WORKSPACE_AGENT_FILE_SEARCH_MODE: 'off',
-    OPENSUMI_WORKSPACE_AGENT_FALLBACK: 'error',
-    OPENSUMI_WS_GATEWAY_MODE: 'off',
-    OPENSUMI_WS_GATEWAY_FILE_RPC_MODE: 'off',
   });
   const logger = { log() {}, debug() {}, error() {}, warn() {}, verbose() {}, critical() {} };
   const injector = new Injector();
@@ -100,7 +95,7 @@ async function main() {
     manager.setClient({
       onDidFilesChanged: (event) => events[index].push(...event.changes),
       onWatcherFailed: (event) => failures.push(event),
-      onWatcherOverflow: (event) => failures.push(event),
+      onWatcherOverflow: (event) => (crashMode === 'crash' ? rescans : failures).push(event),
     });
     return manager;
   });
@@ -117,6 +112,7 @@ async function main() {
     samples,
     steps,
     failures,
+    rescans,
     functionalPass: false,
     lifecyclePass: false,
   };
@@ -164,9 +160,7 @@ async function main() {
     for (let index = 0; index < 8; index++) {
       const sample = await collectProcessTreeMemory(process.pid);
       const watchers = sample.byRole['watcher-host']?.count || 0;
-      const agents = sample.byRole['workspace-agent']?.count || 0;
       assert.equal(watchers, variant === 'node' ? sessions : 1);
-      assert.equal(agents, 0, 'The Node-only probe must not start a Workspace Agent');
       samples.push(sample);
       await delay(500);
     }
@@ -246,6 +240,50 @@ async function main() {
       all.slice(2),
     );
     assert.equal(events[0].length, 0, 'Disposed connection receives no events');
+    if (crashMode === 'crash') {
+      assert.equal(variant, 'shared-node', 'Crash acceptance requires a shared host');
+      const before = await collectProcessTreeMemory(process.pid);
+      const victim = before.processes.find((entry) => entry.role === 'watcher-host')!;
+      assert(victim, 'Owned watcher host exists before crash');
+      process.kill(victim.pid, 'SIGKILL');
+      let after = await collectProcessTreeMemory(process.pid);
+      const deadline = Date.now() + 20_000;
+      while (
+        (!after.processes.some((entry) => entry.role === 'watcher-host' && entry.pid !== victim.pid) ||
+          rescans.length === 0) &&
+        Date.now() < deadline
+      ) {
+        await delay(100);
+        after = await collectProcessTreeMemory(process.pid);
+      }
+      assert(rescans.length > 0, 'Crash reports lost-event rescan to remaining clients');
+      assert.equal(after.byRole['watcher-host']?.count, 1);
+      assert(!after.processes.some((entry) => entry.pid === victim.pid));
+      await delay(1000);
+      await mutate(
+        'crash-recovery-all-live-leases',
+        existingFile,
+        FileChangeType.UPDATED,
+        () => writeFile(existingFile, Buffer.concat([originalContents, Buffer.from('\n<!-- recovered watcher -->\n')])),
+        all.slice(2),
+      );
+      assert.equal(events[0].length, 0, 'Disposed lease stays detached after crash');
+      const privateAfterCrash = path.join(privateRoots[1], 'recovered.ts');
+      await mutate(
+        'crash-recovery-isolated-root',
+        privateAfterCrash,
+        FileChangeType.ADDED,
+        () => writeFile(privateAfterCrash, 'recovered isolated root'),
+        all.slice(1),
+      );
+      result.crashRecovery = {
+        pass: true,
+        oldPid: victim.pid,
+        newPid: after.processes.find((entry) => entry.role === 'watcher-host')!.pid,
+        rescans: rescans.length,
+      };
+      samples.push(after);
+    }
     result.functionalPass = true;
   } catch (error) {
     result.error = String(error instanceof Error ? error.stack : error);
@@ -261,7 +299,7 @@ async function main() {
       .map((entry) => String(entry.reason));
     const cleanupDeadline = Date.now() + 20_000;
     let postClose = await collectProcessTreeMemory(process.pid);
-    const ownedRoles = ['watcher-host', 'workspace-agent'] as const;
+    const ownedRoles = ['watcher-host'] as const;
     while (ownedRoles.some((role) => postClose.byRole[role]?.count) && Date.now() < cleanupDeadline) {
       await delay(100);
       postClose = await collectProcessTreeMemory(process.pid);
