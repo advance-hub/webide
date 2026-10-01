@@ -2,17 +2,18 @@ import { join } from 'path';
 
 import { URI, uuid } from '@opensumi/ide-core-browser';
 import { IDebugBreakpoint } from '@opensumi/ide-debug';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockFsProvider } from '@opensumi/ide-dev-tool/mocks/file-system-provider';
+import { DiskFileServicePath } from '@opensumi/ide-file-service';
+import { FileServiceClientModule } from '@opensumi/ide-file-service/browser';
+
 import {
   BreakpointManager,
   DebugBreakpoint,
   DebugDecorator,
   isDebugBreakpoint,
   isRuntimeBreakpoint,
-} from '@opensumi/ide-debug/lib/browser/breakpoint';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { DiskFileServicePath } from '@opensumi/ide-file-service';
-import { MockFsProvider } from '@opensumi/ide-file-service/__mocks__/file-system-provider';
-import { FileServiceClientModule } from '@opensumi/ide-file-service/lib/browser';
+} from '../../../src/browser/breakpoint';
 
 describe('Debug Breakpoints', () => {
   const mockInjector = createBrowserInjector([FileServiceClientModule]);

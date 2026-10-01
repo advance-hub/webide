@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IJSONSchema, LifeCyclePhase, URI, localize } from '@opensumi/ide-core-common';
 import { LanguagesContribution } from '@opensumi/ide-monaco';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { AbstractExtInstanceManagementService } from '../../types';

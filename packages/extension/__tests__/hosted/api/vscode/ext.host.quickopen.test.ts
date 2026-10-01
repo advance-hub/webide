@@ -1,13 +1,13 @@
 import { Disposable } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 import { IQuickInputService, QuickOpenService, QuickPickService } from '@opensumi/ide-quick-open';
-import { QuickInputService } from '@opensumi/ide-quick-open/lib/browser/quick-input-service';
-import { QuickTitleBar } from '@opensumi/ide-quick-open/lib/browser/quick-title-bar';
-import { IconService } from '@opensumi/ide-theme/lib/browser/icon.service';
-import { IIconService, IThemeService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { QuickInputService } from '@opensumi/ide-quick-open/input-service';
+import { QuickTitleBar } from '@opensumi/ide-quick-open/title-bar';
+import { IconService } from '@opensumi/ide-theme/icons';
+import { IIconService, IThemeService } from '@opensumi/ide-theme/types';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
 import { MainThreadQuickOpen } from '../../../../src/browser/vscode/api/main.thread.quickopen';
 import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import { InputBoxValidationSeverity, QuickPickItemKind } from '../../../../src/common/vscode/ext-types';

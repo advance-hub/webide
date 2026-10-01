@@ -1,5 +1,5 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IMenuRegistry } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry } from '@opensumi/ide-core-browser/menu';
 import { ISumiMenuExtendInfo, LifeCyclePhase } from '@opensumi/ide-core-common';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';

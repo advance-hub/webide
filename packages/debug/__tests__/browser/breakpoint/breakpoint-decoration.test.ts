@@ -1,6 +1,7 @@
 import { URI } from '@opensumi/ide-core-browser';
 import { IDebugBreakpoint } from '@opensumi/ide-debug';
-import { DebugBreakpoint, DebugDecorator } from '@opensumi/ide-debug/lib/browser/breakpoint';
+
+import { DebugBreakpoint, DebugDecorator } from '../../../src/browser/breakpoint';
 
 describe('Breakpoints Decoration', () => {
   const prefix = 'sumi-debug-breakpoint';

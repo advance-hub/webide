@@ -1,25 +1,25 @@
 import { Injector } from '@opensumi/di';
-import { MockedStorageProvider } from '@opensumi/ide-core-browser/__mocks__/storage';
-import { IMenuItem, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/src/menu/next';
+import { IMenuItem, IMenuRegistry, MenuId } from '@opensumi/ide-core-browser/menu';
 import { CommandRegistry, Emitter, IAuthenticationService, StorageProvider } from '@opensumi/ide-core-common';
-import { ActivationEventServiceImpl } from '@opensumi/ide-extension/lib/browser/activation.service';
-import { IActivationEventService } from '@opensumi/ide-extension/lib/browser/types';
-import { MainThreadAuthentication } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.authentication';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockedStorageProvider } from '@opensumi/ide-dev-tool/mocks/storage';
+import { IMessageService } from '@opensumi/ide-overlay';
+import { QuickPickService } from '@opensumi/ide-quick-open';
+
+import { ActivationEventServiceImpl } from '../../../../src/browser/activation.service';
+import { IActivationEventService } from '../../../../src/browser/types';
+import { MainThreadAuthentication } from '../../../../src/browser/vscode/api/main.thread.authentication';
 import {
   ExtHostAPIIdentifier,
   IMainThreadAuthentication,
   MainThreadAPIIdentifier,
-} from '@opensumi/ide-extension/lib/common/vscode';
+} from '../../../../src/common/vscode';
 import {
   ExtHostAuthentication,
   createAuthenticationApiFactory,
-} from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.authentication';
-import { IMessageService } from '@opensumi/ide-overlay';
-import { QuickPickService } from '@opensumi/ide-quick-open';
-
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
+} from '../../../../src/hosted/api/vscode/ext.host.authentication';
 
 import type vscode from 'vscode';
 
@@ -143,7 +143,7 @@ describe('extension/__tests__/hosted/api/vscode/ext.host.authentication.test.ts'
     const session = await authenticationAPI.getSession('github', ['getRepo'], {
       createIfNone: true,
     });
-    expect(loginSpy).toHaveBeenCalledWith(['getRepo']);
+    expect(loginSpy).toHaveBeenCalledWith(['getRepo'], { createIfNone: true });
     expect($ensureProvider).toHaveBeenCalledWith('github');
     expect($getSession).toHaveBeenCalledWith('github', ['getRepo'], 'vscode.vim', 'Vim', { createIfNone: true });
     expect(loginPrompt).toHaveBeenCalled();
@@ -199,7 +199,7 @@ describe('extension/__tests__/hosted/api/vscode/ext.host.authentication.test.ts'
     expect($loginPrompt.mock.calls[0][2]).toBe(true);
   });
 
-  it.only('get session with silent', async () => {
+  it('get session with silent', async () => {
     const session = {
       id: 'test',
       accessToken: 'this_is_gitlab_token',
@@ -293,12 +293,12 @@ describe('extension/__tests__/hosted/api/vscode/ext.host.authentication.test.ts'
 
   it('onDidChangeAuthenticationProviders', (done) => {
     authenticationAPI.onDidChangeAuthenticationProviders((e) => {
-      expect(e.added[0].id).toBe('github');
-      expect(e.added[0].label).toBe('GitHub');
+      expect(e.added[0].id).toBe('gitlab');
+      expect(e.added[0].label).toBe('GitLab');
       done();
     });
     const onDidChangeSessions = new Emitter<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent>();
-    authenticationAPI.registerAuthenticationProvider('gitlab', 'Github', {
+    authenticationAPI.registerAuthenticationProvider('gitlab', 'GitLab', {
       onDidChangeSessions: onDidChangeSessions.event,
       getSessions: async () => [],
       createSession: async (scopeList) => {

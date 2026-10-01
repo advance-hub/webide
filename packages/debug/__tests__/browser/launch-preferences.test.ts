@@ -3,7 +3,7 @@ import path from 'path';
 
 import * as fs from 'fs-extra';
 
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   AppConfig,
   Disposable,
@@ -14,24 +14,25 @@ import {
   PreferenceService,
   URI,
 } from '@opensumi/ide-core-browser';
-import { DebugModule } from '@opensumi/ide-debug/lib/browser';
-import { DebugContribution } from '@opensumi/ide-debug/lib/browser/debug-contribution';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { EditorCollectionService } from '@opensumi/ide-editor/lib/browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+import { EditorCollectionService } from '@opensumi/ide-editor/browser';
 import { IDiskFileProvider, IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClientModule } from '@opensumi/ide-file-service/lib/browser';
-import { FileServiceContribution } from '@opensumi/ide-file-service/lib/browser/file-service-contribution';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
-import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/lib/node/watcher-process-manager';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
+import { FileServiceClientModule } from '@opensumi/ide-file-service/browser';
+import { FileServiceContribution } from '@opensumi/ide-file-service/browser/contribution';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
+import { WatcherProcessManagerToken } from '@opensumi/ide-file-service/node/watchers';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { IUserStorageService } from '@opensumi/ide-preferences';
-import { PreferencesModule } from '@opensumi/ide-preferences/lib/browser';
-import { UserStorageContribution, UserStorageServiceImpl } from '@opensumi/ide-preferences/lib/browser/userstorage';
+import { PreferencesModule } from '@opensumi/ide-preferences/browser';
+import { UserStorageContribution, UserStorageServiceImpl } from '@opensumi/ide-preferences/user-storage';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { WorkspacePreferences } from '@opensumi/ide-workspace/lib/browser/workspace-preferences';
-import { WorkspaceService } from '@opensumi/ide-workspace/lib/browser/workspace-service';
+import { WorkspacePreferences } from '@opensumi/ide-workspace/preferences';
+import { WorkspaceService } from '@opensumi/ide-workspace/service';
+
+import { DebugModule } from '../../src/browser';
+import { DebugContribution } from '../../src/browser/debug-contribution';
 
 /**
  * launch配置项需要与VSCode中的配置项对齐
@@ -455,7 +456,7 @@ describe('Launch Preferences', () => {
               setClient: () => void 0,
               watch: (() => 1) as any,
               unWatch: () => void 0,
-              createProcess: () => void 0,
+              createProcess: () => Promise.resolve(undefined),
             },
           },
           {

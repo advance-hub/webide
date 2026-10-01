@@ -6,11 +6,12 @@ import {
   QuickPickService,
 } from '@opensumi/ide-core-browser';
 import { DebugModelFactory, IDebugModelManager, IDebugServer } from '@opensumi/ide-debug';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { DebugEditorContribution } from '@opensumi/ide-debug/lib/browser/editor/debug-editor-contribution';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
+
+import { DebugPreferences } from '../../../src/browser/debug-preferences';
+import { DebugEditorContribution } from '../../../src/browser/editor/debug-editor-contribution';
 
 import { IDebugSessionManager } from './../../../src/common/debug-session';
 

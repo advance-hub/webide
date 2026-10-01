@@ -2,12 +2,9 @@ import globToRegExp from 'glob-to-regexp';
 import { SymbolInformation } from 'vscode-languageserver-types';
 
 import { IMarkdownString, IMarkerData, IRange, UriComponents } from '@opensumi/ide-core-common';
-import { IEvaluatableExpression } from '@opensumi/ide-debug/lib/common/evaluatable-expression';
-import { InlineValue, InlineValueContext } from '@opensumi/ide-debug/lib/common/inline-values';
-// eslint-disable-next-line import/order
+import { InlineValue, InlineValueContext } from '@opensumi/ide-debug';
+import { IEvaluatableExpression } from '@opensumi/ide-debug/evaluatable-expression';
 import { ILanguageStatus, ISingleEditOperation } from '@opensumi/ide-editor';
-
-// eslint-disable-next-line import/no-restricted-paths
 
 import { IDocumentFilterDto } from './converter';
 import { Disposable } from './ext-types';
@@ -55,11 +52,9 @@ import {
   WorkspaceEditDto,
 } from './model.api';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { ITextModel, NewSymbolName } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ITextModel, NewSymbolName } from '@opensumi/ide-monaco/types';
 import type { URI as Uri } from '@opensumi/monaco-editor-core/esm/vs/base/common/uri';
 import type * as languages from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
-// eslint-disable-next-line import/no-restricted-paths
 import type {
   CodeActionContext,
   Command,
@@ -271,6 +266,12 @@ export interface IExtHostLanguages {
     position: Position,
     token: CancellationToken,
   ): Promise<Definition | DefinitionLink[] | undefined>;
+  $provideTypeDefinitionWithDuration(
+    handle: number,
+    resource: Uri,
+    position: Position,
+    token: CancellationToken,
+  ): Promise<WithDuration<Definition | DefinitionLink[] | undefined>>;
   registerTypeDefinitionProvider(
     selector: DocumentSelector,
     provider: TypeDefinitionProvider,

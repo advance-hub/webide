@@ -1,5 +1,4 @@
-import { CancellationToken } from '@opensumi/ide-core-common';
-import { IRange, Position } from '@opensumi/ide-core-common/lib/types';
+import { CancellationToken, IRange, Position } from '@opensumi/ide-core-common';
 
 import type { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 

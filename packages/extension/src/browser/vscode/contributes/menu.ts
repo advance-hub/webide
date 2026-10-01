@@ -4,19 +4,19 @@ import {
   CommandService,
   IContextKeyService,
   ILogger,
+  ToolbarRegistry,
   URI,
   formatLocalize,
   isUndefined,
   localize,
 } from '@opensumi/ide-core-browser';
-import { menus } from '@opensumi/ide-core-browser/lib/extensions/schema/menu';
-import { ToolbarRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuItem, IMenuRegistry, ISubmenuItem, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { menus } from '@opensumi/ide-core-browser/contribution-schemas';
+import { IMenuItem, IMenuRegistry, ISubmenuItem, MenuId } from '@opensumi/ide-core-browser/menu';
 import { LifeCyclePhase } from '@opensumi/ide-core-common';
 import { EditorOpenType, IEditorGroup } from '@opensumi/ide-editor';
-import { IEditorActionRegistry } from '@opensumi/ide-editor/lib/browser';
+import { IEditorActionRegistry } from '@opensumi/ide-editor/browser';
 import { IconType, ThemeType } from '@opensumi/ide-theme';
-import { IIconService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { IIconService } from '@opensumi/ide-theme/types';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { AbstractExtInstanceManagementService } from '../../types';

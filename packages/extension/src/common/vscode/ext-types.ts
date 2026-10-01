@@ -22,7 +22,7 @@ import { illegalArgument } from './utils';
 import type vscode from 'vscode';
 
 export { TextEditorRevealType } from './editor';
-export { UriComponents } from './models/uri';
+export type { UriComponents } from './models/uri';
 export { Uri };
 const { startsWithIgnoreCase } = strings;
 
@@ -2828,7 +2828,11 @@ export enum TaskPanelKind {
 
 @es5ClassCompat
 export class TerminalLink implements vscode.TerminalLink {
-  constructor(public startIndex: number, public length: number, public tooltip?: string) {
+  constructor(
+    public startIndex: number,
+    public length: number,
+    public tooltip?: string,
+  ) {
     if (typeof startIndex !== 'number' || startIndex < 0) {
       throw illegalArgument('startIndex');
     }
@@ -3290,7 +3294,10 @@ export class EvaluatableExpression implements vscode.EvaluatableExpression {
 
 @es5ClassCompat
 export class TimelineItem implements vscode.TimelineItem {
-  constructor(public label: string, public timestamp: number) {}
+  constructor(
+    public label: string,
+    public timestamp: number,
+  ) {}
 }
 
 const canceledName = 'Canceled';
@@ -3447,11 +3454,18 @@ export class TestMessage implements vscode.TestMessage {
 }
 
 export class TestMessageStackFrame implements vscode.TestMessageStackFrame {
-  constructor(public label: string, public uri?: vscode.Uri, public position?: Position) {}
+  constructor(
+    public label: string,
+    public uri?: vscode.Uri,
+    public position?: Position,
+  ) {}
 }
 
 export class TestCoverageCount implements vscode.TestCoverageCount {
-  constructor(public covered: number, public total: number) {
+  constructor(
+    public covered: number,
+    public total: number,
+  ) {
     validateTestCoverageCount(this);
   }
 }
@@ -3539,7 +3553,11 @@ export class BranchCoverage implements vscode.BranchCoverage {
     this.executed = n;
   }
 
-  constructor(public executed: number | boolean, public location: Position | Range, public label?: string) {}
+  constructor(
+    public executed: number | boolean,
+    public location: Position | Range,
+    public label?: string,
+  ) {}
 }
 
 export class DeclarationCoverage implements vscode.DeclarationCoverage {
@@ -3551,7 +3569,11 @@ export class DeclarationCoverage implements vscode.DeclarationCoverage {
     this.executed = n;
   }
 
-  constructor(public readonly name: string, public executed: number | boolean, public location: Position | Range) {}
+  constructor(
+    public readonly name: string,
+    public executed: number | boolean,
+    public location: Position | Range,
+  ) {}
 }
 
 export type FileCoverageDetail = StatementCoverage | DeclarationCoverage;
@@ -3581,7 +3603,10 @@ export class DataTransferItem {
 
   public readonly id: string;
 
-  constructor(public readonly value: any, id?: string) {
+  constructor(
+    public readonly value: any,
+    id?: string,
+  ) {
     this.id = id ?? uuid();
   }
 }
@@ -3681,15 +3706,26 @@ export class TextTabInput {
 }
 
 export class TextDiffTabInput {
-  constructor(readonly original: Uri, readonly modified: Uri) {}
+  constructor(
+    readonly original: Uri,
+    readonly modified: Uri,
+  ) {}
 }
 
 export class TextMergeTabInput {
-  constructor(readonly base: Uri, readonly input1: Uri, readonly input2: Uri, readonly result: Uri) {}
+  constructor(
+    readonly base: Uri,
+    readonly input1: Uri,
+    readonly input2: Uri,
+    readonly result: Uri,
+  ) {}
 }
 
 export class CustomEditorTabInput {
-  constructor(readonly uri: Uri, readonly viewType: string) {}
+  constructor(
+    readonly uri: Uri,
+    readonly viewType: string,
+  ) {}
 }
 
 export class WebviewEditorTabInput {
@@ -3697,18 +3733,28 @@ export class WebviewEditorTabInput {
 }
 
 export class NotebookEditorTabInput {
-  constructor(readonly uri: Uri, readonly notebookType: string) {}
+  constructor(
+    readonly uri: Uri,
+    readonly notebookType: string,
+  ) {}
 }
 
 export class NotebookDiffEditorTabInput {
-  constructor(readonly original: Uri, readonly modified: Uri, readonly notebookType: string) {}
+  constructor(
+    readonly original: Uri,
+    readonly modified: Uri,
+    readonly notebookType: string,
+  ) {}
 }
 
 export class TerminalEditorTabInput {
   constructor() {}
 }
 export class InteractiveWindowInput {
-  constructor(readonly uri: Uri, readonly inputBoxUri: Uri) {}
+  constructor(
+    readonly uri: Uri,
+    readonly inputBoxUri: Uri,
+  ) {}
 }
 // #endregion
 
@@ -3874,7 +3920,10 @@ export class NotebookCellOutputItem {
     return NotebookCellOutputItem.text(rawStr, mime);
   }
 
-  constructor(public data: Uint8Array, public mime: string) {
+  constructor(
+    public data: Uint8Array,
+    public mime: string,
+  ) {
     const mimeNormalized = normalizeMimeType(mime, true);
     if (!mimeNormalized) {
       throw new Error(`INVALID mime type: ${mime}. Must be in the format "type/subtype[;optionalparameter]"`);
@@ -3964,7 +4013,10 @@ export enum NotebookEditorRevealType {
 }
 
 export class NotebookCellStatusBarItem {
-  constructor(public text: string, public alignment: NotebookCellStatusBarAlignment) {}
+  constructor(
+    public text: string,
+    public alignment: NotebookCellStatusBarAlignment,
+  ) {}
 }
 
 export enum NotebookControllerAffinity {
@@ -3981,7 +4033,10 @@ export enum NotebookControllerAffinity2 {
 export class NotebookRendererScript {
   public provides: readonly string[];
 
-  constructor(public uri: vscode.Uri, provides: string | readonly string[] = []) {
+  constructor(
+    public uri: vscode.Uri,
+    provides: string | readonly string[] = [],
+  ) {
     this.provides = arrays.asArray(provides);
   }
 }
@@ -4001,7 +4056,10 @@ export enum NotebookVariablesRequestKind {
 // #region InlineEdit
 
 export class InlineEdit implements vscode.InlineEdit {
-  constructor(public readonly text: string, public readonly range: Range) {}
+  constructor(
+    public readonly text: string,
+    public readonly range: Range,
+  ) {}
 }
 
 export enum InlineEditTriggerKind {

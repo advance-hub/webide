@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 import vscode from 'vscode';
 
 import { CancellationToken, IRange } from '@opensumi/ide-core-common';
@@ -9,7 +9,10 @@ import { SemanticTokens, SemanticTokensEdit, SemanticTokensEdits, Uri } from '..
 import { encodeSemanticTokensDto } from '../../../../common/vscode/semantic-tokens';
 
 class SemanticTokensPreviousResult {
-  constructor(public readonly resultId: string | undefined, public readonly tokens?: Uint32Array) {}
+  constructor(
+    public readonly resultId: string | undefined,
+    public readonly tokens?: Uint32Array,
+  ) {}
 }
 
 interface RelaxedSemanticTokens {

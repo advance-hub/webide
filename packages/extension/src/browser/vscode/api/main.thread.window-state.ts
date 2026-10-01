@@ -2,12 +2,12 @@ import { Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { DisposableCollection } from '@opensumi/ide-core-browser';
 
-import { ExtHostAPIIdentifier, IExtHostWindowState } from '../../../common/vscode';
+import { ExtHostAPIIdentifier, IExtHostWindowState, IMainThreadWindowState } from '../../../common/vscode';
 
 import { WindowActivityTimer } from './window-activity/window-activity-timer';
 
 @Injectable({ multiple: true })
-export class MainThreadWindowState {
+export class MainThreadWindowState implements IMainThreadWindowState {
   private readonly proxy: IExtHostWindowState;
   private blurHandler;
   private focusHandler;

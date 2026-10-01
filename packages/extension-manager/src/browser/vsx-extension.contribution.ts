@@ -7,7 +7,7 @@ import {
   EditorOpenType,
   IResource,
   ResourceService,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IMainLayoutService, MainLayoutContribution } from '@opensumi/ide-main-layout';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 

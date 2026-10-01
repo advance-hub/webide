@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, IDisposable, Schemes, URI } from '@opensumi/ide-core-common';
 import { ResourceService } from '@opensumi/ide-editor';
-import { EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/lib/browser';
+import { EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/browser';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 

@@ -1,7 +1,13 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { CommandService, Disposable, IAccessibilityInformation } from '@opensumi/ide-core-browser';
-import { IStatusBarService, StatusBarAlignment, StatusBarEntry } from '@opensumi/ide-core-browser/lib/services';
+import {
+  CommandService,
+  Disposable,
+  IAccessibilityInformation,
+  IStatusBarService,
+  StatusBarAlignment,
+  StatusBarEntry,
+} from '@opensumi/ide-core-browser';
 import { IMarkdownString, IThemeColor } from '@opensumi/ide-core-common';
 import { getCodiconAriaLabel } from '@opensumi/monaco-editor-core/esm/vs/base/common/iconLabels';
 

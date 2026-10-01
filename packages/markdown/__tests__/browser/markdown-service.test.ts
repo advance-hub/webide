@@ -1,9 +1,9 @@
 import { CancellationTokenSource, Disposable, Emitter } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { IMarkdownService } from '@opensumi/ide-markdown';
-import { MarkdownModule } from '@opensumi/ide-markdown/lib/browser';
 import { IWebview, IWebviewService } from '@opensumi/ide-webview';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
+import { MarkdownModule } from '../../src/browser';
 
 describe('markdown test', () => {
   const injector = createBrowserInjector([MarkdownModule]);

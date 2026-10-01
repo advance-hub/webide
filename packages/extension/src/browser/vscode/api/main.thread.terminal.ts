@@ -14,14 +14,14 @@ import {
   ITerminalLink,
   ITerminalProcessExtHostProxy,
   ITerminalProfileInternalService,
+  ITerminalProfileService,
 } from '@opensumi/ide-terminal-next';
 import {
   EnvironmentVariableServiceToken,
   IEnvironmentVariableService,
   SerializableEnvironmentVariableCollection,
   deserializeEnvironmentVariableCollection,
-} from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
-import { ITerminalProfileService } from '@opensumi/ide-terminal-next/lib/common/profile';
+} from '@opensumi/ide-terminal-next/environment-variables';
 
 import { ExtHostAPIIdentifier, IExtHostTerminal, IMainThreadTerminal } from '../../../common/vscode';
 import { IActivationEventService } from '../../types';

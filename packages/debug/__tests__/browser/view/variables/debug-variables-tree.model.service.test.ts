@@ -1,13 +1,13 @@
 import { Deferred, IContextKeyService } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { Disposable } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugHoverSource } from '@opensumi/ide-debug/lib/browser/editor/debug-hover-source';
-import { DebugConsoleNode } from '@opensumi/ide-debug/lib/browser/tree';
-import { DebugViewModel } from '@opensumi/ide-debug/lib/browser/view/debug-view-model';
-import { DebugVariablesModelService } from '@opensumi/ide-debug/lib/browser/view/variables/debug-variables-tree.model.service';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
+import { DebugHoverSource } from '../../../../src/browser/editor/debug-hover-source';
+import { DebugConsoleNode } from '../../../../src/browser/tree';
+import { DebugViewModel } from '../../../../src/browser/view/debug-view-model';
+import { DebugVariablesModelService } from '../../../../src/browser/view/variables/debug-variables-tree.model.service';
 import styles from '../../../../src/browser/view/variables/debug-variables.module.less';
 
 import { DebugContextKey } from './../../../../src/browser/contextkeys/debug-contextkey.service';
@@ -522,9 +522,8 @@ describe('Debug Variables Tree Model', () => {
     debugVariablesModelService.initDecorations(mockRoot);
     const node = new DebugConsoleNode({ session: mockSession }, 'test', mockRoot);
     debugVariablesModelService.activeNodeDecoration(node);
-    let decoration = debugVariablesModelService.decorations.getDecorations(node);
     debugVariablesModelService.removeNodeDecoration();
-    decoration = debugVariablesModelService.decorations.getDecorations(node);
+    const decoration = debugVariablesModelService.decorations.getDecorations(node);
     expect(decoration).toBeDefined();
     expect(decoration!.classlist).toEqual([]);
   });

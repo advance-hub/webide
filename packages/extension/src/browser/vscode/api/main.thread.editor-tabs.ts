@@ -1,6 +1,6 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { MergeEditorInputData } from '@opensumi/ide-core-browser/lib/monaco/merge-editor-widget';
+import { MergeEditorInputData } from '@opensumi/ide-core-browser/editor';
 import { Disposable, URI, Uri, diffSets, isUndefined } from '@opensumi/ide-core-common';
 import {
   DragOverPosition,
@@ -9,7 +9,7 @@ import {
   IResource,
   WorkbenchEditorService,
 } from '@opensumi/ide-editor';
-import { EditorGroup, WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { EditorGroup, WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 
 import {
   AnyInputDto,
@@ -152,7 +152,10 @@ export class MainThreadEditorTabsService extends Disposable implements IMainThre
 class EditorTabDtoData {
   private _dto: IEditorTabDto;
 
-  constructor(public readonly group: EditorGroup, public resource: IResource) {
+  constructor(
+    public readonly group: EditorGroup,
+    public resource: IResource,
+  ) {
     this.tryUpdate();
   }
 
@@ -289,6 +292,7 @@ class EditorTabDtoDataStore {
 
 class EditorTabGroupData extends Disposable {
   public tabs: EditorTabDtoData[] = [];
+  private publishedTabs = new Set<string>();
 
   constructor(
     public readonly editorGroup: EditorGroup,
@@ -303,6 +307,7 @@ class EditorTabGroupData extends Disposable {
 
   init() {
     this.tabs = this.editorGroup.resources.map((r) => this.store.getOrCreateData(this.editorGroup, r));
+    this.publishedTabs = new Set(this.tabs.map((tab) => tab.dto.id));
     this.addDispose(
       this.editorGroup.onDidEditorGroupTabOperation((operation) => {
         const kind = {
@@ -312,6 +317,11 @@ class EditorTabGroupData extends Disposable {
         }[operation.type];
         const tabDtoData = this.store.getOrCreateData(this.editorGroup, operation.resource);
         tabDtoData.tryUpdate();
+        if (operation.type === 'open') {
+          this.publishedTabs.add(tabDtoData.dto.id);
+        } else if (operation.type === 'close') {
+          this.publishedTabs.delete(tabDtoData.dto.id);
+        }
         this.proxy.$acceptTabOperation({
           kind,
           groupId: this.editorGroup.groupId,
@@ -337,7 +347,9 @@ class EditorTabGroupData extends Disposable {
     this.tabs = this.editorGroup.resources.map((r, index) => {
       const data = this.store.getOrCreateData(this.editorGroup, r);
       const isChanged = data.tryUpdate();
-      if (isChanged) {
+      // Rendering and preview replacement update the body before TAB_OPEN is
+      // published. The host cannot accept updates for that tab until then.
+      if (isChanged && this.publishedTabs.has(data.dto.id)) {
         this.proxy.$acceptTabOperation({
           kind: TabModelOperationKind.TAB_UPDATE,
           tabDto: data.dto,

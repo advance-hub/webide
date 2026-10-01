@@ -1,28 +1,34 @@
 import path from 'path';
 
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
-import { MockedStorageProvider } from '@opensumi/ide-core-browser/__mocks__/storage';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   Deferred,
   Disposable,
   Emitter as EventEmitter,
   IFileServiceClient,
+  ITaskDefinitionRegistry,
   StorageProvider,
+  TaskDefinitionRegistryImpl,
   Uri,
 } from '@opensumi/ide-core-common';
-import { ITaskDefinitionRegistry, TaskDefinitionRegistryImpl } from '@opensumi/ide-core-common/lib/task-definition';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { ExtensionDocumentDataManagerImpl } from '@opensumi/ide-extension/lib/hosted/api/vscode/doc';
-import { ExtHostMessage } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.message';
-import { ExtHostWorkspace } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.workspace';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common/main-layout.definition';
-import { OutputPreferences } from '@opensumi/ide-output/lib/browser/output-preference';
-import { TaskService } from '@opensumi/ide-task/lib/browser/task.service';
-import { TerminalTaskSystem } from '@opensumi/ide-task/lib/browser/terminal-task-system';
-import { ITaskService, ITaskSystem } from '@opensumi/ide-task/lib/common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockEnvironmentVariableService } from '@opensumi/ide-dev-tool/mocks/environment-variable';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
+import { MockedStorageProvider } from '@opensumi/ide-dev-tool/mocks/storage';
+import {
+  MockMainLayoutService,
+  MockTerminalProfileInternalService,
+  MockTerminalService,
+  MockTerminalThemeService,
+} from '@opensumi/ide-dev-tool/mocks/terminal';
+import { IEditorDocumentModelService, WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { OutputPreferences } from '@opensumi/ide-output/preferences';
+import { ITaskService, ITaskSystem } from '@opensumi/ide-task';
+import { TaskService } from '@opensumi/ide-task/service';
+import { TerminalTaskSystem } from '@opensumi/ide-task/terminal-system';
 import {
   ITerminalApiService,
   ITerminalClientFactory2,
@@ -34,32 +40,27 @@ import {
   ITerminalService,
   ITerminalTheme,
 } from '@opensumi/ide-terminal-next';
-import {
-  MockMainLayoutService,
-  MockTerminalProfileInternalService,
-  MockTerminalService,
-  MockTerminalThemeService,
-} from '@opensumi/ide-terminal-next/__tests__/browser/mock.service';
-import { createTerminalClientFactory2 } from '@opensumi/ide-terminal-next/lib/browser/terminal.client';
-import { TerminalController } from '@opensumi/ide-terminal-next/lib/browser/terminal.controller';
-import { TerminalEnvironmentService } from '@opensumi/ide-terminal-next/lib/browser/terminal.environment.service';
-import { TerminalInternalService } from '@opensumi/ide-terminal-next/lib/browser/terminal.internal.service';
-import { TerminalPreference } from '@opensumi/ide-terminal-next/lib/browser/terminal.preference';
-import { TerminalProfileService } from '@opensumi/ide-terminal-next/lib/browser/terminal.profile';
-import { TerminalGroupViewService } from '@opensumi/ide-terminal-next/lib/browser/terminal.view';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
-import { ITerminalPreference } from '@opensumi/ide-terminal-next/lib/common/preference';
+import { createTerminalClientFactory2 } from '@opensumi/ide-terminal-next/browser/client';
+import { TerminalController } from '@opensumi/ide-terminal-next/browser/controller';
+import { TerminalEnvironmentService } from '@opensumi/ide-terminal-next/browser/environment';
+import { TerminalInternalService } from '@opensumi/ide-terminal-next/browser/internal';
+import { TerminalPreference } from '@opensumi/ide-terminal-next/browser/preferences';
+import { TerminalProfileService } from '@opensumi/ide-terminal-next/browser/profile';
+import { TerminalGroupViewService } from '@opensumi/ide-terminal-next/browser/view';
+import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/environment-variables';
+import { ITerminalPreference } from '@opensumi/ide-terminal-next/preferences';
 import { IVariableResolverService } from '@opensumi/ide-variable';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { mockExtensionProps } from '../../../../__mocks__/extensions';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
 import { MainThreadTasks } from '../../../../src/browser/vscode/api/main.thread.tasks';
 import { MainThreadTerminal } from '../../../../src/browser/vscode/api/main.thread.terminal';
 import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { ExtensionDocumentDataManagerImpl } from '../../../../src/hosted/api/vscode/doc';
+import { ExtHostMessage } from '../../../../src/hosted/api/vscode/ext.host.message';
 import { ExtHostTerminal } from '../../../../src/hosted/api/vscode/ext.host.terminal';
+import { ExtHostWorkspace } from '../../../../src/hosted/api/vscode/ext.host.workspace';
 import { ExtHostTasks } from '../../../../src/hosted/api/vscode/tasks/ext.host.tasks';
-import { MockEnvironmentVariableService } from '../../__mocks__/environmentVariableService';
 
 import { CustomBuildTaskProvider } from './__mock__/taskProvider';
 

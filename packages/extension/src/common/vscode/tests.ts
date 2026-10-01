@@ -6,9 +6,7 @@
 
 import { CancellationToken } from '@opensumi/ide-core-common';
 import {
-  CoverageDetails,
   ExtensionRunTestsRequest,
-  IFileCoverage,
   ILocationDto,
   ISerializedTestResults,
   ITestItem,
@@ -19,7 +17,7 @@ import {
   SerializedTestMessage,
   TestResultState,
   TestsDiff,
-} from '@opensumi/ide-testing/lib/common/testCollection';
+} from '@opensumi/ide-testing/collection';
 
 import type vscode from 'vscode';
 

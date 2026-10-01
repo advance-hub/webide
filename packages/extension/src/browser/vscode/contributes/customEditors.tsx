@@ -15,9 +15,9 @@ import {
   EditorOpenType,
   IEditorPriority,
   ReactEditorComponent,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IWebviewService } from '@opensumi/ide-webview';
-import { WebviewMounter } from '@opensumi/ide-webview/lib/browser/editor-webview';
+import { WebviewMounter } from '@opensumi/ide-webview/editor';
 
 import { Contributes, ExtensionService, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { ICustomEditorOptions } from '../../../common/vscode';

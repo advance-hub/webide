@@ -1,7 +1,6 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { PreferenceService } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { LabelService, PreferenceService } from '@opensumi/ide-core-browser';
 import {
   Disposable,
   Emitter,
@@ -28,8 +27,8 @@ import {
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelRef,
   IEditorDocumentModelService,
-} from '@opensumi/ide-editor/lib/browser';
-import { UntitledDocumentIdCounter } from '@opensumi/ide-editor/lib/browser/untitled-resource';
+} from '@opensumi/ide-editor/browser';
+import { UntitledDocumentIdCounter } from '@opensumi/ide-editor/resources';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import { ExtHostAPIIdentifier, IExtensionHostDocService, IMainThreadDocumentsShape } from '../../../common/vscode';

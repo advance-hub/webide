@@ -8,15 +8,15 @@ import {
   URI,
 } from '@opensumi/ide-core-browser';
 import { IDebugServer } from '@opensumi/ide-debug';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { MockContextKeyService } from '../../../monaco/__mocks__/monaco.context-key.service';
+import { DebugConfigurationManager } from '../../src/browser/debug-configuration-manager';
+import { DebugPreferences } from '../../src/browser/debug-preferences';
 
 describe('Debug Configuration Manager', () => {
   const mockInjector = createBrowserInjector([]);

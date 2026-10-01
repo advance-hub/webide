@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { createMutex } from 'lib0/mutex';
+// lib0 publishes dual ESM/CJS runtime entries but only ESM-flavoured typings.
+// Keep this package CommonJS and let Node select lib0's `require` export.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { createMutex } = require('lib0/mutex') as {
+  createMutex: () => (callback: () => void, fallback?: () => void) => unknown;
+};
 // @ts-ignore
 import { Awareness } from 'y-protocols/awareness';
 import {
@@ -24,7 +29,7 @@ import {
   SelectionDirection,
   editor,
 } from '@opensumi/ide-monaco';
-import { IModelDeltaDecoration } from '@opensumi/ide-monaco/lib/browser/monaco-api/editor';
+import { IModelDeltaDecoration } from '@opensumi/ide-monaco/api/editor';
 
 import { ICollaborationService, ITextModelBinding, Y_REMOTE_SELECTION, Y_REMOTE_SELECTION_HEAD } from '../common';
 
@@ -51,7 +56,12 @@ export class TextModelBinding implements ITextModelBinding {
 
   private undoManger: UndoManager;
 
-  constructor(private yText: YText, private textModel: ITextModel, private awareness: Awareness, editor?: ICodeEditor) {
+  constructor(
+    private yText: YText,
+    private textModel: ITextModel,
+    private awareness: Awareness,
+    editor?: ICodeEditor,
+  ) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.doc = yText.doc!;
     this.editors = new Set();

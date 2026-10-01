@@ -1,10 +1,12 @@
-import { CancellationTokenSource, Emitter, Uri } from '@opensumi/ide-core-common';
-import { URI } from '@opensumi/ide-core-common';
+import { CancellationTokenSource, Emitter, URI, Uri } from '@opensumi/ide-core-common';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+
 import {
   ExtHostAPIIdentifier,
   ExtensionDocumentDataManager,
   MainThreadAPIIdentifier,
-} from '@opensumi/ide-extension/lib/common/vscode';
+} from '../../../../src/common/vscode';
 import {
   CustomDocument,
   CustomDocumentContentChangeEvent,
@@ -13,12 +15,9 @@ import {
   CustomEditorType,
   CustomTextEditorProvider,
   IMainThreadCustomEditor,
-} from '@opensumi/ide-extension/lib/common/vscode/custom-editor';
-import { ExtHostWebviewService } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.api.webview';
-import { ExtHostCustomEditorImpl } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.custom-editor';
-
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
+} from '../../../../src/common/vscode/custom-editor';
+import { ExtHostWebviewService } from '../../../../src/hosted/api/vscode/ext.host.api.webview';
+import { ExtHostCustomEditorImpl } from '../../../../src/hosted/api/vscode/ext.host.custom-editor';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();
 

@@ -2,8 +2,7 @@ import net from 'net';
 import { performance } from 'perf_hooks';
 
 import { Injector } from '@opensumi/di';
-import { SumiConnectionMultiplexer, createExtMessageIO } from '@opensumi/ide-connection';
-import { NetSocketConnection } from '@opensumi/ide-connection/lib/common/connection';
+import { NetSocketConnection, SumiConnectionMultiplexer, createExtMessageIO } from '@opensumi/ide-connection';
 import {
   CommonProcessReporter,
   Emitter,
@@ -13,8 +12,8 @@ import {
   locale,
   setLanguageId,
 } from '@opensumi/ide-core-common';
-import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/lib/node';
-import { argv } from '@opensumi/ide-core-common/lib/node/cli';
+import { suppressNodeJSEpipeError } from '@opensumi/ide-core-common/node';
+import { argv } from '@opensumi/ide-core-common/node/cli';
 
 import { IExtensionHostService, KT_APP_CONFIG_KEY, KT_PROCESS_SOCK_OPTION_KEY, ProcessMessageType } from '../common';
 import { ExtHostAppConfig, ExtProcessConfig } from '../common/ext.process';
@@ -103,6 +102,8 @@ export async function extProcessInit(config: ExtProcessConfig = {}) {
   patchConsole();
   const { extProtocol: protocol, logger } = await initRPCProtocol(extInjector);
   try {
+    // Keep this bootstrap lazy and compatible with both ts-node sources and compiled CommonJS output.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     let Preload = require('./ext.host');
     if (Preload.default) {
       Preload = Preload.default;

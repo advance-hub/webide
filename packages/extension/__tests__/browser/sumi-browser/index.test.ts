@@ -1,6 +1,6 @@
 import { registerLocalizationBundle } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
 import { mockExtension } from '../../../__mocks__/extensions';
 import { createBrowserApi } from '../../../src/browser/sumi-browser';

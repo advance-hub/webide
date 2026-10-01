@@ -1,6 +1,6 @@
 import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule } from '@opensumi/ide-core-browser';
-import { INotebookService } from '@opensumi/ide-editor';
+import { INotebookService } from '@opensumi/ide-editor/notebook';
 
 import { LibroKeybindContribution } from './libro-keybind-contribution';
 import { LibroCommandContribution } from './libro.command';

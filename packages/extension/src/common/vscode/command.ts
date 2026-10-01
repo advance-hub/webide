@@ -2,6 +2,17 @@ import { IDisposable, IExtensionInfo } from '@opensumi/ide-core-common';
 
 import { Disposable } from './ext-types';
 
+import type { VSCommand } from './model.api';
+import type { CommandDto } from './scm';
+import type { DisposableStore } from '@opensumi/ide-core-common';
+import type vscode from 'vscode';
+
+/** Conversion used by language features without exposing the command host. */
+export interface ICommandsConverter {
+  toInternal(command: vscode.Command | undefined, disposables: DisposableStore): CommandDto | undefined;
+  fromInternal(command: VSCommand): vscode.Command | undefined;
+}
+
 export interface IMainThreadCommands {
   $registerCommand(id: string): void;
   $unregisterCommand(id: string): void;

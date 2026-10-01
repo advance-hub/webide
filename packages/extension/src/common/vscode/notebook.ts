@@ -5,7 +5,7 @@ import {
   NotebookCellsChangedEventDto,
   NotebookDataDto,
   NotebookDocumentMetadata,
-} from '@opensumi/ide-editor';
+} from '@opensumi/ide-editor/notebook';
 
 import type vscode from 'vscode';
 

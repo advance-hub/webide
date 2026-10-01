@@ -2,7 +2,7 @@ import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { Disposable, IDisposable, ILogger } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IIconService } from '@opensumi/ide-theme';
-import { IToolBarViewService, ToolBarPosition } from '@opensumi/ide-toolbar/lib/browser';
+import { IToolBarViewService, ToolBarPosition } from '@opensumi/ide-toolbar/browser';
 
 import { AbstractSumiBrowserContributionRunner, IRunTimeParams } from '../types';
 

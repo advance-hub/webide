@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 import vscode from 'vscode';
 
 import * as types from './ext-types';
@@ -116,7 +116,7 @@ export function serializeEnterRules(rules?: vscode.OnEnterRule[]): SerializedOnE
         beforeText: serializeRegExp(r.beforeText),
         afterText: serializeRegExp(r.afterText),
         previousLineText: serializeRegExp(r.previousLineText),
-      } as SerializedOnEnterRule),
+      }) as SerializedOnEnterRule,
   );
 }
 

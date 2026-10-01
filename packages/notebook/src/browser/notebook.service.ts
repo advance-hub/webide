@@ -12,8 +12,8 @@ import {
   NotebookRawContentEventDto,
   WorkbenchEditorService,
 } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/doc-model/types';
-import { NotebookService } from '@opensumi/ide-editor/lib/browser/notebook.service';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
+import { NotebookService } from '@opensumi/ide-editor/runtime';
 
 import { LIBRO_COMPONENTS_SCHEME_ID } from './libro.protocol';
 import { ILibroOpensumiService } from './libro.service';

@@ -1,14 +1,14 @@
 import { CommandRegistry, CommandRegistryImpl } from '@opensumi/ide-core-common';
-import { MainThreadStatusBar } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.statusbar';
-import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { StatusBarAlignment } from '@opensumi/ide-extension/lib/common/vscode/ext-types';
-import { ExtHostStatusBar } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.statusbar';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 import { IStatusBarService } from '@opensumi/ide-status-bar';
-import { StatusBarService } from '@opensumi/ide-status-bar/lib/browser/status-bar.service';
+import { StatusBarService } from '@opensumi/ide-status-bar/service';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { mockExtensionDescription } from '../../__mocks__/extensions';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
+import { MainThreadStatusBar } from '../../src/browser/vscode/api/main.thread.statusbar';
+import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../src/common/vscode';
+import { StatusBarAlignment } from '../../src/common/vscode/ext-types';
+import { ExtHostStatusBar } from '../../src/hosted/api/vscode/ext.host.statusbar';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();
 

@@ -1,9 +1,9 @@
 import { Emitter } from '@opensumi/ide-core-common';
-import { MainThreadIDEWindow } from '@opensumi/ide-extension/lib/browser/sumi/main.thread.window';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IPlainWebviewWindow, IWebviewService } from '@opensumi/ide-webview';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { MainThreadIDEWindow } from '../../src/browser/sumi/main.thread.window';
 
 const onMessageEmitter = new Emitter<string>();
 const onClosedEmitter = new Emitter<void>();

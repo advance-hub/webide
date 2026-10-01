@@ -1,7 +1,7 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { CancellationToken, CancellationTokenSource } from '@opensumi/ide-core-common';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
 import { MainThreadSumiAPIIdentifier } from '../../../../lib/common/sumi';
 import { IMainThreadChatAgents } from '../../../../lib/common/sumi/chat-agents';
 import { IExtensionDescription } from '../../../../lib/common/vscode';

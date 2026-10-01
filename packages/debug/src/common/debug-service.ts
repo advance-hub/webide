@@ -19,7 +19,7 @@ export enum DebugConfigurationProviderTriggerKind {
   Dynamic = 2,
 }
 
-export const enum MemoryRangeType {
+export enum MemoryRangeType {
   Valid,
   Unreadable,
   Error,

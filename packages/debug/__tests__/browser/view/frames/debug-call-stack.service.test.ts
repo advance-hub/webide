@@ -1,13 +1,12 @@
 import { IContextKeyService } from '@opensumi/ide-core-browser';
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
-import { AbstractContextMenuService } from '@opensumi/ide-core-browser/lib/menu/next';
-import { URI } from '@opensumi/ide-core-common';
-import { Disposable } from '@opensumi/ide-core-common';
-import { DebugStackFrame } from '@opensumi/ide-debug/lib/browser/model';
-import { DebugCallStackService } from '@opensumi/ide-debug/lib/browser/view/frames/debug-call-stack.service';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
+import { Disposable, URI } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { ContextKeyService } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/browser/contextKeyService';
 import { IContextKeyServiceTarget } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
+
+import { DebugStackFrame } from '../../../../src/browser/model';
+import { DebugCallStackService } from '../../../../src/browser/view/frames/debug-call-stack.service';
 
 describe('Debug Call Frames Service', () => {
   const mockInjector = createBrowserInjector([]);
@@ -33,7 +32,7 @@ describe('Debug Call Frames Service', () => {
     })),
   } as any;
 
-  beforeAll(() => {
+  (beforeAll(() => {
     mockInjector.overrideProviders({
       token: IContextKeyService,
       useValue: mockContextKeyService,
@@ -75,5 +74,5 @@ describe('Debug Call Frames Service', () => {
       expect(mockCtxMenuRenderer.show).toHaveBeenCalledTimes(1);
       expect(mockEvent.stopPropagation).toHaveBeenCalledTimes(1);
       expect(mockEvent.preventDefault).toHaveBeenCalledTimes(1);
-    });
+    }));
 });

@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { OutputChannel } from '@opensumi/ide-output/lib/browser/output.channel';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
+import { OutputChannel } from '@opensumi/ide-output/channel';
+import { OutputService } from '@opensumi/ide-output/service';
 
 import { IMainThreadOutput } from '../../../common/vscode';
 

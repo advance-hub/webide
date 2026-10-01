@@ -1,6 +1,6 @@
 import { Autowired } from '@opensumi/di';
 import { CommandContribution, CommandRegistry, Domain, IClipboardService, localize } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { DEBUG_COMMANDS } from '../../../common';
 

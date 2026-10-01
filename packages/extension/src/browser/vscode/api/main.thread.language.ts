@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-unresolved
 import { CancellationToken } from 'vscode';
 
 import { Autowired, Injectable, Optional } from '@opensumi/di';
@@ -18,21 +17,20 @@ import {
   path,
   revive,
 } from '@opensumi/ide-core-common';
-import { IEvaluatableExpressionService } from '@opensumi/ide-debug/lib/browser/editor/evaluatable-expression';
-import { InlineValue, InlineValueContext, InlineValuesProvider } from '@opensumi/ide-debug/lib/common/inline-values';
+import { InlineValue, InlineValueContext, InlineValuesProvider } from '@opensumi/ide-debug';
+import { IEvaluatableExpressionService } from '@opensumi/ide-debug/editor/evaluatable-expression';
 import { ILanguageService } from '@opensumi/ide-editor';
 import {
   IEditorDocumentModelService,
   ILanguageStatus,
   ILanguageStatusService,
   LanguageSelector,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import * as monaco from '@opensumi/ide-monaco';
-import { ICallHierarchyService } from '@opensumi/ide-monaco/lib/browser/contrib/callHierarchy';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
-import { ITypeHierarchyService } from '@opensumi/ide-monaco/lib/browser/contrib/typeHierarchy';
-import { monaco as monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
+import { monaco as monacoApi } from '@opensumi/ide-monaco/api';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { ICallHierarchyService, ITypeHierarchyService } from '@opensumi/ide-monaco/hierarchy';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
 import { Range as MonacoRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 import * as modes from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 import { ILanguageService as IMonacoLanguageService } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages/language';

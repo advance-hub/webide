@@ -1,7 +1,7 @@
 import { CompositeTreeNode, ITree, ITreeNodeOrCompositeTreeNode, TreeNode } from '@opensumi/ide-components';
 import { MessageType, localize } from '@opensumi/ide-core-browser';
 import { IRange } from '@opensumi/ide-core-common';
-import { Path } from '@opensumi/ide-utils/lib/path';
+import { Path } from '@opensumi/ide-utils/path';
 import { Range } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol/lib/debugProtocol';
 
@@ -12,7 +12,11 @@ import { AnsiConsoleNode } from './debug-console-tree-node.define';
 const UNDEFINED_VALUE = 'undefined';
 
 export class ExpressionTreeService {
-  constructor(private session?: DebugSession, private source?: DebugProtocol.Source, private line?: number | string) {}
+  constructor(
+    private session?: DebugSession,
+    private source?: DebugProtocol.Source,
+    private line?: number | string,
+  ) {}
 
   async resolveChildren(
     parent?: ExpressionContainer,
@@ -667,7 +671,10 @@ export class DebugConsoleRoot extends ExpressionContainer {
     return !!node && !node.parent;
   }
 
-  constructor(public readonly session: DebugSession | undefined, presets: DebugConsoleNode[] = []) {
+  constructor(
+    public readonly session: DebugSession | undefined,
+    presets: DebugConsoleNode[] = [],
+  ) {
     super({ session }, undefined, new DebugConsoleTreeService(session) as ITree);
     this.presetChildren = presets;
   }
@@ -686,7 +693,10 @@ export class DebugWatchRoot extends ExpressionContainer {
     return !!node && !node.parent;
   }
 
-  constructor(public readonly session: DebugSession | undefined, presets: DebugWatchNode[] = []) {
+  constructor(
+    public readonly session: DebugSession | undefined,
+    presets: DebugWatchNode[] = [],
+  ) {
     super({ session }, undefined);
     this.presetChildren = presets;
   }
@@ -717,7 +727,10 @@ export class DebugVariableRoot extends DebugVariableContainer {
 export class DebugHoverVariableRoot extends ExpressionContainer {
   private _value = '';
 
-  constructor(protected readonly expression: string, protected readonly session: DebugSession | undefined) {
+  constructor(
+    protected readonly expression: string,
+    protected readonly session: DebugSession | undefined,
+  ) {
     super({ session });
   }
 

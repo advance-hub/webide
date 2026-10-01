@@ -14,11 +14,11 @@ import {
   useDesignStyles,
   useInjectable,
 } from '@opensumi/ide-core-browser';
-import { InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { Select as NativeSelect } from '@opensumi/ide-core-browser/lib/components/select';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
-import { derived, observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { Select as NativeSelect } from '@opensumi/ide-core-browser/components/select';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { derived, observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import { DebugState } from '../../../common';
 import { DebugAction } from '../../components';
@@ -283,7 +283,10 @@ const FloatDebugToolbarView = () => {
   useEffect(() => {
     const disposableCollection = new DisposableCollection();
     const value = preference.get<number>(DebugPreferenceTopKey) || 0;
-    if (isElectronRenderer) {
+    // The electron UI branch requires the preload-injected IPC bridge; a
+    // misconfigured runtime flag must not crash the whole React tree with a
+    // bare ReferenceError in a plain browser.
+    if (isElectronRenderer && electronEnv.ipcRenderer) {
       const uiService: IElectronMainUIService = debugToolbarService.mainUIService;
       // Electron 环境下需要在非全屏情况下追加 Header 高度
       uiService.isFullScreen(electronEnv.currentWindowId).then((fullScreen) => {

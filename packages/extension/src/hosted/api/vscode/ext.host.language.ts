@@ -48,7 +48,6 @@ import vscode, {
   TypeDefinitionProvider,
   TypeHierarchyProvider,
   WorkspaceSymbolProvider,
-  // eslint-disable-next-line import/no-unresolved
 } from 'vscode';
 import { SymbolInformation } from 'vscode-languageserver-types';
 
@@ -64,7 +63,7 @@ import {
   disposableTimeout,
   toDisposable,
 } from '@opensumi/ide-core-common';
-import { InlineValue } from '@opensumi/ide-debug/lib/common/inline-values';
+import { InlineValue } from '@opensumi/ide-debug';
 
 import {
   ExtensionDocumentDataManager,
@@ -162,7 +161,7 @@ import { TypeHierarchyAdapter } from './language/type-hierarchy';
 import { getDurationTimer, score, targetsNotebooks } from './language/util';
 import { WorkspaceSymbolAdapter } from './language/workspace-symbol';
 
-import type { IPosition } from '@opensumi/ide-monaco/lib/common';
+import type { IPosition } from '@opensumi/ide-monaco';
 import type {
   CodeActionContext,
   NewSymbolNameTriggerKind,
@@ -376,7 +375,7 @@ export function createLanguagesApiFactory(
     /**
      * @monaco-todo: wait until API is available in Monaco (1.85.0+)
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     registerMultiDocumentHighlightProvider(
       selector: vscode.DocumentSelector,
       provider: vscode.MultiDocumentHighlightProvider,
@@ -387,7 +386,10 @@ export function createLanguagesApiFactory(
 }
 
 class AdapterData {
-  constructor(readonly adapter: Adapter, readonly extension: IExtensionDescription) {}
+  constructor(
+    readonly adapter: Adapter,
+    readonly extension: IExtensionDescription,
+  ) {}
 }
 
 export type Adapter =
@@ -1853,8 +1855,8 @@ export class ExtHostLanguages implements IExtHostLanguages {
             data.severity === LanguageStatusSeverity.Error
               ? Severity.Error
               : data.severity === LanguageStatusSeverity.Warning
-              ? Severity.Warning
-              : Severity.Info,
+                ? Severity.Warning
+                : Severity.Info,
           command: data.command && this.commands.converter.toInternal(data.command, commandDisposables),
           accessibilityInfo: data.accessibilityInformation,
           busy: data.busy,

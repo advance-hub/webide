@@ -1,13 +1,10 @@
-import { createExtHostContextProxyIdentifier, createMainContextProxyIdentifier } from '@opensumi/ide-connection';
+import {
+  createExtHostContextProxyIdentifier,
+  createMainContextProxyIdentifier,
+} from '@opensumi/ide-connection/rpc-contracts';
 import { Emitter, IExtensionProps } from '@opensumi/ide-core-common';
 
 import { IExtension, IExtensionHostService } from '..';
-// eslint-disable-next-line import/no-restricted-paths
-import { ExtHostFileSystem } from '../../hosted/api/vscode/ext.host.file-system';
-import { ExtHostFileSystemEvent } from '../../hosted/api/vscode/ext.host.file-system-event';
-import { ExtHostFileSystemInfo } from '../../hosted/api/vscode/ext.host.file-system-info';
-import { ExtHostLanguages } from '../../hosted/api/vscode/ext.host.language';
-import { ExtHostStorage } from '../../hosted/api/vscode/ext.host.storage';
 import { ISumiExtHostWebviews } from '../sumi/webview';
 
 import { IExtHostAuthentication, IMainThreadAuthentication } from './authentication';
@@ -25,8 +22,13 @@ import {
 } from './editor';
 import { IExtHostEditorTabs, IMainThreadEditorTabsShape } from './editor-tabs';
 import { IExtHostEnv, IMainThreadEnv } from './env';
-import { IMainThreadFileSystemShape } from './file-system';
-import { IMainThreadLanguages } from './languages';
+import {
+  IExtHostFileSystemEvent,
+  IExtHostFileSystemInfoShape,
+  IExtHostFileSystemShape,
+  IMainThreadFileSystemShape,
+} from './file-system';
+import { IExtHostLanguages, IMainThreadLanguages } from './languages';
 import { IExtHostLocalization, IMainThreadLocalization } from './localization';
 import { ExtensionNotebookDocumentManager, IMainThreadNotebookDocumentsShape } from './notebook';
 import { IExtHostPreference, IMainThreadPreference } from './preference';
@@ -53,11 +55,10 @@ import {
   IMainThreadQuickOpen,
   IMainThreadStatusBar,
   IMainThreadWindow,
+  IMainThreadWindowState,
 } from './window';
 import { IExtHostWorkspace, IMainThreadWorkspace } from './workspace';
 
-// eslint-disable-next-line import/no-restricted-paths
-import type { MainThreadWindowState } from '../../browser/vscode/api/main.thread.window-state';
 import type vscode from 'vscode';
 
 export const VSCodeExtensionService = Symbol('VSCodeExtensionService');
@@ -91,7 +92,7 @@ export const MainThreadAPIIdentifier = {
   MainThreadWebviewView: createMainContextProxyIdentifier<IMainThreadWebviewView>('MainThreadWebviewView'),
   MainThreadTreeView: createMainContextProxyIdentifier<IMainThreadTreeView>('MainThreadTreeView'),
   MainThreadSCM: createMainContextProxyIdentifier<IMainThreadSCMShape>('MainThreadSCM'),
-  MainThreadWindowState: createMainContextProxyIdentifier<MainThreadWindowState>('MainThreadWindowState'),
+  MainThreadWindowState: createMainContextProxyIdentifier<IMainThreadWindowState>('MainThreadWindowState'),
   MainThreadDecorations: createMainContextProxyIdentifier<IMainThreadDecorationsShape>('MainThreadDecorations'),
   MainThreadDebug: createMainContextProxyIdentifier<IMainThreadDebug>('MainThreadDebug'),
   MainThreadConnection: createMainContextProxyIdentifier<IInterProcessConnection>('MainThreadConnection'),
@@ -112,8 +113,7 @@ export const MainThreadAPIIdentifier = {
 };
 
 export const ExtHostAPIIdentifier = {
-  // 使用impl作为类型
-  ExtHostLanguages: createExtHostContextProxyIdentifier<ExtHostLanguages>('ExtHostLanguages'),
+  ExtHostLanguages: createExtHostContextProxyIdentifier<IExtHostLanguages>('ExtHostLanguages'),
   ExtHostStatusBar: createExtHostContextProxyIdentifier<IExtHostStatusBar>('ExtHostStatusBar'),
   ExtHostCommands: createExtHostContextProxyIdentifier<IExtHostCommands>('ExtHostCommandsRegistry'),
   ExtHostExtensionService: createExtHostContextProxyIdentifier<IExtensionHostService>('ExtHostExtensionService'),
@@ -127,9 +127,9 @@ export const ExtHostAPIIdentifier = {
   ExtHostQuickOpen: createExtHostContextProxyIdentifier<IExtHostQuickOpen>('ExtHostQuickOpen'),
   ExtHostStorage: createExtHostContextProxyIdentifier<IExtHostStorage>('ExtHostStorage'),
   ExtHostOutput: createExtHostContextProxyIdentifier<IExtHostOutput>('ExtHostOutput'),
-  ExtHostFileSystem: createExtHostContextProxyIdentifier<ExtHostFileSystem>('ExtHostFileSystem'),
-  ExtHostFileSystemInfo: createExtHostContextProxyIdentifier<ExtHostFileSystemInfo>('ExtHostFileSystemInfo'),
-  ExtHostFileSystemEvent: createExtHostContextProxyIdentifier<ExtHostFileSystemEvent>('ExtHostFileSystemEvent'),
+  ExtHostFileSystem: createExtHostContextProxyIdentifier<IExtHostFileSystemShape>('ExtHostFileSystem'),
+  ExtHostFileSystemInfo: createExtHostContextProxyIdentifier<IExtHostFileSystemInfoShape>('ExtHostFileSystemInfo'),
+  ExtHostFileSystemEvent: createExtHostContextProxyIdentifier<IExtHostFileSystemEvent>('ExtHostFileSystemEvent'),
   ExtHostWebview: createExtHostContextProxyIdentifier<IExtHostWebview>('ExtHostWebview'),
   ExtHostWebviewView: createExtHostContextProxyIdentifier<IExtHostWebviewView>('ExtHostWebviewView'),
   ExtHostTreeView: createExtHostContextProxyIdentifier<IExtHostTreeView>('ExtHostTreeView'),
@@ -169,7 +169,7 @@ export interface IExtensionProcessService {
 
   extensionsChangeEmitter: Emitter<string>;
 
-  storage: ExtHostStorage;
+  storage: IExtHostStorage;
 }
 
 export * from './authentication';

@@ -20,7 +20,7 @@ import {
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol';
 
 import { DebugSession } from '../../debug-session';

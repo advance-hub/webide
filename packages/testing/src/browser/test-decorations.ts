@@ -6,12 +6,12 @@ import {
   IMenu,
   MenuId,
   generateMergedCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import { Disposable, IDisposable, IRange, URI, strings, uuid } from '@opensumi/ide-core-common';
-import { IEditor, IEditorFeatureContribution } from '@opensumi/ide-editor/lib/browser';
-import { MonacoCodeService } from '@opensumi/ide-editor/lib/browser/editor.override';
+import { IEditor, IEditorFeatureContribution } from '@opensumi/ide-editor/browser';
+import { MonacoCodeService } from '@opensumi/ide-editor/runtime';
 import * as monaco from '@opensumi/ide-monaco';
-import { ICodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ICodeEditor } from '@opensumi/ide-monaco/types';
 import { MarkdownString } from '@opensumi/monaco-editor-core/esm/vs/base/common/htmlContent';
 import { MouseTargetType } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/editorBrowser';
 import { EditorOption } from '@opensumi/monaco-editor-core/esm/vs/editor/common/config/editorOptions';
@@ -146,7 +146,10 @@ abstract class RunTestDecoration extends Disposable {
     return this.editorDecoration.range.startLineNumber;
   }
 
-  constructor(public editorDecoration: IModelDeltaDecoration, protected readonly editor: ICodeEditor) {
+  constructor(
+    public editorDecoration: IModelDeltaDecoration,
+    protected readonly editor: ICodeEditor,
+  ) {
     super();
   }
 
@@ -356,8 +359,8 @@ class TestMessageDecoration implements ITestDecoration {
       typeof message === 'string'
         ? message
         : typeof testMessage.message === 'object' && 'value' in testMessage.message
-        ? (testMessage.message.value as string)
-        : String(testMessage.message);
+          ? (testMessage.message.value as string)
+          : String(testMessage.message);
 
     this.codeEditorService.registerDecorationType(
       'test-message-decoration',
@@ -381,8 +384,8 @@ class TestMessageDecoration implements ITestDecoration {
       typeof message === 'string'
         ? new MarkdownString().appendText(message)
         : typeof testMessage.message === 'object' && 'value' in testMessage.message
-        ? testMessage.message
-        : new MarkdownString().appendText(String(testMessage.message));
+          ? testMessage.message
+          : new MarkdownString().appendText(String(testMessage.message));
     options.afterContentClassName = `${options.afterContentClassName} testing-inline-message-content`;
     options.zIndex = 10;
     options.className = `testing-inline-message-margin testing-inline-message-severity-${severity}`;

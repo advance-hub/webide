@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { message } from '@opensumi/ide-components';
 import { localize, useInjectable } from '@opensumi/ide-core-browser';
-import { ReactEditorComponent } from '@opensumi/ide-editor/lib/browser/types';
+import { ReactEditorComponent } from '@opensumi/ide-editor/types';
 
 import styles from './libro.module.less';
 import { ILibroOpensumiService } from './libro.service';

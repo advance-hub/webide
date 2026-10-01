@@ -26,7 +26,7 @@ import {
   ISCMResourceDecorations,
   ISCMResourceGroup,
   SCMService,
-} from '@opensumi/ide-scm/lib/common';
+} from '@opensumi/ide-scm';
 
 import { ExtHostAPIIdentifier } from '../../../common/vscode';
 import { VSCommand } from '../../../common/vscode/model.api';
@@ -173,7 +173,10 @@ class MainThreadSCMHistoryProvider implements ISCMHistoryProvider {
     this._onDidChangeCurrentHistoryItemGroup.fire();
   }
 
-  constructor(private readonly proxy: IExtHostSCMShape, private readonly handle: number) {}
+  constructor(
+    private readonly proxy: IExtHostSCMShape,
+    private readonly handle: number,
+  ) {}
 
   async resolveHistoryItemGroupBase(historyItemGroupId: string): Promise<ISCMHistoryItemGroup | undefined> {
     return this.proxy.$resolveHistoryItemGroupBase(this.handle, historyItemGroupId, CancellationToken.None);

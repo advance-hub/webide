@@ -26,7 +26,7 @@ import {
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { DebugSessionManager } from '../../debug-session-manager';
 import { DebugWatch } from '../../model';
@@ -346,8 +346,8 @@ export class DebugWatchModelService {
       node instanceof DebugWatchNode
         ? 'expression'
         : node instanceof DebugVariable || node instanceof DebugVariableContainer
-        ? 'variable'
-        : undefined,
+          ? 'variable'
+          : undefined,
     );
 
     const menus = this.contextMenuService.createMenu({

@@ -1,15 +1,12 @@
 import os from 'os';
 
-import {
-  HashCalculateServiceImpl,
-  IHashCalculateService,
-} from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { HashCalculateServiceImpl, IHashCalculateService } from '@opensumi/ide-core-common/hash';
 import { AppConfig, INodeLogger, getDebugLogger, path } from '@opensumi/ide-core-node';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IExtensionStoragePathServer } from '@opensumi/ide-extension-storage/lib/common';
-import { IDiskFileProvider, IFileService } from '@opensumi/ide-file-service/lib/common';
-import { FileService, FileSystemNodeOptions } from '@opensumi/ide-file-service/lib/node';
-import { DiskFileSystemProvider } from '@opensumi/ide-file-service/lib/node/disk-file-system.provider';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
+import { IExtensionStoragePathServer } from '@opensumi/ide-extension-storage';
+import { IDiskFileProvider, IFileService } from '@opensumi/ide-file-service';
+import { FileService, FileSystemNodeOptions } from '@opensumi/ide-file-service/node';
+import { DiskFileSystemProvider } from '@opensumi/ide-file-service/node/disk-provider';
 
 import { IExtensionNodeClientService, IExtensionNodeService } from '../../src/common';
 import { ExtensionNodeServiceImpl } from '../../src/node/extension.service';
@@ -19,16 +16,16 @@ export const extensionDir = path.join(__dirname, '../../__mocks__/extensions');
 
 export const getBaseInjector = () => {
   const injector = createNodeInjector([]);
-  injector.addProviders(
-    {
-      token: AppConfig,
-      useValue: {
-        marketplace: {
-          extensionDir,
-          ignoreId: [],
-        },
+  injector.overrideProviders({
+    token: AppConfig,
+    useValue: {
+      marketplace: {
+        extensionDir,
+        ignoreId: [],
       },
     },
+  });
+  injector.addProviders(
     {
       token: INodeLogger,
       useValue: getDebugLogger(),

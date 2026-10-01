@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { CompositeTreeNode, IRecycleTreeHandle, TreeNodeEvent } from '@opensumi/ide-components';
-import { BasicCompositeTreeNode } from '@opensumi/ide-components/lib/recycle-tree/basic/tree-node.define';
+import { BasicCompositeTreeNode } from '@opensumi/ide-components/tree';
 import { Disposable, Emitter, filter, isDefined, map } from '@opensumi/ide-core-browser';
 import { Iterable } from '@opensumi/monaco-editor-core/esm/vs/base/common/iterator';
 
@@ -37,7 +37,10 @@ const computedStateAccessor: IComputedStateAndDurationAccessor<ITestTreeItem> = 
 };
 
 export class TestTreeItem implements ITestTreeItem {
-  constructor(public test: InternalTestItem, public parent: ITestTreeItem | undefined) {}
+  constructor(
+    public test: InternalTestItem,
+    public parent: ITestTreeItem | undefined,
+  ) {}
 
   readonly children = new Set<TestTreeItem>();
 

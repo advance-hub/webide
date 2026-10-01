@@ -15,8 +15,7 @@
  ********************************************************************************/
 // Some code copied and modified from https://github.com/eclipse-theia/theia/tree/v1.14.0/packages/debug/src/browser/model/debug-source.ts
 
-import { IRange, URI, Uri } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { IRange, LabelService, URI, Uri } from '@opensumi/ide-core-browser';
 import { IResourceOpenOptions, WorkbenchEditorService } from '@opensumi/ide-editor';
 import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol/lib/debugProtocol';

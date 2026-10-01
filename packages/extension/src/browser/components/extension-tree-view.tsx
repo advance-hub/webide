@@ -13,10 +13,10 @@ import React, {
 import { Injector } from '@opensumi/di';
 import { INodeRendererProps, IRecycleTreeHandle, RecycleTree, TreeNodeType } from '@opensumi/ide-components';
 import { ViewState, isOSX, useInjectable } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 import { IDecorationsService } from '@opensumi/ide-decoration';
-import { WelcomeView } from '@opensumi/ide-main-layout/lib/browser/welcome.view';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common/main-layout.definition';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { WelcomeView } from '@opensumi/ide-main-layout/welcome';
 
 import { TreeViewDataProvider } from '../vscode/api/main.thread.treeview';
 import { ExtensionTreeViewModel } from '../vscode/api/tree-view/tree-view.model.service';

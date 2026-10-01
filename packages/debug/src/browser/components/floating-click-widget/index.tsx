@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Button } from '@opensumi/ide-components';
 import { getIcon, localize, useAutorun, useInjectable } from '@opensumi/ide-core-browser';
-import { EditorContext } from '@opensumi/ide-editor/lib/browser/editor.context';
+import { EditorContext } from '@opensumi/ide-editor/runtime';
 
 import { DebugConfigurationService } from '../../view/configuration/debug-configuration.service';
 

@@ -1,8 +1,10 @@
 import { Position as P, Range as R, SymbolKind as S, SymbolInformation } from 'vscode-languageserver-types';
 
-import { IChatFollowup, IChatReplyFollowup, IChatResponseCommandFollowup } from '@opensumi/ide-ai-native/lib/common';
-import { createMarkedRenderer, toMarkdownHtml } from '@opensumi/ide-components/lib/utils';
+import { IChatFollowup, IChatReplyFollowup, IChatResponseCommandFollowup } from '@opensumi/ide-ai-native';
+import { createMarkedRenderer, toMarkdownHtml } from '@opensumi/ide-components/utils';
 import {
+  ChatMessageRole as ChatMessageRoleEnum,
+  IChatMessage,
   IMarkdownString,
   IMarkerData,
   IRelatedInformation,
@@ -23,13 +25,12 @@ import {
   path,
   randomString,
 } from '@opensumi/ide-core-common';
-import { ChatMessageRole as ChatMessageRoleEnum, IChatMessage } from '@opensumi/ide-core-common/lib/types/ai-native';
 import * as debugModel from '@opensumi/ide-debug';
-import { IEvaluatableExpression } from '@opensumi/ide-debug/lib/common/evaluatable-expression';
-import { TrackedRangeStickiness } from '@opensumi/ide-editor/lib/common/editor';
-import { CellKind } from '@opensumi/ide-editor/lib/common/notebook';
+import { IEvaluatableExpression } from '@opensumi/ide-debug/evaluatable-expression';
+import { TrackedRangeStickiness } from '@opensumi/ide-editor';
+import { CellKind } from '@opensumi/ide-editor/notebook';
 import { FileStat, FileType } from '@opensumi/ide-file-service';
-import { TestId } from '@opensumi/ide-testing/lib/common';
+import { TestId } from '@opensumi/ide-testing';
 import {
   ISerializedTestResults,
   ITestErrorMessage,
@@ -39,9 +40,7 @@ import {
   SerializedTestErrorMessage,
   SerializedTestResultItem,
   TestMessageType,
-} from '@opensumi/ide-testing/lib/common/testCollection';
-
-import { CommandsConverter } from '../../hosted/api/vscode/ext.host.command';
+} from '@opensumi/ide-testing/collection';
 
 import { IDataTransferItem, VSDataTransfer } from './data-transfer';
 import { ExtensionDocumentDataManager } from './doc';
@@ -60,6 +59,7 @@ import {
 import { TestItemImpl, getPrivateApiFor } from './testing/testApi';
 import { DataTransferDTO } from './treeview';
 
+import type { ICommandsConverter } from './command';
 import type {
   EditorGroupColumn,
   ICellRange,
@@ -69,7 +69,7 @@ import type {
   LanguageFilter,
   LanguageSelector,
   NotebookCellInternalMetadata,
-} from '@opensumi/ide-editor/lib/common';
+} from '@opensumi/ide-editor';
 import type * as languages from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 import type vscode from 'vscode';
 
@@ -1158,7 +1158,7 @@ export namespace CompletionItemKind {
 }
 
 export namespace CompletionItem {
-  export function to(suggestion: model.CompletionItem, converter?: CommandsConverter): types.CompletionItem {
+  export function to(suggestion: model.CompletionItem, converter?: ICommandsConverter): types.CompletionItem {
     const result = new types.CompletionItem(suggestion.label);
     if (typeof suggestion.label !== 'string') {
       result.label2 = suggestion.label;
@@ -1594,7 +1594,7 @@ export namespace InlayHint {
     };
   }
 
-  export function to(converter: CommandsConverter, hint: languages.InlayHint): vscode.InlayHint {
+  export function to(converter: ICommandsConverter, hint: languages.InlayHint): vscode.InlayHint {
     const res = new types.InlayHint(
       Position.to(hint.position),
       typeof hint.label === 'string' ? hint.label : hint.label.map(InlayHintLabelPart.to.bind(undefined, converter)),
@@ -1607,7 +1607,7 @@ export namespace InlayHint {
 }
 
 export namespace InlayHintLabelPart {
-  export function to(converter: CommandsConverter, part: languages.InlayHintLabelPart): types.InlayHintLabelPart {
+  export function to(converter: ICommandsConverter, part: languages.InlayHintLabelPart): types.InlayHintLabelPart {
     const result = new types.InlayHintLabelPart(part.label);
     result.tooltip = isMarkdownString(part.tooltip) ? MarkdownString.to(part.tooltip) : (part.tooltip as string);
     if (Command.is(part.command)) {

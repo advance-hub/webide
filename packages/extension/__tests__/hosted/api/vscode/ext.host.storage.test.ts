@@ -1,7 +1,7 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
 import { StoragePaths, URI } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
 import { MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import {
   ExtHostStorage,

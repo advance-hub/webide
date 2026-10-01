@@ -1,5 +1,10 @@
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import { Deferred, Disposable, Emitter, ILogger, OperatingSystem } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockEnvironmentVariableService } from '@opensumi/ide-dev-tool/mocks/environment-variable';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockProfileService, MockTerminalProfileInternalService } from '@opensumi/ide-dev-tool/mocks/terminal';
 import { IExtension } from '@opensumi/ide-extension';
 import {
   ITerminalApiService,
@@ -9,16 +14,9 @@ import {
   ITerminalService,
   ITerminalServicePath,
 } from '@opensumi/ide-terminal-next';
-import { NodePtyTerminalService } from '@opensumi/ide-terminal-next/lib/browser/terminal.service';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
+import { NodePtyTerminalService } from '@opensumi/ide-terminal-next/browser/service';
+import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/environment-variables';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
-import {
-  MockProfileService,
-  MockTerminalProfileInternalService,
-} from '../../../../../terminal-next/__tests__/browser/mock.service';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
 import { MainThreadTerminal } from '../../../../src/browser/vscode/api/main.thread.terminal';
 import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import {
@@ -26,7 +24,6 @@ import {
   ExtHostTerminal,
   Terminal,
 } from '../../../../src/hosted/api/vscode/ext.host.terminal';
-import { MockEnvironmentVariableService } from '../../__mocks__/environmentVariableService';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();
 

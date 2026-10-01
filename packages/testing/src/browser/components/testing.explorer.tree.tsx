@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-import { BasicRecycleTree, IRecycleTreeHandle } from '@opensumi/ide-components/lib/recycle-tree';
-import { BasicCompositeTreeNode } from '@opensumi/ide-components/lib/recycle-tree/basic/tree-node.define';
+import { BasicRecycleTree, IRecycleTreeHandle } from '@opensumi/ide-components';
+import { BasicCompositeTreeNode } from '@opensumi/ide-components/tree';
 import { CommandService, Event, map, transformLabelWithCodicon, useInjectable } from '@opensumi/ide-core-browser';
 import { IIconService } from '@opensumi/ide-theme';
 
@@ -15,7 +15,7 @@ import { TestTreeItem, TestTreeViewModelImpl } from '../test-tree-view.model';
 
 import styles from './testing.module.less';
 
-export const TestingExplorerTree: React.FC<{}> = () => {
+export const TestingExplorerTree: React.FC = () => {
   const testViewModel = useInjectable<TestTreeViewModelImpl>(TestTreeViewModelToken);
   const testService = useInjectable<ITestService>(TestServiceToken);
   const commandService = useInjectable<CommandService>(CommandService);

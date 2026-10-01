@@ -1,27 +1,28 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { DisposableCollection, ILogger, URI, Uri } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
+import { DisposableCollection, ILogger, LabelService, URI, Uri } from '@opensumi/ide-core-browser';
 import {
   DebugConfiguration,
   DebuggerDescription,
   IDebugBreakpoint,
   IDebugConsoleModelService,
   IDebugModelManager,
+  IDebugServer,
+  IDebugService,
   IDebugServiceContributionPoint,
+  IDebugSessionManager,
+  IDebugSessionOptions,
   IDebuggerContribution,
 } from '@opensumi/ide-debug';
-import { BreakpointManager, DebugBreakpoint } from '@opensumi/ide-debug/lib/browser/breakpoint';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { DebugSessionContributionRegistry } from '@opensumi/ide-debug/lib/browser/debug-session-contribution';
-import { DebugSessionManager } from '@opensumi/ide-debug/lib/browser/debug-session-manager';
-import { DebugConsoleModelService } from '@opensumi/ide-debug/lib/browser/view/console/debug-console-tree.model.service';
-import { IDebugServer, IDebugService } from '@opensumi/ide-debug/lib/common/debug-service';
-import { IDebugSessionManager, IDebugSessionOptions } from '@opensumi/ide-debug/lib/common/debug-session';
+import { BreakpointManager, DebugBreakpoint } from '@opensumi/ide-debug/breakpoints';
+import { DebugConfigurationManager } from '@opensumi/ide-debug/configuration-manager';
+import { DebugConsoleModelService } from '@opensumi/ide-debug/console/model';
+import { DebugPreferences } from '@opensumi/ide-debug/preferences';
+import { DebugSessionContributionRegistry } from '@opensumi/ide-debug/session-contributions';
+import { DebugSessionManager } from '@opensumi/ide-debug/sessions';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
+import { OutputService } from '@opensumi/ide-output/service';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { ITerminalApiService } from '@opensumi/ide-terminal-next';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol';

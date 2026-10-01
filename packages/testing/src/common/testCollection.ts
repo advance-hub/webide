@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 // Some code copied and modified from https://github.com/microsoft/vscode/tree/main/src/vs/workbench/contrib/testing/common
 
-import { Emitter, IMarkdownString, IPosition, IRange, Position, Uri as URI, map } from '@opensumi/ide-core-common';
+import { Emitter, IMarkdownString, IPosition, IRange, Uri as URI, map } from '@opensumi/ide-core-common';
 
 import type vscode from 'vscode';
 
@@ -39,7 +39,7 @@ export interface InternalTestItem {
   item: ITestItem;
 }
 
-export const enum TestDiffOpType {
+export enum TestDiffOpType {
   /** Adds a new test (with children) */
   Add,
   /** Shallow-updates an existing test */
@@ -56,7 +56,7 @@ export const enum TestDiffOpType {
   RemoveTag,
 }
 
-export const enum TestResultState {
+export enum TestResultState {
   Unset = 0,
   Queued = 1,
   Running = 2,
@@ -66,7 +66,7 @@ export const enum TestResultState {
   Errored = 6,
 }
 
-export const enum TestRunProfileBitset {
+export enum TestRunProfileBitset {
   Run = 1 << 1,
   Debug = 1 << 2,
   Coverage = 1 << 3,
@@ -144,7 +144,7 @@ export interface IRichLocation {
   uri: URI;
 }
 
-export const enum TestMessageType {
+export enum TestMessageType {
   Error,
   Info,
 }
@@ -233,7 +233,7 @@ export interface ITestItem {
   sortText: string | null;
 }
 
-export const enum TestItemExpandState {
+export enum TestItemExpandState {
   NotExpandable,
   Expandable,
   BusyExpanding,
@@ -305,7 +305,7 @@ export interface IFileCoverage {
   details?: CoverageDetails[];
 }
 
-export const enum DetailType {
+export enum DetailType {
   Function,
   Statement,
 }

@@ -1,10 +1,10 @@
 import { AppConfig } from '@opensumi/ide-core-browser';
-import { ExtensionStorageService } from '@opensumi/ide-extension-storage/lib/browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { ExtensionStorageService } from '../../src/browser';
 import { IExtensionStorageServer, IExtensionStorageService } from '../../src/common';
 
 describe('ExtensionStorage service should be work', () => {
@@ -19,7 +19,10 @@ describe('ExtensionStorage service should be work', () => {
       {
         token: IExtensionStorageServer,
         useValue: {
+          getAll: jest.fn(() => Promise.resolve({})),
           get: jest.fn(() => undefined),
+          init: jest.fn(() => Promise.resolve({ workspace: '', global: '' })),
+          set: jest.fn(() => Promise.resolve()),
         },
       },
       {

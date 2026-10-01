@@ -1,5 +1,5 @@
 import { Cache, CancellationToken, DisposableStore, Uri as URI } from '@opensumi/ide-core-common';
-import { coalesce } from '@opensumi/ide-utils/lib/arrays';
+import { coalesce } from '@opensumi/ide-utils/arrays';
 
 import { ExtensionDocumentDataManager, ICodeActionDto, ICodeActionListDto } from '../../../../common/vscode';
 import * as Converter from '../../../../common/vscode/converter';

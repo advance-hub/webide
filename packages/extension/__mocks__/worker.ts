@@ -1,9 +1,8 @@
 import path from 'path';
+import { TextDecoder, TextEncoder } from 'util';
 import vm from 'vm';
 
 import * as fs from 'fs-extra';
-
-const { TextDecoder, TextEncoder } = require('util');
 
 const workerScript = `
 const sumi = require('sumi');
@@ -66,6 +65,7 @@ export class MockWorker {
         },
         navigator: {
           userAgent: 'Node.js Sandbox',
+          language: 'en-US',
         },
         setTimeout,
         attachEvent: () => {},

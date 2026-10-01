@@ -1,4 +1,4 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Schemes } from '@opensumi/ide-core-common';
 
 import { IExtHostEnv, IMainThreadEnv, MainThreadAPIIdentifier } from '../../../../common/vscode';

@@ -6,7 +6,7 @@
 
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Deferred, IExtensionLogger, LANGUAGE_DEFAULT, Uri as URI, path } from '@opensumi/ide-core-common';
-import { format2 } from '@opensumi/ide-utils/lib/strings';
+import { format2 } from '@opensumi/ide-utils/strings';
 
 import { IExtensionDescription, MainThreadAPIIdentifier } from '../../../common/vscode';
 import { IExtHostLocalization, IMainThreadLocalization, IStringDetails } from '../../../common/vscode/localization';
@@ -19,7 +19,10 @@ export class ExtHostLocalization implements IExtHostLocalization {
   private readonly bundleCache: Map<string, { contents: { [key: string]: string }; uri: URI }> = new Map();
   private whenReadyDeferred = new Deferred<void>();
 
-  constructor(private rpcProtocol: IRPCProtocol, private logger: IExtensionLogger) {
+  constructor(
+    private rpcProtocol: IRPCProtocol,
+    private logger: IExtensionLogger,
+  ) {
     this.proxy = this.rpcProtocol.getProxy(MainThreadAPIIdentifier.MainThreadLocalization);
     this.isDefaultLanguage = this.currentLanguage === LANGUAGE_DEFAULT;
   }

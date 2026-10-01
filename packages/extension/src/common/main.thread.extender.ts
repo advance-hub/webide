@@ -1,5 +1,5 @@
 import { Injectable } from '@opensumi/di';
-import { IRPCProtocol, ProxyIdentifier } from '@opensumi/ide-connection';
+import { IRPCProtocol, ProxyIdentifier } from '@opensumi/ide-connection/rpc-contracts';
 import { Disposable, IDisposable } from '@opensumi/ide-core-common';
 
 export interface IMainThreadExtender<T = any> {

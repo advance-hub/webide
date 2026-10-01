@@ -3,12 +3,13 @@ import { act } from 'react-dom/test-utils';
 import { Disposable, IContextKeyService, IFileServiceClient } from '@opensumi/ide-core-browser';
 import { Emitter } from '@opensumi/ide-core-common';
 import { DebugEditor, IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugBreakpointWidget } from '@opensumi/ide-debug/lib/browser/editor';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 import { EditorCollectionService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
+
+import { DebugBreakpointWidget } from '../../../src/browser/editor';
 
 import type { Position } from '@opensumi/ide-monaco';
 

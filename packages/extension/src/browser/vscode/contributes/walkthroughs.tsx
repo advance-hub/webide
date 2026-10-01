@@ -10,7 +10,7 @@ import {
   localize,
 } from '@opensumi/ide-core-common';
 import { IResource, ResourceService } from '@opensumi/ide-editor';
-import { EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/lib/browser';
+import { EditorComponentRegistry, EditorOpenType } from '@opensumi/ide-editor/browser';
 
 import { Contributes, IWalkthrough, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { IExtensionWalkthrough } from '../../../common/vscode';

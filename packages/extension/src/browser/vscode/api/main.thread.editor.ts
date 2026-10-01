@@ -1,9 +1,8 @@
 import merge from 'lodash/merge';
-import throttle from 'lodash/throttle';
 
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { StaticResourceService } from '@opensumi/ide-core-browser';
 import { ILineChange, IRange, ISelection, MaybeNull, URI, WithEventBus } from '@opensumi/ide-core-common';
 import {
   EditorCollectionService,
@@ -27,13 +26,10 @@ import {
   EditorVisibleChangeEvent,
   IDiffResource,
   IEditorDecorationCollectionService,
-} from '@opensumi/ide-editor/lib/browser';
-import { ISumiEditor } from '@opensumi/ide-editor/lib/browser/base-editor-wrapper';
-import {
-  BrowserDiffEditor,
-  EditorCollectionServiceImpl,
-} from '@opensumi/ide-editor/lib/browser/editor-collection.service';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+} from '@opensumi/ide-editor/browser';
+import { BrowserDiffEditor, EditorCollectionServiceImpl } from '@opensumi/ide-editor/runtime';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
+import { ISumiEditor } from '@opensumi/ide-editor/wrappers';
 import * as monaco from '@opensumi/ide-monaco';
 import { IModelService } from '@opensumi/monaco-editor-core/esm/vs/editor/common/services/model';
 import { StandaloneServices } from '@opensumi/monaco-editor-core/esm/vs/editor/standalone/browser/standaloneServices';
@@ -54,7 +50,7 @@ import { EndOfLineSequence, RenderLineNumbersType } from '../../../common/vscode
 
 import { MainThreadExtensionDocumentData } from './main.thread.doc';
 
-import type { ICodeEditor as IMonacoCodeEditor, ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor, ITextModel } from '@opensumi/ide-monaco/types';
 
 @Injectable({ multiple: true })
 export class MainThreadEditorService extends WithEventBus implements IMainThreadEditorsService {
@@ -446,13 +442,11 @@ export class MainThreadEditorService extends WithEventBus implements IMainThread
         if (typeof options.setEndOfLine !== 'undefined') {
           model.pushEOL(options.setEndOfLine as any);
         }
-        const transformedEdits = edits.map(
-          (edit): monaco.editor.IIdentifiedSingleEditOperation => ({
-            range: monaco.Range.lift(edit.range)!,
-            text: edit.text,
-            forceMoveMarkers: edit.forceMoveMarkers,
-          }),
-        );
+        const transformedEdits = edits.map((edit): monaco.editor.IIdentifiedSingleEditOperation => ({
+          range: monaco.Range.lift(edit.range)!,
+          text: edit.text,
+          forceMoveMarkers: edit.forceMoveMarkers,
+        }));
         if (options.undoStopBefore) {
           editor.monacoEditor.pushUndoStop();
         }

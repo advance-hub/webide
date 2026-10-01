@@ -4,14 +4,6 @@ import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Logger } from '@opensumi/ide-core-browser';
 import { CancellationToken, Disposable, DisposableStore, IDisposable, URI } from '@opensumi/ide-core-common';
 import { ITestController, ITestService, TestServiceToken } from '@opensumi/ide-testing';
-import { ObservableValue } from '@opensumi/ide-testing/lib/common/observableValue';
-import { ITestProfileService, TestProfileServiceToken } from '@opensumi/ide-testing/lib/common/test-profile';
-import {
-  ITestResult,
-  ITestResultService,
-  TestResultImpl,
-  TestResultServiceToken,
-} from '@opensumi/ide-testing/lib/common/test-result';
 import {
   ExtensionRunTestsRequest,
   ILocationDto,
@@ -23,7 +15,10 @@ import {
   TestDiffOpType,
   TestResultState,
   TestsDiff,
-} from '@opensumi/ide-testing/lib/common/testCollection';
+} from '@opensumi/ide-testing/collection';
+import { ObservableValue } from '@opensumi/ide-testing/observable';
+import { ITestProfileService, TestProfileServiceToken } from '@opensumi/ide-testing/profiles';
+import { ITestResult, ITestResultService, TestResultImpl, TestResultServiceToken } from '@opensumi/ide-testing/results';
 import { Range } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 
 import { ExtHostAPIIdentifier, IExtHostTests, IMainThreadTesting, ITestControllerPatch } from '../../../common/vscode';

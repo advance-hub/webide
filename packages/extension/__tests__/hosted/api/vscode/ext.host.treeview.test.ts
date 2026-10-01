@@ -1,10 +1,10 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
 import { BinaryBuffer, CancellationTokenSource, Disposable, Emitter, uuid } from '@opensumi/ide-core-common';
-import { ExtHostTreeViews } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.treeview';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
 import { MainThreadAPIIdentifier, TreeView } from '../../../../src/common/vscode';
 import { ExtHostCommands } from '../../../../src/hosted/api/vscode/ext.host.command';
+import { ExtHostTreeViews } from '../../../../src/hosted/api/vscode/ext.host.treeview';
 
 const moackManThreadTreeView = {
   $registerTreeDataProvider: jest.fn(),

@@ -11,7 +11,7 @@ import {
 } from '@opensumi/ide-core-browser';
 import { Deferred, LifeCyclePhase } from '@opensumi/ide-core-common';
 import { IExtensionStoragePathServer } from '@opensumi/ide-extension-storage';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 
 import {
   Contributes,

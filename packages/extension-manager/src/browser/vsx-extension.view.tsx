@@ -4,9 +4,9 @@ import { useCallback, useState } from 'react';
 
 import { Tabs } from '@opensumi/ide-components';
 import { useAutorun, useInjectable } from '@opensumi/ide-core-browser';
-import { Progress } from '@opensumi/ide-core-browser/lib/progress/progress-bar';
+import { Progress } from '@opensumi/ide-core-browser/progress';
 import { localize } from '@opensumi/ide-core-common';
-import { AutoFocusedInput } from '@opensumi/ide-main-layout/lib/browser/input';
+import { AutoFocusedInput } from '@opensumi/ide-main-layout/input';
 
 import { IVSXExtensionService, InstallState, TabActiveKey, VSXExtension, VSXExtensionServiceToken } from '../common';
 

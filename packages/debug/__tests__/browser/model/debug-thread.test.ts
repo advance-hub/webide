@@ -1,5 +1,6 @@
-import { DebugStackFrame, DebugThread } from '@opensumi/ide-debug/lib/browser/model';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol/lib/debugProtocol';
+
+import { DebugStackFrame, DebugThread } from '../../../src/browser/model';
 
 describe('DebugThread Model', () => {
   describe('DebugThread should be work after init', () => {
@@ -48,7 +49,7 @@ describe('DebugThread Model', () => {
       session.sendRequest.mockReset();
     });
 
-    it('Should have enough values', () => {
+    it('Should preserve core thread state', () => {
       expect(debugThread.id).toBe(`${session.id}:${raw.id}`);
       expect(typeof debugThread.currentFrame).toBe('undefined');
       expect(typeof debugThread.stopped).toBe('boolean');

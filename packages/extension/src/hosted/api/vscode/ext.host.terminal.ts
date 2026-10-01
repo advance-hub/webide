@@ -29,7 +29,7 @@ import {
 import {
   EnvironmentVariableMutatorType,
   ISerializableEnvironmentVariableCollection,
-} from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
+} from '@opensumi/ide-terminal-next/environment-variables';
 
 import { IExtension, NO_ROOT_URI } from '../../../common';
 import {

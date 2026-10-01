@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-// eslint-disable-next-line import/no-unresolved
+
 import * as vscode from 'vscode';
 
-import { TestIdPathParts } from '@opensumi/ide-testing/lib/common';
+import { TestIdPathParts } from '@opensumi/ide-testing';
 
 export const enum ExtHostTestItemEventOp {
   Upsert,
@@ -41,11 +41,7 @@ export interface ITestItemBulkReplace {
 }
 
 export type ExtHostTestItemEvent =
-  | ITestItemUpsertChild
-  | ITestItemRemoveChild
-  | ITestItemInvalidated
-  | ITestItemSetProp
-  | ITestItemBulkReplace;
+  ITestItemUpsertChild | ITestItemRemoveChild | ITestItemInvalidated | ITestItemSetProp | ITestItemBulkReplace;
 
 export interface IExtHostTestItemApi {
   controllerId: string;

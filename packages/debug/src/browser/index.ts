@@ -1,6 +1,6 @@
 import { Injectable, Injector, Provider } from '@opensumi/di';
 import { BrowserModule, IContextKeyService } from '@opensumi/ide-core-browser';
-import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/lib/browser/folder-file-preference-provider';
+import { FolderFilePreferenceProvider } from '@opensumi/ide-preferences/folder-provider';
 
 import {
   DebugEditor,

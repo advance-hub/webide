@@ -15,10 +15,13 @@ import {
   IEventBus,
   ILogger,
   IPreferenceSettingsService,
+  IStatusBarService,
   PreferenceService,
   QuickOpenItem,
   QuickOpenService,
   QuickPickService,
+  StatusBarAlignment,
+  StatusBarEntryAccessor,
   URI,
   UriComponents,
   formatLocalize,
@@ -27,13 +30,8 @@ import {
   replaceLocalizePlaceholder,
   runWhenIdle,
 } from '@opensumi/ide-core-browser';
-import {
-  IStatusBarService,
-  StatusBarAlignment,
-  StatusBarEntryAccessor,
-} from '@opensumi/ide-core-browser/lib/services/status-bar-service';
 import { IResourceOpenOptions, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorOpenType, IEditorOpenType } from '@opensumi/ide-editor/lib/common/editor';
+import { EditorOpenType, IEditorOpenType } from '@opensumi/ide-editor';
 import { IWindowDialogService } from '@opensumi/ide-overlay';
 import { IWebviewService } from '@opensumi/ide-webview';
 

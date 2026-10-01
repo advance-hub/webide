@@ -1,5 +1,4 @@
-import { BaseConnection } from '@opensumi/ide-connection/lib/common/connection';
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { BaseConnection, IRPCProtocol } from '@opensumi/ide-connection/rpc-contracts';
 import { Deferred, ExtHostSpawnOptions } from '@opensumi/ide-core-common';
 
 import { ActivatedExtensionJSON } from './activator';

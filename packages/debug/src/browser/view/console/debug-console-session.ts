@@ -35,7 +35,10 @@ export class DebugConsoleSession implements IDebugConsoleSession {
 
   private onDidChangeEmitter: Emitter<void> = new Emitter();
 
-  constructor(@Optional() private session: DebugSession, @Optional() private treeModel: DebugConsoleTreeModel) {
+  constructor(
+    @Optional() private session: DebugSession,
+    @Optional() private treeModel: DebugConsoleTreeModel,
+  ) {
     this.init();
   }
 
@@ -83,10 +86,10 @@ export class DebugConsoleSession implements IDebugConsoleSession {
       category === 'stderr'
         ? MessageType.Error
         : category === 'stdout'
-        ? MessageType.Info
-        : category === 'console'
-        ? MessageType.Warning
-        : MessageType.Info;
+          ? MessageType.Info
+          : category === 'console'
+            ? MessageType.Warning
+            : MessageType.Info;
     if (category === 'telemetry') {
       this.logger.debug(`telemetry/${event.body.output}`, event.body.data);
       return;
@@ -123,9 +126,9 @@ export class DebugConsoleSession implements IDebugConsoleSession {
         (previousItem as AnsiConsoleNode).severity === severity
       ) {
         this.treeModel.root.unlinkItem(previousItem);
-        await this.insertItemWithAnsi(previousItem.description + body.output, severity, source, line);
+        await this.insertItemWithAnsi(previousItem.description + output, severity, source, line);
       } else {
-        await this.insertItemWithAnsi(body.output, severity, source, line);
+        await this.insertItemWithAnsi(output, severity, source, line);
       }
     }
 

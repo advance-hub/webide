@@ -19,13 +19,11 @@ import {
   PromptHandle,
   TreeNodeType,
 } from '@opensumi/ide-components';
-import { getIcon, useDesignStyles } from '@opensumi/ide-core-browser';
-import { TitleActionList } from '@opensumi/ide-core-browser/lib/components/actions';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { useInjectable } from '@opensumi/ide-core-browser/lib/react-hooks/injectable-hooks';
-import { transformLabelWithCodicon } from '@opensumi/ide-core-browser/lib/utils/label';
-import { IDecorationsService } from '@opensumi/ide-decoration/lib/common/decorations';
-import { IIconService, IThemeService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { getIcon, transformLabelWithCodicon, useDesignStyles, useInjectable } from '@opensumi/ide-core-browser';
+import { TitleActionList } from '@opensumi/ide-core-browser/components/actions';
+import { MenuId } from '@opensumi/ide-core-browser/menu';
+import { IDecorationsService } from '@opensumi/ide-decoration';
+import { IIconService, IThemeService } from '@opensumi/ide-theme/types';
 
 import styles from '../vscode/api/tree-view/tree-view-node.module.less';
 import { ExtensionCompositeTreeNode, ExtensionTreeNode } from '../vscode/api/tree-view/tree-view.node.defined';
@@ -215,10 +213,9 @@ export const TreeViewNode: FC<TreeViewNodeRenderedProps> = ({
   const renderDisplayName = (node: ExtensionCompositeTreeNode | ExtensionTreeNode) => {
     const displayName = () => {
       if (node.highlights) {
-        let hightlightSnaps: ReactNode[] = [];
         let endIndex = 0;
         const hightlights = node.highlights.sort((a, b) => a[0] - b[0]);
-        hightlightSnaps = hightlights.map((highlight, index: number) => {
+        const hightlightSnaps: ReactNode[] = hightlights.map((highlight, index: number) => {
           const [start, end] = highlight;
           const addonStr = node.displayName.slice(endIndex, start);
           endIndex = end;

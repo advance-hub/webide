@@ -1,19 +1,16 @@
 import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { Disposable, EventBusImpl, IEventBus, IFileServiceClient, URI } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import {
-  BreakpointManager,
-  DebugBreakpoint,
-  DebugExceptionBreakpoint,
-} from '@opensumi/ide-debug/lib/browser/breakpoint';
-import { DebugBreakpointsService } from '@opensumi/ide-debug/lib/browser/view/breakpoints/debug-breakpoints.service';
-import { DebugViewModel } from '@opensumi/ide-debug/lib/browser/view/debug-view-model';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IWorkspaceService, IWorkspaceStorageService } from '@opensumi/ide-workspace';
 import { WorkspaceEditDidDeleteFileEvent, WorkspaceEditDidRenameFileEvent } from '@opensumi/ide-workspace-edit';
+
+import { BreakpointManager, DebugBreakpoint, DebugExceptionBreakpoint } from '../../../../src/browser/breakpoint';
+import { DebugBreakpointsService } from '../../../../src/browser/view/breakpoints/debug-breakpoints.service';
+import { DebugViewModel } from '../../../../src/browser/view/debug-view-model';
 
 describe('Debug Breakpoints Service', () => {
   const mockInjector = createBrowserInjector(

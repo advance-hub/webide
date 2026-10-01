@@ -1,6 +1,6 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { MessageType } from '@opensumi/ide-core-common';
-import { MAX_MESSAGE_LENGTH } from '@opensumi/ide-overlay/lib/common';
+import { MAX_MESSAGE_LENGTH } from '@opensumi/ide-overlay';
 
 import { IExtHostMessage, IMainThreadMessage, MainThreadAPIIdentifier } from '../../../common/vscode';
 

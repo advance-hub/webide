@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { ViewContextKeyRegistry, localize, useInjectable } from '@opensumi/ide-core-browser';
-import { InlineMenuBar } from '@opensumi/ide-core-browser/lib/components/actions';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
-import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { TitleBar } from '@opensumi/ide-main-layout/lib/browser/accordion/titlebar.view';
+import { InlineMenuBar } from '@opensumi/ide-core-browser/components/actions';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
+import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/menu';
+import { TitleBar } from '@opensumi/ide-main-layout/accordion/titlebar';
 
 import { Testing } from '../../common/constants';
 

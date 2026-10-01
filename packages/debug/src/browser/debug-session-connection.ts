@@ -1,5 +1,5 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
-import { BaseConnection } from '@opensumi/ide-connection/lib/common/connection';
+import { BaseConnection } from '@opensumi/ide-connection';
 import {
   Deferred,
   Disposable,
@@ -10,7 +10,7 @@ import {
   getDebugLogger,
 } from '@opensumi/ide-core-browser';
 import { CancellationToken, MaybePromise } from '@opensumi/ide-core-common';
-import { OutputChannel } from '@opensumi/ide-output/lib/browser/output.channel';
+import { OutputChannel } from '@opensumi/ide-output/channel';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol';
 
 import {

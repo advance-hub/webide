@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 // Some code copied and modified from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/api/common/extHostTesting.ts
 
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
 import {
   CancellationToken,
   CancellationTokenSource,
@@ -12,7 +12,6 @@ import {
   DisposableStore,
   Emitter,
   Event,
-  arrays,
   getDebugLogger,
   hash,
   isDefined,
@@ -21,10 +20,9 @@ import {
   toDisposable,
   uuid,
 } from '@opensumi/ide-core-common';
+import { TestId, TestIdPathParts, TestPosition } from '@opensumi/ide-testing';
 import {
   AbstractIncrementalTestCollection,
-  CoverageDetails,
-  IFileCoverage,
   ILocationDto,
   ISerializedTestResults,
   ITestItem,
@@ -36,8 +34,7 @@ import {
   TestResultState,
   TestRunProfileBitset,
   TestsDiff,
-} from '@opensumi/ide-testing/lib/common/testCollection';
-import { TestId, TestIdPathParts, TestPosition } from '@opensumi/ide-testing/lib/common/testId';
+} from '@opensumi/ide-testing/collection';
 
 import { MainThreadAPIIdentifier } from '../../../common/vscode';
 import * as Convert from '../../../common/vscode/converter';

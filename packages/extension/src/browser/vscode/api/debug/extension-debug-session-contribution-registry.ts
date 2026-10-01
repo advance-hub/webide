@@ -1,9 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { ContributionProvider, Disposable, IDisposable, getDebugLogger } from '@opensumi/ide-core-browser';
-import {
-  DebugSessionContribution,
-  DebugSessionContributionRegistry,
-} from '@opensumi/ide-debug/lib/browser/debug-session-contribution';
+import { DebugSessionContribution, DebugSessionContributionRegistry } from '@opensumi/ide-debug/session-contributions';
 
 export interface ExtensionDebugSessionContributionRegistrator {
   /**

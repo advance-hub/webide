@@ -1,5 +1,5 @@
 import { Event, IDisposable, UriComponents } from '@opensumi/ide-core-common';
-import { EditorGroupColumn } from '@opensumi/ide-editor/lib/common';
+import { EditorGroupColumn } from '@opensumi/ide-editor';
 
 import type * as vscode from 'vscode';
 
@@ -21,7 +21,7 @@ export const IExtHostEditorTabs = Symbol('IExtHostEditorTabs');
 
 // #region --- tabs model
 
-export const enum TabInputKind {
+export enum TabInputKind {
   UnknownInput,
   TextInput,
   TextDiffInput,
@@ -34,7 +34,7 @@ export const enum TabInputKind {
   InteractiveEditorInput,
 }
 
-export const enum TabModelOperationKind {
+export enum TabModelOperationKind {
   TAB_OPEN,
   TAB_CLOSE,
   TAB_UPDATE,

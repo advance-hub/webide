@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 
 import { localize, useInjectable } from '@opensumi/ide-core-browser';
-import { IThemeService } from '@opensumi/ide-theme/lib/common';
+import { IThemeService } from '@opensumi/ide-theme';
 
 import { ManaContainer } from '../mana';
 

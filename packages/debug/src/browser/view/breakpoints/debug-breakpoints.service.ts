@@ -5,15 +5,15 @@ import {
   IContextKeyService,
   IRange,
   IReporterService,
+  LabelService,
   OnEvent,
   Schemes,
   URI,
   WithEventBus,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import { EditorCollectionService, ICodeEditor, getSimpleEditorOptions } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { WorkspaceEditDidDeleteFileEvent, WorkspaceEditDidRenameFileEvent } from '@opensumi/ide-workspace-edit';
 

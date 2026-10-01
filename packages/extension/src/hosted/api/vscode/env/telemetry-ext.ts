@@ -1,5 +1,5 @@
 import { Emitter, Event, TelemetryTrustedValue, mixin } from '@opensumi/ide-core-common';
-import { cloneAndChange } from '@opensumi/ide-utils/lib/objects';
+import { cloneAndChange } from '@opensumi/ide-utils/objects';
 
 import type { TelemetryLoggerOptions, TelemetrySender } from 'vscode';
 
@@ -70,7 +70,6 @@ export class TelemetryLogger {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logUsage(eventName: string, data?: Record<string, any | TelemetryTrustedValue<any>>): void {
     if (!this.telemetryEnabled || !this.isUsageEnabled) {
       return;
@@ -78,7 +77,6 @@ export class TelemetryLogger {
     this.logEvent(eventName, data);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   logError(eventNameOrException: string | Error, data?: Record<string, any | TelemetryTrustedValue<any>>): void {
     if (!this.telemetryEnabled || !this.isErrorsEnabled || !this.sender) {
       // no sender available or error shall not be sent
@@ -107,7 +105,6 @@ export class TelemetryLogger {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private logEvent(eventName: string, data?: Record<string, any>): void {
     // No sender means likely disposed of, we should no-op
     if (!this.sender) {
@@ -121,7 +118,6 @@ export class TelemetryLogger {
     this.sender?.sendEventData(eventName, data);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getCommonProperties(): Record<string, any> {
     return [];
   }
@@ -132,7 +128,6 @@ export class TelemetryLogger {
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mixInCommonPropsAndCleanData(
   data: Record<string, any>,
   additionalProperties?: Record<string, any>,
@@ -178,7 +173,7 @@ function anonymizeFilePaths(stack: string, cleanupPatterns: RegExp[]): string {
     return stack;
   }
 
-  let updatedStack = stack;
+  let updatedStack = '';
 
   const cleanUpIndexes: [number, number][] = [];
   for (const regexp of cleanupPatterns) {
@@ -194,8 +189,6 @@ function anonymizeFilePaths(stack: string, cleanupPatterns: RegExp[]): string {
   const nodeModulesRegex = /^[\\\/]?(node_modules|node_modules\.asar)[\\\/]/;
   const fileRegex = /(file:\/\/)?([a-zA-Z]:(\\\\|\\|\/)|(\\\\|\\|\/))?([\w-\._]+(\\\\|\\|\/))+[\w-\._]*/g;
   let lastIndex = 0;
-  updatedStack = '';
-
   while (true) {
     const result = fileRegex.exec(stack);
     if (!result) {
@@ -257,7 +250,7 @@ function removePropertiesWithPossibleUserInfo(property: string): string {
  * @param paths Any additional patterns that should be removed from the data set
  * @returns A new object with the PII removed
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function cleanData(data: Record<string, any>, cleanUpPatterns: RegExp[]): Record<string, any> {
   return cloneAndChange(data, (value) => {
     // If it's a trusted value it means it's okay to skip cleaning so we don't clean it

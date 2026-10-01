@@ -1,4 +1,5 @@
 import { Barrier, Disposable, Emitter, RunOnceScheduler, getDebugLogger, isThenable } from '@opensumi/ide-core-common';
+import { TestId } from '@opensumi/ide-testing';
 import {
   ITestTag,
   TestDiffOpType,
@@ -6,8 +7,7 @@ import {
   TestsDiff,
   TestsDiffOp,
   applyTestItemUpdate,
-} from '@opensumi/ide-testing/lib/common/testCollection';
-import { TestId } from '@opensumi/ide-testing/lib/common/testId';
+} from '@opensumi/ide-testing/collection';
 
 import * as Convert from '../converter';
 

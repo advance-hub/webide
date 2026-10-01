@@ -7,7 +7,8 @@ import {
   Uri,
   UriComponents,
 } from '@opensumi/ide-core-common';
-import { ExtHostDecorations } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.decoration';
+
+import { ExtHostDecorations } from '../../../../src/hosted/api/vscode/ext.host.decoration';
 
 import type vscode from 'vscode';
 

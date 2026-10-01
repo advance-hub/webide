@@ -1,10 +1,11 @@
 import { Autowired, INJECTOR_TOKEN, Injector } from '@opensumi/di';
-import { createExtHostContextProxyIdentifier } from '@opensumi/ide-connection';
+import { createExtHostContextProxyIdentifier } from '@opensumi/ide-connection/rpc-contracts';
 import {
   AppLifeCycleServiceToken,
   Deferred,
   Disposable,
   Emitter,
+  Event,
   ExtHostSpawnOptions,
   ExtensionConnectOption,
   IAppLifeCycleService,
@@ -24,16 +25,14 @@ import {
   createLocalizedStr,
   replaceNlsField,
 } from '@opensumi/ide-core-common';
-import { typeAndModifierIdPattern } from '@opensumi/ide-theme/lib/common/semantic-tokens-registry';
-import { IIconService, IconType, ThemeType } from '@opensumi/ide-theme/lib/common/theme.service';
+import { typeAndModifierIdPattern } from '@opensumi/ide-theme/semantic-tokens';
+import { IIconService, IconType, ThemeType } from '@opensumi/ide-theme/types';
 
-
-import { ExtHostStorage } from '../hosted/api/vscode/ext.host.storage';
 import { Extension } from '../hosted/vscode.extension';
 
 import { ActivatedExtension, ActivatedExtensionJSON, ExtensionsActivator } from './activator';
 import { ISumiExtensionContributions } from './sumi/extension';
-import { IExtensionContributions, IExtensionLanguagePack, IMainThreadCommands } from './vscode';
+import { IExtHostStorage, IExtensionContributions, IExtensionLanguagePack, IMainThreadCommands } from './vscode';
 import { ThemeIcon } from './vscode/ext-types';
 
 import type { ContextKeyExpression } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
@@ -102,6 +101,7 @@ export interface IExtensionNodeService {
     extraMetaData?: IExtraMetaData,
   ): Promise<IExtensionMetaData | undefined>;
   setConnectionServiceClient(clientId: string, serviceClient: IExtensionNodeClientService);
+  registerConnectionServiceClient?(clientId: string, serviceClient: IExtensionNodeClientService): () => void;
   disposeClientExtProcess(clientId: string, info: boolean): Promise<void>;
   disposeAllClientExtProcess(): Promise<void>;
   tryEnableInspectPort(clientId: string, delay?: number): Promise<boolean>;
@@ -490,7 +490,7 @@ export interface IExtensionHost {
   isActivated(id: string): boolean;
   activateExtension(id: string): Promise<void>;
   extensionsChangeEmitter: Emitter<void>;
-  storage: ExtHostStorage;
+  storage: IExtHostStorage;
 }
 
 export interface IExtensionHostService extends IExtensionHost {
@@ -518,8 +518,21 @@ export const WorkerHostAPIIdentifier = {
   ExtWorkerHostExtensionService: createExtHostContextProxyIdentifier('ExtWorkerHostExtensionService'),
 };
 
+export interface ExtensionActivationDiagnosticMessage {
+  extensionId: string;
+  failed: boolean;
+  durationMs: number;
+  moduleCount: number;
+  subscriptionCount: number;
+  heapUsedBytes: number;
+  heapUsedDeltaBytes: number;
+  rssBytes: number;
+  rssDeltaBytes: number;
+}
+
 export enum ProcessMessageType {
   REPORTER,
+  EXTENSION_ACTIVATION_DIAGNOSTIC,
 }
 
 export enum EXTENSION_ENABLE {
@@ -564,7 +577,28 @@ export interface Output {
 
 export const IExtensionHostManager = Symbol('IExtensionHostManager');
 
+/**
+ * Immutable identity for one process generation owned by an Extension Host
+ * manager. A PID is only a diagnostic projection; callers must retain the
+ * complete lease for process-scoped operations.
+ */
+export interface ExtensionHostProcessLease {
+  readonly managerEpoch: number;
+  readonly pid: number;
+  readonly leaseId: number;
+}
+
+export interface ExtensionHostProcessEpochLoss {
+  epoch: number;
+  reason: 'connection-closed' | 'connection-replaced';
+}
+
 export interface IExtensionHostManager {
+  /**
+   * Optional for local managers. Remote managers emit when their transport
+   * epoch disappears and every process lease from that epoch becomes invalid.
+   */
+  readonly onDidLoseProcessEpoch?: Event<ExtensionHostProcessEpochLoss>;
   init(): MaybePromise<void>;
   fork(modulePath: string, ...args: any[]): MaybePromise<number>;
   send(pid: number, message: string): MaybePromise<void>;
@@ -641,7 +675,7 @@ export function validateTypeOrModifier(
 
 // #endregion Semantic Tokens Contribution Point
 
-export const enum ExtensionContributePoint {
+export enum ExtensionContributePoint {
   Terminal = 'terminal',
 }
 

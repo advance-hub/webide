@@ -1,5 +1,5 @@
 import { CompositeTreeNode, ITree, TreeNode } from '@opensumi/ide-components';
-import { MenuNode } from '@opensumi/ide-core-browser/lib/menu/next';
+import { MenuNode } from '@opensumi/ide-core-browser/menu';
 import { IAccessibilityInformation, Uri, UriComponents, isObject, isString } from '@opensumi/ide-core-common';
 
 import { ITreeItemLabel, TreeViewItemCheckboxInfo } from '../../../../common/vscode';
@@ -13,7 +13,10 @@ export class ExtensionTreeRoot extends CompositeTreeNode {
 
   private _displayName: string;
 
-  constructor(treeViewDataProvider: TreeViewDataProvider, public treeViewId: string = '') {
+  constructor(
+    treeViewDataProvider: TreeViewDataProvider,
+    public treeViewId: string = '',
+  ) {
     super(treeViewDataProvider as ITree, undefined);
   }
 

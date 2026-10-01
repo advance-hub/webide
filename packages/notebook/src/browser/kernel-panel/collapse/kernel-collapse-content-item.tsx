@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 import { URI, useInjectable } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 
 import { LibroPanelCollapseKernelItem } from '../kernel.panel.protocol';
 

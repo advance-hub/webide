@@ -1,14 +1,12 @@
 import paths from 'path';
 
-import { URI, Uri, getLanguageId, setLanguageId } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { StaticResourceService, URI, Uri, getLanguageId, setLanguageId } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { Extension } from '../../src/browser/extension';
 import { ExtensionServiceImpl } from '../../src/browser/extension.service';
-import { IExtensionMetaData } from '../../src/common';
-import { ExtensionService } from '../../src/common';
+import { ExtensionService, IExtensionMetaData } from '../../src/common';
 
 import '@opensumi/ide-i18n';
 

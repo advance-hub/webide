@@ -3,10 +3,10 @@ import path from 'path';
 import { URI as Uri } from 'vscode-uri';
 
 import { Injector } from '@opensumi/di';
-import { SumiConnectionMultiplexer } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { SumiConnectionMultiplexer } from '@opensumi/ide-connection';
 import { IExtensionProps, URI, isWindows } from '@opensumi/ide-core-common';
+import { initMockRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 
-import { initMockRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
 import { ExtensionMode } from '../../../../src/common/vscode/ext-types';
 import { ExtensionContext } from '../../../../src/hosted/api/vscode/ext.host.extensions';
 import { ExtHostSecret } from '../../../../src/hosted/api/vscode/ext.host.secrets';

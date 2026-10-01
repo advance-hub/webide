@@ -1,12 +1,12 @@
 import { Emitter } from '@opensumi/ide-core-common';
-import { MainThreadTheming } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.theming';
-import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { ColorThemeKind } from '@opensumi/ide-extension/lib/common/vscode/ext-types';
-import { ExtHostTheming } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.theming';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 import { IThemeService, ThemeType } from '@opensumi/ide-theme';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
+import { MainThreadTheming } from '../../../../src/browser/vscode/api/main.thread.theming';
+import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { ColorThemeKind } from '../../../../src/common/vscode/ext-types';
+import { ExtHostTheming } from '../../../../src/hosted/api/vscode/ext.host.theming';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();
 

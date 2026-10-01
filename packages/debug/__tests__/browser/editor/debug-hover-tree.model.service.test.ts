@@ -1,12 +1,12 @@
-import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
+import { ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { Disposable } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugHoverSource } from '@opensumi/ide-debug/lib/browser/editor/debug-hover-source';
-import { DebugHoverTreeModelService } from '@opensumi/ide-debug/lib/browser/editor/debug-hover-tree.model.service';
-import { ExpressionContainer } from '@opensumi/ide-debug/lib/browser/tree';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
+import { DebugHoverSource } from '../../../src/browser/editor/debug-hover-source';
+import { DebugHoverTreeModelService } from '../../../src/browser/editor/debug-hover-tree.model.service';
 import styles from '../../../src/browser/editor/debug-hover.module.less';
+import { ExpressionContainer } from '../../../src/browser/tree';
 
 describe('Debug Hover Model', () => {
   const mockInjector = createBrowserInjector([]);
@@ -110,9 +110,8 @@ describe('Debug Hover Model', () => {
     const mockSession = jest.fn() as any;
     const node = new ExpressionContainer({ session: mockSession }, mockRoot, undefined, 'test');
     debugHoverTreeModelService.activeNodeDecoration(node);
-    let decoration = debugHoverTreeModelService.decorations.getDecorations(node);
     debugHoverTreeModelService.removeNodeDecoration();
-    decoration = debugHoverTreeModelService.decorations.getDecorations(node);
+    const decoration = debugHoverTreeModelService.decorations.getDecorations(node);
     expect(decoration).toBeDefined();
     expect(decoration!.classlist).toEqual([]);
   });

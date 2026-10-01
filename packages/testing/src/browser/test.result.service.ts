@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Emitter, IContextKey, IContextKeyService, URI, arrays, uuid } from '@opensumi/ide-core-browser';
-import { TestingHasAnyResults, TestingIsRunning } from '@opensumi/ide-core-browser/lib/contextkey/testing';
+import { TestingHasAnyResults, TestingIsRunning } from '@opensumi/ide-core-browser/contextkeys';
 
 import { ITestProfileService, TestProfileServiceToken } from '../common/test-profile';
 import {
@@ -24,10 +24,7 @@ import { TestDto } from './outputPeek/test-output-peek';
 const { findFirstInSorted } = arrays;
 
 export type ResultChangeEvent =
-  | { completed: ITestResult }
-  | { started: ITestResult }
-  | { inserted: ITestResult }
-  | { removed: ITestResult[] };
+  { completed: ITestResult } | { started: ITestResult } | { inserted: ITestResult } | { removed: ITestResult[] };
 
 export const isRunningTests = (service: ITestResultService) =>
   service.results.length > 0 && service.results[0].completedAt === undefined;

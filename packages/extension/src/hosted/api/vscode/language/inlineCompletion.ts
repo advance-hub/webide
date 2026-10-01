@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 import { CancellationToken } from 'vscode';
 
 import { DisposableStore, Uri as URI } from '@opensumi/ide-core-common';
@@ -11,7 +11,7 @@ import * as languages from '../../../../common/vscode/languages';
 import { IdentifiableInlineCompletion, IdentifiableInlineCompletions } from '../../../../common/vscode/languages';
 import { CommandsConverter } from '../ext.host.command';
 
-import type { IPosition } from '@opensumi/ide-monaco/lib/common';
+import type { IPosition } from '@opensumi/ide-monaco';
 import type vscode from 'vscode';
 
 class ReferenceMap<T> {

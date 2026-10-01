@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { IExtensionInfo, OnEvent, URI, WithEventBus } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelService, ResourceDecorationNeedChangeEvent } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService, ResourceDecorationNeedChangeEvent } from '@opensumi/ide-editor/browser';
 import { IWebviewService } from '@opensumi/ide-webview';
 
 import {
@@ -42,7 +42,10 @@ export class MainThreadCustomEditor extends WithEventBus implements IMainThreadC
   @Autowired(IWebviewService)
   webviewService: IWebviewService;
 
-  constructor(protocol: IRPCProtocol, private webview: MainThreadWebview) {
+  constructor(
+    protocol: IRPCProtocol,
+    private webview: MainThreadWebview,
+  ) {
     super();
     this.proxy = protocol.getProxy(ExtHostAPIIdentifier.ExtHostCustomEditor);
   }

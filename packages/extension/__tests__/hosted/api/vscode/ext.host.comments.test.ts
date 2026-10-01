@@ -1,31 +1,27 @@
 import { Injector } from '@opensumi/di';
 import { CommentReactionClick, ICommentsFeatureRegistry, ICommentsService } from '@opensumi/ide-comments';
-import { CommentsFeatureRegistry } from '@opensumi/ide-comments/lib/browser/comments-feature.registry';
-import { CommentsService } from '@opensumi/ide-comments/lib/browser/comments.service';
+import { CommentsFeatureRegistry } from '@opensumi/ide-comments/features';
+import { CommentsService } from '@opensumi/ide-comments/service';
 import { IContextKeyService } from '@opensumi/ide-core-browser';
 import { Deferred, Disposable, IEventBus, URI, Uri, sleep } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { EditorCollectionService, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import { MainThreadComments } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.comments';
-import {
-  ExtHostAPIIdentifier,
-  IMainThreadComments,
-  MainThreadAPIIdentifier,
-} from '@opensumi/ide-extension/lib/common/vscode';
-import * as types from '@opensumi/ide-extension/lib/common/vscode/ext-types';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { LayoutService } from '@opensumi/ide-main-layout/layout';
+import { IWorkspaceService } from '@opensumi/ide-workspace';
+
+import { MainThreadComments } from '../../../../src/browser/vscode/api/main.thread.comments';
+import { ExtHostAPIIdentifier, IMainThreadComments, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import * as types from '../../../../src/common/vscode/ext-types';
 import {
   ExtHostCommentThread,
   ExtHostComments,
   createCommentsApiFactory,
-} from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.comments';
-import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { LayoutService } from '@opensumi/ide-main-layout/lib/browser/layout.service';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
-import { IWorkspaceService } from '@opensumi/ide-workspace';
-
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
+} from '../../../../src/hosted/api/vscode/ext.host.comments';
 
 import type vscode from 'vscode';
 

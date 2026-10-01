@@ -1,8 +1,7 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { warning } from '@opensumi/ide-components/lib/utils';
-import { IRPCProtocol, SumiConnectionMultiplexer, createExtMessageIO } from '@opensumi/ide-connection';
-import { BaseConnection } from '@opensumi/ide-connection/lib/common/connection';
-import { MessagePortConnection } from '@opensumi/ide-connection/lib/common/connection/drivers/message-port';
+import { warning } from '@opensumi/ide-components/utils';
+import { BaseConnection, IRPCProtocol, SumiConnectionMultiplexer, createExtMessageIO } from '@opensumi/ide-connection';
+import { MessagePortConnection } from '@opensumi/ide-connection/drivers';
 import { AppConfig, Deferred, IExtensionProps, ILogger, URI } from '@opensumi/ide-core-browser';
 import { Disposable, DisposableStore, path, toDisposable } from '@opensumi/ide-core-common';
 
@@ -18,6 +17,10 @@ import { initSharedAPIProxy } from './vscode/api/main.thread.api.shared-impl';
 import { startInsideIframe } from './workerHostIframe';
 
 const { posix } = path;
+
+export function normalizeWorkerEntryScript(entryScript: string): string {
+  return /\.(?:cjs|mjs|js)$/i.test(entryScript) ? entryScript : `${entryScript}.js`;
+}
 
 @Injectable()
 export class WorkerExtProcessService
@@ -238,12 +241,9 @@ export class WorkerExtProcessService
   }
 
   private getWorkerExtensionProps(extension: IExtension, workerMain: string) {
-    let entryScript = workerMain;
-
-    // 有部分 web extension 在申明 browser 入口字段的时候，不会带上文件后缀，导致 fetch 获取文件 404
-    if (!entryScript.endsWith('.js')) {
-      entryScript += '.js';
-    }
+    // Some web extensions omit the suffix. CommonJS and ESM browser bundles
+    // are already complete entries and must not become `.cjs.js`/`.mjs.js`.
+    const entryScript = normalizeWorkerEntryScript(workerMain);
 
     // 这里路径遵循 posix 方式，fsPath 会自动根据平台转换
     const workerScriptPath = new URI(

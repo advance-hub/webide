@@ -5,10 +5,10 @@ import * as fs from 'fs-extra';
 
 import { Injector } from '@opensumi/di';
 import { AppConfig, INodeLogger, IReporterService, getDebugLogger } from '@opensumi/ide-core-node';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { ActivationEventServiceImpl } from '@opensumi/ide-extension/lib/browser/activation.service';
-import { IActivationEventService } from '@opensumi/ide-extension/lib/browser/types';
+import { createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 
+import { ActivationEventServiceImpl } from '../../src/browser/activation.service';
+import { IActivationEventService } from '../../src/browser/types';
 import { IExtensionHostManager, IExtensionNodeClientService, IExtensionNodeService } from '../../src/common';
 import { ExtensionHostManager } from '../../src/node/extension.host.manager';
 import { ExtensionNodeServiceImpl } from '../../src/node/extension.service';
@@ -21,19 +21,21 @@ describe('Extension Service', () => {
   const testExtId = 'opensumi.ide-dark-theme';
   const testExtPath = 'opensumi.ide-dark-theme-1.13.1';
   const testExtReadme = '# IDE Dark Theme';
+  const extensionHostShutdownTimeout = 5_000;
 
   beforeAll(async () => {
     injector = createNodeInjector([]);
-    injector.addProviders(
-      {
-        token: AppConfig,
-        useValue: {
-          marketplace: {
-            extensionDir,
-            ignoreId: [],
-          },
+    injector.overrideProviders({
+      token: AppConfig,
+      useValue: {
+        extensionHostShutdownTimeout,
+        marketplace: {
+          extensionDir,
+          ignoreId: [],
         },
       },
+    });
+    injector.addProviders(
       {
         token: IReporterService,
         useValue: {
@@ -118,15 +120,34 @@ describe('Extension Service', () => {
       mockExtClientId = 'mock_id' + Math.random();
     });
 
+    // A real child may use the entire graceful-exit lease before forced cleanup.
     afterEach(async () => {
       await extensionService.disposeClientExtProcess(mockExtClientId, true);
-    });
+    }, extensionHostShutdownTimeout + 5_000);
 
     it('should create extension host process', async () => {
       await extensionService.createProcess(mockExtClientId);
       const port = await extensionService.getProcessInspectPort(mockExtClientId);
       expect(port).toBeUndefined();
     });
+
+    it(
+      'publishes a real runtime only after child and IPC readiness agree',
+      async () => {
+        expect.hasAssertions();
+        await extensionService.createProcess(mockExtClientId);
+
+        await expect(extensionService.ensureProcessReady(mockExtClientId)).resolves.toBe(true);
+        expect((extensionService as ExtensionNodeServiceImpl).getRuntimeHandleSnapshot(mockExtClientId)).toMatchObject({
+          clientId: mockExtClientId,
+          phase: 'ready',
+          hasConnection: true,
+          processId: expect.any(Number),
+        });
+      },
+      // Cold TypeScript loading belongs to the product's bounded startup window.
+      ExtensionNodeServiceImpl.ExtensionHostStartupTimeout + 5_000,
+    );
 
     it.skip('enable extProcess inspect port', async () => {
       (global as any).isDev = undefined;

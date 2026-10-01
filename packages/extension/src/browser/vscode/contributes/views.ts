@@ -2,7 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { DisposableCollection } from '@opensumi/ide-core-browser';
 import { LifeCyclePhase } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { WelcomeView } from '@opensumi/ide-main-layout/lib/browser/welcome.view';
+import { WelcomeView } from '@opensumi/ide-main-layout/welcome';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { ExtensionWebviewView } from '../../components/extension-webview-view';

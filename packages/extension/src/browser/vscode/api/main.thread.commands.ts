@@ -2,7 +2,7 @@ import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { CommandRegistry, IContextKeyService, IDisposable, ILogger } from '@opensumi/ide-core-browser';
 import { Disposable, IExtensionInfo, URI, arrays } from '@opensumi/ide-core-common';
-import { ICommandServiceToken, IMonacoCommandService } from '@opensumi/ide-monaco/lib/browser/contrib/command';
+import { ICommandServiceToken, IMonacoCommandService } from '@opensumi/ide-monaco/commands';
 
 import { ArgumentProcessor, ExtHostAPIIdentifier, IExtHostCommands, IMainThreadCommands } from '../../../common/vscode';
 

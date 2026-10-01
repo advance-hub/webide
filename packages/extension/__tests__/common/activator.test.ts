@@ -1,4 +1,5 @@
-import { mockService } from '../../../../tools/dev-tool/src/mock-injector';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+
 import { ActivatedExtension, ExtensionsActivator } from '../../src/common/activator';
 
 describe('activator test', () => {
@@ -61,5 +62,24 @@ describe('activator test', () => {
     );
     // deactivate 会 catch 中所有错误
     await expect(extensionsActivator.deactivate()).resolves.toBeTruthy();
+  });
+
+  it('deactivates one removed extension and releases its subscriptions', async () => {
+    expect.hasAssertions();
+    const deactivate = jest.fn();
+    const dispose = jest.fn();
+    extensionsActivator.set(
+      'test',
+      new ActivatedExtension('test', 'test', 'test', 'node', false, null, { deactivate }, mockService({}), [
+        { dispose },
+      ]),
+    );
+
+    await expect(extensionsActivator.deactivateExtension('test')).resolves.toBe(true);
+
+    expect(deactivate).toHaveBeenCalledTimes(1);
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(extensionsActivator.has('test')).toBe(false);
+    await expect(extensionsActivator.deactivateExtension('test')).resolves.toBe(false);
   });
 });

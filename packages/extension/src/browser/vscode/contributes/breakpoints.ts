@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { LifeCyclePhase } from '@opensumi/ide-core-common';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
+import { DebugConfigurationManager } from '@opensumi/ide-debug/configuration-manager';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';
 

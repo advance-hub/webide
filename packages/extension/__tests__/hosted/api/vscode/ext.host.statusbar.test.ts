@@ -1,13 +1,13 @@
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import { IContextKeyService, IStatusBarService } from '@opensumi/ide-core-browser';
-import { MockContextKeyService } from '@opensumi/ide-core-browser/__mocks__/context-key';
 import { uuid } from '@opensumi/ide-core-common';
-import { StatusBarService } from '@opensumi/ide-status-bar/lib/browser/status-bar.service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/context-key';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { StatusBarService } from '@opensumi/ide-status-bar/service';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
 import { mockExtensionDescription } from '../../../../__mocks__/extensions';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
 import { MainThreadStatusBar } from '../../../../src/browser/vscode/api/main.thread.statusbar';
 import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import { ThemeColor } from '../../../../src/common/vscode/ext-types';

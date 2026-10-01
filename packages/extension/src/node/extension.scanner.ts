@@ -9,6 +9,12 @@ import { Uri, getDebugLogger } from '@opensumi/ide-core-node';
 import { IExtensionMetaData, IExtraMetaData } from '../common';
 import { getNodeRequire } from '../common/utils';
 
+import {
+  cloneExtensionMetadata,
+  metadataKey,
+  readBuiltinManifest,
+  readMutableExtension,
+} from './extension-metadata-cache';
 import { mergeContributes } from './merge-contributes';
 
 function resolvePath(path) {
@@ -41,16 +47,26 @@ export class ExtensionScanner {
       '.json',
     );
     const extendPath = path.join(extensionPath, 'kaitian.js');
-    const pkgExist = await fs.pathExists(pkgPath);
-    const defaultPkgNlsPathExist = await fs.pathExists(defaultPkgNlsPath);
-    const extendExist = await fs.pathExists(extendPath);
+    const [pkgExist, defaultPkgNlsPathExist, extendExist] = await Promise.all([
+      fs.pathExists(pkgPath),
+      fs.pathExists(defaultPkgNlsPath),
+      fs.pathExists(extendPath),
+    ]);
+    // Cache reads only within this scan; installed/development extensions may change between scans.
+    const jsonReads = new Map<string, Promise<any>>();
+    const readJSON = (filePath: string) => {
+      if (!jsonReads.has(filePath)) {
+        jsonReads.set(filePath, fs.readJSON(filePath));
+      }
+      return jsonReads.get(filePath)!;
+    };
 
     let pkgCheckResult = pkgExist;
     const extendCheckResult = extendExist;
 
     if (pkgExist) {
       try {
-        const packageJSON = await fs.readJSON(pkgPath);
+        const packageJSON = await readJSON(pkgPath);
         if (!packageJSON.engines) {
           pkgCheckResult = false;
         } else if (!(packageJSON.engines.vscode || packageJSON.engines.kaitian)) {
@@ -64,12 +80,12 @@ export class ExtensionScanner {
 
     let pkgNlsJSON: { [key: string]: string } | undefined;
     if (pkgNlsPath) {
-      pkgNlsJSON = await fs.readJSON(pkgNlsPath);
+      pkgNlsJSON = await readJSON(pkgNlsPath);
     }
 
     let defaultPkgNlsJSON: { [key: string]: string } | undefined;
     if (defaultPkgNlsPathExist) {
-      defaultPkgNlsJSON = await fs.readJSON(defaultPkgNlsPath);
+      defaultPkgNlsJSON = await readJSON(defaultPkgNlsPath);
     }
 
     if (!(pkgCheckResult || extendCheckResult)) {
@@ -77,9 +93,9 @@ export class ExtensionScanner {
     }
 
     const extensionExtraMetaData = {};
-    let packageJSON = {} as any;
+    let packageJSON: any;
     try {
-      packageJSON = await fs.readJSON(pkgPath);
+      packageJSON = await readJSON(pkgPath);
       if (extraMetaData) {
         for (const extraField of Object.keys(extraMetaData)) {
           try {
@@ -109,7 +125,7 @@ export class ExtensionScanner {
     }
 
     let extendConfig = {};
-    if (await fs.pathExists(extendPath)) {
+    if (extendExist) {
       try {
         // 这里必须clear cache, 不然每次都一样
         delete getNodeRequire().cache[extendPath];
@@ -185,10 +201,12 @@ export class ExtensionScanner {
     private localization: string,
     private extensionCandidate: string[],
     private extraMetaData: IExtraMetaData,
+    private options: { builtinDirectory?: string; manifestPath?: string; cacheMutable?: boolean } = {},
   ) {}
 
   public async run(): Promise<IExtensionMetaData[]> {
-    const scan = this.scan.map((dir) => resolvePath(dir));
+    const startedAt = Date.now();
+    const scan = [...new Set(this.scan.map((dir) => resolvePath(dir)))];
 
     await Promise.all(
       scan
@@ -200,17 +218,49 @@ export class ExtensionScanner {
         ),
     );
 
+    getDebugLogger().info(
+      `[extension-perf] scan durationMs=${Date.now() - startedAt} count=${this.availableExtensions.size}`,
+    );
     return Array.from(this.availableExtensions.values());
   }
   private async scanDir(dir: string): Promise<void> {
+    if (
+      this.options.manifestPath &&
+      this.options.builtinDirectory &&
+      path.resolve(dir) === path.resolve(this.options.builtinDirectory)
+    ) {
+      try {
+        const manifest = await readBuiltinManifest(this.options.manifestPath, this.localization);
+        const entries = manifest.localizations[this.localization];
+        if (entries && metadataKey(manifest.extraMetaData) === metadataKey(this.extraMetaData)) {
+          for (const entry of entries) {
+            const metadata = cloneExtensionMetadata({
+              ...entry,
+              path: path.join(dir, entry.path),
+              realPath: path.join(dir, entry.realPath),
+            });
+            this.addExtension(metadata);
+          }
+          await Promise.all(
+            manifest.runtimeEntries.map((entry) => this.getExtension(path.join(dir, entry), this.localization)),
+          );
+          getDebugLogger().info(`[extension-perf] builtin-manifest count=${entries.length}`);
+          return;
+        }
+      } catch (error) {
+        getDebugLogger().warn('Builtin extension manifest unavailable; falling back to filesystem scan', error);
+      }
+    }
     getDebugLogger().info('scan directory: ', dir);
     try {
-      const extensionDirArr = await fs.readdir(dir);
+      const extensionDirArr = await fs.readdir(dir, { withFileTypes: true });
       await Promise.all(
-        extensionDirArr.map((extensionDir) => {
-          const extensionPath = path.join(dir, extensionDir);
-          return this.getExtension(extensionPath, this.localization);
-        }),
+        extensionDirArr
+          .filter((entry) => entry.isDirectory() || entry.isSymbolicLink() || entry.name.endsWith('.asar'))
+          .map((entry) => {
+            const extensionPath = path.join(dir, entry.name);
+            return this.getExtension(extensionPath, this.localization);
+          }),
       );
     } catch (e) {
       getDebugLogger().error(e);
@@ -234,7 +284,7 @@ export class ExtensionScanner {
       `${lowerCasePrefix}.${localization.split('-')[0]}${suffix}`,
     ];
 
-    for (const maybe of maybeExist) {
+    for (const maybe of new Set(maybeExist)) {
       const filepath = path.join(extensionPath, maybe);
       if (await fs.pathExists(filepath)) {
         return filepath;
@@ -277,19 +327,25 @@ export class ExtensionScanner {
       return;
     }
 
-    const extension = await ExtensionScanner.getExtension(extensionPath, localization, {
+    const extra = {
       ...this.extraMetaData,
       ...extraMetaData,
-    });
+    };
+    const read = () => ExtensionScanner.getExtension(extensionPath, localization, extra);
+    const extension = this.options.cacheMutable
+      ? await readMutableExtension(extensionPath, localization, extra, read)
+      : await read();
 
     if (extension) {
-      const latest = this.isLatestVersion(extension);
-      if (latest) {
-        this.availableExtensions.set(extension.id, extension);
-      }
-
-      this.results.set(extensionPath, extension);
+      this.addExtension(extension);
       return extension;
     }
+  }
+
+  private addExtension(extension: IExtensionMetaData) {
+    if (this.isLatestVersion(extension)) {
+      this.availableExtensions.set(extension.id, extension);
+    }
+    this.results.set(extension.path, extension);
   }
 }

@@ -11,7 +11,7 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { DEBUG_COMMANDS, DEBUG_WATCH_ID } from '../../../common';
 import { DebugWatchNode } from '../../tree/debug-tree-node.define';

@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { getIcon } from '@opensumi/ide-components';
-import { IMenuRegistry } from '@opensumi/ide-core-browser/lib/menu/next';
+import { IMenuRegistry } from '@opensumi/ide-core-browser/menu';
 import { IJSONSchema, LifeCyclePhase, localize } from '@opensumi/ide-core-common';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 

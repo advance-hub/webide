@@ -1,6 +1,6 @@
-import { KTExtension } from '@opensumi/ide-extension/lib/hosted/vscode.extension';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../tools/dev-tool/src/mock-injector';
+import { KTExtension } from '../../src/hosted/vscode.extension';
 
 describe('extension/__tests__/hosted/vscode.extension.test.ts', () => {
   beforeAll(() => {});

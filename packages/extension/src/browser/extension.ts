@@ -1,6 +1,7 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import {
   Deferred,
+  StaticResourceService,
   URI,
   Uri,
   WithEventBus,
@@ -9,8 +10,7 @@ import {
   registerLocalizationBundle,
   replaceNlsField,
 } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
-import { LOCALE_TYPES } from '@opensumi/ide-core-common/lib/const';
+import { LOCALE_TYPES } from '@opensumi/ide-core-common/const';
 
 import {
   ExtensionNodeServiceServerPath,

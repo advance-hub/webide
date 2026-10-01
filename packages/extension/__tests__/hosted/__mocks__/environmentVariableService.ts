@@ -1,8 +1,1 @@
-import { Disposable } from '@opensumi/ide-core-common';
-
-export const MockEnvironmentVariableService = {
-  set: () => {},
-  delete: () => {},
-  mergedCollection: undefined,
-  onDidChangeCollections: () => Disposable.NULL,
-};
+export { MockEnvironmentVariableService } from '@opensumi/ide-dev-tool/mocks/environment-variable';

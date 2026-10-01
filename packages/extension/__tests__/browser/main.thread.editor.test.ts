@@ -9,8 +9,6 @@ import {
   RecentFilesManager,
   URI,
 } from '@opensumi/ide-core-browser';
-import { injectMockPreferences } from '@opensumi/ide-core-browser/__mocks__/preference';
-import { useMockStorage } from '@opensumi/ide-core-browser/__mocks__/storage';
 import {
   CommonServerPath,
   Deferred,
@@ -20,12 +18,22 @@ import {
   OS,
   sleep,
 } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { IResource } from '@opensumi/ide-editor';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { TestEditorDocumentProvider, TestResourceResolver } from '@opensumi/ide-dev-tool/mocks/editor-providers';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+import { injectMockPreferences } from '@opensumi/ide-dev-tool/mocks/preference';
+import { useMockStorage } from '@opensumi/ide-dev-tool/mocks/storage';
+import { MockWorkspaceService } from '@opensumi/ide-dev-tool/mocks/workspace-service';
 import {
-  TestEditorDocumentProvider,
-  TestResourceResolver,
-} from '@opensumi/ide-editor/__tests__/browser/test-providers';
+  EditorCollectionService,
+  IDocPersistentCacheProvider,
+  ILanguageService,
+  IResource,
+  ResourceService,
+  WorkbenchEditorService,
+} from '@opensumi/ide-editor';
 import {
   EditorModule,
   EditorPreferences,
@@ -34,59 +42,48 @@ import {
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelService,
   IEditorFeatureRegistry,
-} from '@opensumi/ide-editor/lib/browser';
-import { EditorComponentRegistryImpl } from '@opensumi/ide-editor/lib/browser/component';
+} from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelContentRegistryImpl, EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
 import {
-  EditorDocumentModelContentRegistryImpl,
-  EditorDocumentModelServiceImpl,
-} from '@opensumi/ide-editor/lib/browser/doc-model/main';
-import { EditorCollectionServiceImpl } from '@opensumi/ide-editor/lib/browser/editor-collection.service';
-import { EditorDecorationCollectionService } from '@opensumi/ide-editor/lib/browser/editor.decoration.service';
-import { EditorFeatureRegistryImpl } from '@opensumi/ide-editor/lib/browser/feature';
-import { BaseFileSystemEditorDocumentProvider } from '@opensumi/ide-editor/lib/browser/fs-resource/fs-editor-doc';
-import { FileSystemResourceProvider } from '@opensumi/ide-editor/lib/browser/fs-resource/fs-resource';
-import { LanguageService } from '@opensumi/ide-editor/lib/browser/language/language.service';
-import { ResourceServiceImpl } from '@opensumi/ide-editor/lib/browser/resource.service';
+  BaseFileSystemEditorDocumentProvider,
+  FileSystemResourceProvider,
+  ResourceServiceImpl,
+} from '@opensumi/ide-editor/resources';
+import {
+  EditorCollectionServiceImpl,
+  EditorComponentRegistryImpl,
+  EditorDecorationCollectionService,
+  EditorFeatureRegistryImpl,
+  LanguageService,
+} from '@opensumi/ide-editor/runtime';
 import {
   EditorComponentRegistry,
   EditorGroupIndexChangedEvent,
   EditorSelectionChangeEvent,
   EditorVisibleChangeEvent,
-} from '@opensumi/ide-editor/lib/browser/types';
-import { EditorGroup, WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
-import {
-  EditorCollectionService,
-  IDocPersistentCacheProvider,
-  ILanguageService,
-  ResourceService,
-  WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/common';
-import { ExtensionServiceImpl } from '@opensumi/ide-extension/lib/browser/extension.service';
-import { MainThreadExtensionDocumentData } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.doc';
-import { ExtensionService } from '@opensumi/ide-extension/lib/common';
-import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import * as TypeConverts from '@opensumi/ide-extension/lib/common/vscode/converter';
-import { ExtensionDocumentDataManagerImpl } from '@opensumi/ide-extension/lib/hosted/api/vscode/doc';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
-import { FileServiceContribution } from '@opensumi/ide-file-service/lib/browser/file-service-contribution';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+} from '@opensumi/ide-editor/types';
+import { EditorGroup, WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { FileServiceContribution } from '@opensumi/ide-file-service/browser/contribution';
 import { MonacoService } from '@opensumi/ide-monaco';
 import * as monaco from '@opensumi/ide-monaco';
-import { MockContextKeyService } from '@opensumi/ide-monaco/__mocks__/monaco.context-key.service';
-import MonacoServiceImpl from '@opensumi/ide-monaco/lib/browser/monaco.service';
-import { MonacoOverrideServiceRegistryImpl } from '@opensumi/ide-monaco/lib/browser/override.service.registry';
+import MonacoServiceImpl, { MonacoOverrideServiceRegistryImpl } from '@opensumi/ide-monaco/runtime';
 import { IDialogService } from '@opensumi/ide-overlay';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { MockWorkspaceService } from '@opensumi/ide-workspace/lib/common/mocks';
 import {
   ConfigurationTarget,
   IConfigurationChangeEvent,
   IConfigurationService,
 } from '@opensumi/monaco-editor-core/esm/vs/platform/configuration/common/configuration';
 
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
+import { ExtensionServiceImpl } from '../../src/browser/extension.service';
+import { MainThreadExtensionDocumentData } from '../../src/browser/vscode/api/main.thread.doc';
 import { MainThreadEditorService } from '../../src/browser/vscode/api/main.thread.editor';
+import { ExtensionService } from '../../src/common';
+import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../src/common/vscode';
+import * as TypeConverts from '../../src/common/vscode/converter';
 import * as types from '../../src/common/vscode/ext-types';
+import { ExtensionDocumentDataManagerImpl } from '../../src/hosted/api/vscode/doc';
 import { ExtensionHostEditorService } from '../../src/hosted/api/vscode/editor/editor.host';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();

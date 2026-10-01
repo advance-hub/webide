@@ -8,9 +8,9 @@ import {
   IDiffEditor,
   IEditorDocumentModelService,
   getSimpleEditorOptions,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { Markdown } from '@opensumi/ide-markdown';
-import { IDiffEditorOptions, IEditorOptions } from '@opensumi/ide-monaco/lib/browser/monaco-api/editor';
+import { IDiffEditorOptions, IEditorOptions } from '@opensumi/ide-monaco/api/editor';
 
 import { TestPeekMessageToken } from '../../common';
 import { ITestErrorMessage } from '../../common/testCollection';

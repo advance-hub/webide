@@ -18,6 +18,7 @@ import {
   CommandHandler,
   Handler,
   ICommandHandlerDescription,
+  ICommandsConverter,
   IExtHostCommands,
   IExtensionDescription,
   IMainThreadCommands,
@@ -117,7 +118,10 @@ export class ExtHostCommands implements IExtHostCommands {
   private readonly _apiCommands = new Map<string, ApiCommand>();
   public converter: CommandsConverter;
 
-  constructor(rpcProtocol: IRPCProtocol, private buildInCommands?: IBuiltInCommand[]) {
+  constructor(
+    rpcProtocol: IRPCProtocol,
+    private buildInCommands?: IBuiltInCommand[],
+  ) {
     this.#proxy = rpcProtocol.getProxy(MainThreadAPIIdentifier.MainThreadCommands);
     this.registerUriArgProcessor();
   }
@@ -389,7 +393,7 @@ export class ExtHostCommands implements IExtHostCommands {
   }
 }
 
-export class CommandsConverter {
+export class CommandsConverter implements ICommandsConverter {
   readonly #commands: ExtHostCommands;
 
   private readonly _delegatingCommandId: string;
@@ -397,7 +401,10 @@ export class CommandsConverter {
   private _cachIdPool = 0;
 
   // --- conversion between internal and api commands
-  constructor(commands: ExtHostCommands, private readonly _lookupApiCommand: (id: string) => ApiCommand | undefined) {
+  constructor(
+    commands: ExtHostCommands,
+    private readonly _lookupApiCommand: (id: string) => ApiCommand | undefined,
+  ) {
     this._delegatingCommandId = `_vscode_delegate_cmd_${Date.now().toString(36)}`;
     this.#commands = commands;
     this.#commands.registerCommand(true, this._delegatingCommandId, this._executeConvertedCommand, this);

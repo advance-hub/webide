@@ -1,14 +1,16 @@
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
-import { Uri, uuid } from '@opensumi/ide-core-common';
-import { MainThreadEnv } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.env';
-import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { UIKind } from '@opensumi/ide-extension/lib/common/vscode/ext-types';
-import { createEnvApiFactory } from '@opensumi/ide-extension/lib/hosted/api/vscode/env/envApiFactory';
-import { ExtHostEnv } from '@opensumi/ide-extension/lib/hosted/api/vscode/env/ext.host.env';
+/** @jest-environment-options {"url":"https://ide.aliababa.com/workspace?id=1"} */
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
-import { createMockPairRPCProtocol } from '../../../../__mocks__/initRPCProtocol';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
+import { Uri, uuid } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+
+import { MainThreadEnv } from '../../../../src/browser/vscode/api/main.thread.env';
+import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { UIKind } from '../../../../src/common/vscode/ext-types';
+import { createEnvApiFactory } from '../../../../src/hosted/api/vscode/env/envApiFactory';
+import { ExtHostEnv } from '../../../../src/hosted/api/vscode/env/ext.host.env';
 
 import type vscode from 'vscode';
 
@@ -71,28 +73,6 @@ describe('vscode extHostEnv Test', () => {
   });
 
   describe('asExternalUrl', () => {
-    const oldWindowLocationHostname = window.location.hostname;
-    const oldWindowLocationHref = window.location.href;
-    const ideHostName = 'ide.aliababa.com';
-    const ideUrl = `https://${ideHostName}/workspace?id=1`;
-    beforeAll(() => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          href: ideUrl,
-          hostname: ideHostName,
-        },
-      });
-    });
-
-    afterAll(() => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          href: oldWindowLocationHref,
-          hostname: oldWindowLocationHostname,
-        },
-      });
-    });
-
     it('asExternalUri localhost uri', async () => {
       const uri = Uri.parse('http://localhost:8080?userId=1');
       const externalUri = await env.asExternalUri(uri);

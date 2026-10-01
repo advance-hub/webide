@@ -1,6 +1,6 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
 import { MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import { ExtHostSecret } from '../../../../src/hosted/api/vscode/ext.host.secrets';
 

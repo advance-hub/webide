@@ -1,8 +1,8 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IEventBus, PreferenceConfigurations, PreferenceService, URI, isUndefined } from '@opensumi/ide-core-browser';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { WorkspaceVariableContribution } from '@opensumi/ide-workspace/lib/browser/workspace-variable-contribution';
+import { WorkspaceVariableContribution } from '@opensumi/ide-workspace/variables';
 
 import {
   DEFAULT_ADD_CONFIGURATION_KEY,

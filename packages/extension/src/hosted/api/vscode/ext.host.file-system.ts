@@ -37,7 +37,10 @@ export function convertToVSCFileStat(stat: FileStat): vscode.FileStat {
 }
 
 class ConsumerFileSystem implements vscode.FileSystem {
-  constructor(private _proxy: files.IMainThreadFileSystemShape, private _fileSystemInfo: ExtHostFileSystemInfo) {}
+  constructor(
+    private _proxy: files.IMainThreadFileSystemShape,
+    private _fileSystemInfo: ExtHostFileSystemInfo,
+  ) {}
 
   stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     return this._proxy.$stat(uri).catch(ConsumerFileSystem._handleError);
@@ -90,8 +93,12 @@ class ConsumerFileSystem implements vscode.FileSystem {
       throw files.FileSystemError.Unavailable(err.message);
     }
 
-    // file system error
-    switch (err.name) {
+    // RPC preserves the provider's marked name (for example
+    // "EntryNotFound (FileSystemError)"). Normalize it before creating the
+    // public VS Code error, whose code is "FileNotFound". Extensions use that
+    // code to create missing first-run configuration instead of aborting.
+    const code = err.name.replace(/(?: \(FileSystemError\))+$/, '');
+    switch (code) {
       case files.FileSystemProviderErrorCode.FileExists:
         throw files.FileSystemError.FileExists(err.message);
       case files.FileSystemProviderErrorCode.FileNotFound:
@@ -106,7 +113,7 @@ class ConsumerFileSystem implements vscode.FileSystem {
         throw files.FileSystemError.Unavailable(err.message);
 
       default:
-        throw new files.FileSystemError(err.message, err.name as files.FileSystemProviderErrorCode);
+        throw new files.FileSystemError(err.message, code as files.FileSystemProviderErrorCode);
     }
   }
 }
@@ -121,7 +128,10 @@ export class ExtHostFileSystem implements files.IExtHostFileSystemShape {
 
   readonly fileSystem: vscode.FileSystem;
 
-  constructor(private readonly rpcProtocol: IRPCProtocol, private readonly _fileSystemInfo: ExtHostFileSystemInfo) {
+  constructor(
+    private readonly rpcProtocol: IRPCProtocol,
+    private readonly _fileSystemInfo: ExtHostFileSystemInfo,
+  ) {
     this._proxy = this.rpcProtocol.getProxy(MainThreadAPIIdentifier.MainThreadFileSystem);
     this.fileSystem = new ConsumerFileSystem(this._proxy, this._fileSystemInfo);
 

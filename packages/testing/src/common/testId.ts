@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const enum TestIdPathParts {
+export enum TestIdPathParts {
   /** Delimiter for path parts in test IDs */
   Delimiter = '\0',
 }
@@ -12,7 +12,7 @@ export const enum TestIdPathParts {
  * Enum for describing relative positions of tests. Similar to
  * `node.compareDocumentPosition` in the DOM.
  */
-export const enum TestPosition {
+export enum TestPosition {
   /** a === b */
   IsSame,
   /** Neither a nor b are a child of one another. They may share a common parent, though. */
@@ -98,7 +98,10 @@ export class TestId {
     return TestPosition.Disconnected;
   }
 
-  constructor(public readonly path: readonly string[], private readonly viewEnd = path.length) {
+  constructor(
+    public readonly path: readonly string[],
+    private readonly viewEnd = path.length,
+  ) {
     if (path.length === 0 || viewEnd < 1) {
       throw new Error('cannot create test with empty path');
     }

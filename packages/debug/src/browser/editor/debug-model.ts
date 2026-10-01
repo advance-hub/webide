@@ -14,10 +14,10 @@ import {
   IMenu,
   MenuId,
   generateMergedCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+} from '@opensumi/ide-core-browser/menu';
 import { Disposable, DisposableCollection, URI, isOSX, memoize, uuid } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoBrowser } from '@opensumi/ide-monaco/lib/browser';
+import { monacoBrowser } from '@opensumi/ide-monaco/browser';
 import { IThemeService, debugIconBreakpointForeground } from '@opensumi/ide-theme';
 
 import {

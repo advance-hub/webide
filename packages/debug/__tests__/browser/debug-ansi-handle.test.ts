@@ -5,28 +5,28 @@
 // Some code copied and modified from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/debug/test/browser/debugANSIHandling.test.ts
 
 import { IOpenerService, uuid } from '@opensumi/ide-core-browser';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { WorkbenchEditorService } from '@opensumi/ide-editor';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
+import { registerTerminalColors } from '@opensumi/ide-terminal-next/colors';
+import { Color, IThemeData, IThemeService, IThemeStore, RGBA } from '@opensumi/ide-theme';
+import { ThemeData } from '@opensumi/ide-theme/data';
+import { ISemanticTokenRegistry } from '@opensumi/ide-theme/semantic-tokens';
+import { SemanticTokenRegistryImpl } from '@opensumi/ide-theme/semantic-tokens/runtime';
+import { ThemeStore } from '@opensumi/ide-theme/store';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
+import { OpenerService } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/openerService';
+
 import {
   appendStylizedStringToContainer,
   calcANSI8bitColor,
   handleANSIOutput,
-} from '@opensumi/ide-debug/lib/browser/debug-ansi-handle';
-import { LinkDetector } from '@opensumi/ide-debug/lib/browser/debug-link-detector';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
-import { registerTerminalColors } from '@opensumi/ide-terminal-next/lib/browser/terminal.color';
-import { Color, IThemeData, IThemeService, IThemeStore, RGBA } from '@opensumi/ide-theme';
-import { SemanticTokenRegistryImpl } from '@opensumi/ide-theme/lib/browser/semantic-tokens-registry';
-import { ThemeData } from '@opensumi/ide-theme/lib/browser/theme-data';
-import { ThemeStore } from '@opensumi/ide-theme/lib/browser/theme-store';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
-import { ISemanticTokenRegistry } from '@opensumi/ide-theme/lib/common/semantic-tokens-registry';
-import { OpenerService } from '@opensumi/monaco-editor-core/esm/vs/editor/browser/services/openerService';
+} from '../../src/browser/debug-ansi-handle';
+import { LinkDetector } from '../../src/browser/debug-link-detector';
 
 function assert(value: any, message?: string | Error) {
   if (!value) {
-    // eslint-disable-next-line no-console
     console.error(message);
   }
   expect(value).toBeTruthy();

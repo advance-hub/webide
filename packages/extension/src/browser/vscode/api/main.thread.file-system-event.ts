@@ -1,21 +1,20 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { PreferenceService } from '@opensumi/ide-core-browser';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import {
   CancellationTokenSource,
   Disposable,
   ILogger,
   MessageType,
   ProgressLocation,
-  URI,
   Uri,
   formatLocalize,
   localize,
   raceCancellation,
 } from '@opensumi/ide-core-common';
 import { FileChangeType, IFileServiceClient } from '@opensumi/ide-file-service';
-import { ResourceEdit } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { ResourceEdit } from '@opensumi/ide-monaco/api';
 import { IDialogService } from '@opensumi/ide-overlay';
 import {
   FileOperation,

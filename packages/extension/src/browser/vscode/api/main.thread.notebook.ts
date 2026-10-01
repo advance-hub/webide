@@ -1,7 +1,7 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { UriComponents, WithEventBus } from '@opensumi/ide-core-common';
-import { INotebookService, NotebookDataDto } from '@opensumi/ide-editor';
+import { INotebookService, NotebookDataDto } from '@opensumi/ide-editor/notebook';
 
 import {
   ExtHostAPIIdentifier,

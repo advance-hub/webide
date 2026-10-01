@@ -1,8 +1,8 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { IContextKeyService, IReporterService, memoize } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { IElectronMainUIService } from '@opensumi/ide-core-common/lib/electron';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { AbstractContextMenuService, IContextMenu, MenuId } from '@opensumi/ide-core-browser/menu';
+import { IElectronMainUIService } from '@opensumi/ide-core-common/electron';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 
 import { DEBUG_REPORT_NAME, DebugState } from '../../../common';
 import { DebugSession } from '../../debug-session';

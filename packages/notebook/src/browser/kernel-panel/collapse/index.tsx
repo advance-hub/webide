@@ -3,7 +3,7 @@ import { ConfigProvider, Empty, Popconfirm, message, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 import { localize, useInjectable } from '@opensumi/ide-core-browser';
-import { IThemeService } from '@opensumi/ide-theme/lib/common';
+import { IThemeService } from '@opensumi/ide-theme';
 
 import {
   LibroPanelCollapseItem,

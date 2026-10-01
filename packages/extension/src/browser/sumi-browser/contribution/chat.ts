@@ -1,5 +1,5 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { IChatAgentViewService } from '@opensumi/ide-ai-native/lib/browser/types';
+import { IChatAgentViewService } from '@opensumi/ide-ai-native/types';
 import { ChatAgentViewServiceToken, Disposable, IDisposable, ILogger } from '@opensumi/ide-core-common';
 
 import { AbstractSumiBrowserContributionRunner, IRunTimeParams } from '../types';

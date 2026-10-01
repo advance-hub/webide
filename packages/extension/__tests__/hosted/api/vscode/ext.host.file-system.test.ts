@@ -1,9 +1,7 @@
 import { URI } from '@opensumi/ide-core-common';
-import {
-  ExtHostFileSystem,
-  convertToVSCFileStat,
-} from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.file-system';
-import { FileStat, FileType } from '@opensumi/ide-file-service/lib/common';
+import { FileStat, FileType } from '@opensumi/ide-file-service';
+
+import { ExtHostFileSystem, convertToVSCFileStat } from '../../../../src/hosted/api/vscode/ext.host.file-system';
 
 describe('convertToVSCFileStat', () => {
   it('Should return normal conversion to VSCode format results.', () => {
@@ -98,6 +96,22 @@ describe('FileSystemWatcher', () => {
 });
 
 describe('ExtHostFileSystem', () => {
+  it.each(['EntryNotFound', 'EntryNotFound (FileSystemError)', 'EntryNotFound (FileSystemError) (FileSystemError)'])(
+    'preserves the public FileNotFound code after RPC: %s',
+    async (name) => {
+      const error = new Error('First-run configuration is missing');
+      error.name = name;
+      const fs = new ExtHostFileSystem(
+        { getProxy: () => ({ $readFile: () => Promise.reject(error) }) } as any,
+        { $acceptProviderInfos: jest.fn() } as any,
+      );
+      await expect(fs.fileSystem.readFile(URI.file('/home/redhat.optin.json').codeUri)).rejects.toMatchObject({
+        code: 'FileNotFound',
+        name: 'EntryNotFound (FileSystemError)',
+      });
+    },
+  );
+
   const calledMap: Map<string, any[]> = new Map();
   const mockId = 100;
   const uri = URI.file('/root/test/');

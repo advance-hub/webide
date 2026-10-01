@@ -1,13 +1,14 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Uri } from '@opensumi/ide-core-common';
-import { MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
+
+import { MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import {
   IEditorTabDto,
   IMainThreadEditorTabsShape,
   TabInputKind,
   TabModelOperationKind,
-} from '@opensumi/ide-extension/lib/common/vscode/editor-tabs';
-import { ExtHostEditorTabs } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.editor-tabs';
+} from '../../../../src/common/vscode/editor-tabs';
+import { ExtHostEditorTabs } from '../../../../src/hosted/api/vscode/ext.host.editor-tabs';
 
 describe('ExtHostEditorTabs', () => {
   it('refreshes the existing tab API object when a move changes pinned state', () => {

@@ -1,13 +1,13 @@
 import { Injectable, Injector } from '@opensumi/di';
-import { ChatInternalService } from '@opensumi/ide-ai-native/lib/browser/chat/chat.internal.service';
-import { ERunStrategy, IInlineChatFeatureRegistry } from '@opensumi/ide-ai-native/lib/browser/types';
-import { InlineChatController } from '@opensumi/ide-ai-native/lib/browser/widget/inline-chat/inline-chat-controller';
 import {
   IChatAgentService,
   IChatAgentWelcomeMessage,
   IChatFollowup,
   IChatReplyFollowup,
-} from '@opensumi/ide-ai-native/lib/common';
+} from '@opensumi/ide-ai-native';
+import { ChatInternalService } from '@opensumi/ide-ai-native/chat/internal';
+import { InlineChatController } from '@opensumi/ide-ai-native/inline-chat';
+import { ERunStrategy, IInlineChatFeatureRegistry } from '@opensumi/ide-ai-native/types';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import {
   CoreMessgaeRoleMap,
@@ -17,7 +17,7 @@ import {
   IMarkdownString,
   InlineChatFeatureRegistryToken,
 } from '@opensumi/ide-core-common';
-import { SumiReadableStream } from '@opensumi/ide-utils/lib/stream';
+import { SumiReadableStream } from '@opensumi/ide-utils/stream';
 
 import { ExtHostSumiAPIIdentifier } from '../../common/sumi';
 import {
@@ -74,7 +74,10 @@ export class MainThreadChatAgents implements IMainThreadChatAgents {
     }
   }
 
-  constructor(rpcProtocol: IRPCProtocol, private injector: Injector) {
+  constructor(
+    rpcProtocol: IRPCProtocol,
+    private injector: Injector,
+  ) {
     this.#proxy = rpcProtocol.getProxy(ExtHostSumiAPIIdentifier.ExtHostChatAgents);
   }
   $registerInlineChatProvider(handle: number, name: string, metadata: IInlineChatPreviewProviderMetadata): void {

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+
 import { IRequireInterceptorService, RequireInterceptorService } from '../../src/common/require-interceptor';
 
 describe('require-interceptor test', () => {

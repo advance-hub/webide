@@ -10,8 +10,7 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution } from '@opensumi/ide-core-browser/lib/menu/next/base';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next/menu-id';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import {
   BrowserEditorContribution,
   EditorComponentRegistry,
@@ -19,7 +18,7 @@ import {
   IResource,
   IResourceProvider,
   ResourceService,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 
 import { LAUNCH_VIEW_COMPONENT_ID, LAUNCH_VIEW_SCHEME } from '../../common/constants';
 

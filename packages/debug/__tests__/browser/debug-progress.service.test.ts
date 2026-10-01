@@ -1,13 +1,13 @@
 import { IContextKeyService, QuickPickService } from '@opensumi/ide-core-browser';
 import { IFileServiceClient } from '@opensumi/ide-core-common';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
+import { WorkbenchEditorService } from '@opensumi/ide-editor/browser';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
-import { MockContextKeyService } from '../../../monaco/__mocks__/monaco.context-key.service';
+import { DebugPreferences } from '../../src/browser/debug-preferences';
 
 import { DebugProgressService } from './../../src/browser/debug-progress.service';
 import { DebugSessionManager } from './../../src/browser/debug-session-manager';

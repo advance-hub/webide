@@ -1,6 +1,8 @@
-import { ProxyIdentifier } from '@opensumi/ide-connection';
+import { ProxyIdentifier } from '@opensumi/ide-connection/rpc-contracts';
 import { Event } from '@opensumi/ide-core-common';
 
+import type { Output } from './extension';
+import type { ForkOptions } from 'child_process';
 import type * as net from 'net';
 
 /**
@@ -25,10 +27,68 @@ export const EXT_HOST_PROXY_SERVER_PROT = 10299;
 export const EXT_HOST_PROXY_PROTOCOL = 'EXT_HOST_PROXY_PROTOCOL';
 
 /**
+ * Version of the private process-control wire between the IDE backend and the
+ * optional Extension Host proxy process. This is deliberately independent of
+ * the public `opensumi.extensions.host-control` Runtime Port, which remains v1.
+ */
+export const EXT_HOST_PROXY_PROCESS_WIRE_VERSION = 2 as const;
+
+export type ExtHostProxyProtocolMode = 'lost' | 'negotiating' | 'v1' | 'v2';
+
+export interface ExtHostProxyCapabilitiesV2 {
+  readonly protocolVersion: typeof EXT_HOST_PROXY_PROCESS_WIRE_VERSION;
+  readonly proxyInstanceId: string;
+  readonly managerEpoch: number;
+  readonly features: {
+    readonly atomicLifecycle: true;
+    readonly processLease: true;
+    readonly sequencedProcessEvents: true;
+  };
+}
+
+/** Wire identity. The backend wraps this in its own transport-epoch lease. */
+export interface ExtHostProxyProcessLeaseV2 {
+  readonly proxyInstanceId: string;
+  readonly managerEpoch: number;
+  readonly leaseId: number;
+  readonly pid: number;
+}
+
+export interface ExtHostProxyForkRequestV2 {
+  /** Unique within one backend transport epoch. */
+  readonly operationId: string;
+  readonly modulePath: string;
+  readonly args: string[];
+  readonly options: ForkOptions;
+}
+
+interface ExtHostProxyProcessEventBaseV2 {
+  readonly operationId: string;
+  readonly lease: ExtHostProxyProcessLeaseV2;
+  readonly sequence: number;
+}
+
+export type ExtHostProxyProcessEventV2 =
+  | (ExtHostProxyProcessEventBaseV2 & {
+      readonly kind: 'exit';
+      readonly code: number;
+      readonly signal: string;
+    })
+  | (ExtHostProxyProcessEventBaseV2 & {
+      readonly kind: 'message';
+      readonly message: unknown;
+    })
+  | (ExtHostProxyProcessEventBaseV2 & {
+      readonly kind: 'output';
+      readonly output: Output;
+    });
+
+/**
  * 插件后端服务代理服务
  */
 export interface IExtServerProxyRPCService {
   $callback(callId: number, ...args: any[]): Promise<void>;
+  $processEventV2?(event: ExtHostProxyProcessEventV2): Promise<void>;
 }
 
 /**
@@ -53,6 +113,18 @@ export interface IExtHostProxy {
  * 插件进程代理服务
  */
 export interface IExtHostProxyRPCService {
+  /**
+   * Optional capability probe for mixed-version deployments. A missing method
+   * is the only condition under which a new backend may select the v1 wire.
+   */
+  $getCapabilities?(): Promise<ExtHostProxyCapabilitiesV2>;
+  $forkWithLifecycleV2?(request: ExtHostProxyForkRequestV2): Promise<ExtHostProxyProcessLeaseV2>;
+  $sendLeaseV2?(lease: ExtHostProxyProcessLeaseV2, message: string): Promise<void>;
+  $isRunningLeaseV2?(lease: ExtHostProxyProcessLeaseV2): Promise<boolean>;
+  $treeKillLeaseV2?(lease: ExtHostProxyProcessLeaseV2): Promise<void>;
+  $killLeaseV2?(lease: ExtHostProxyProcessLeaseV2, signal?: string): Promise<void>;
+  $isKilledLeaseV2?(lease: ExtHostProxyProcessLeaseV2): Promise<boolean>;
+  $disposeLeaseV2?(lease: ExtHostProxyProcessLeaseV2): Promise<void>;
   /**
    * 远程 fork 进程
    * @param modulePath 插件进程文件

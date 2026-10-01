@@ -24,14 +24,14 @@ import {
   localize,
 } from '@opensumi/ide-core-browser';
 import { IOpenResourceResult, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorCollectionService, IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/index';
+import { EditorCollectionService, IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { FileSystemError, IFileServiceClient } from '@opensumi/ide-file-service';
 import { EOL } from '@opensumi/ide-monaco';
 import * as monaco from '@opensumi/ide-monaco';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { QuickPickService } from '@opensumi/ide-quick-open';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
-import { WorkspaceVariableContribution } from '@opensumi/ide-workspace/lib/browser/workspace-variable-contribution';
+import { WorkspaceVariableContribution } from '@opensumi/ide-workspace/variables';
 import { EditOperation } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/editOperation';
 
 import {

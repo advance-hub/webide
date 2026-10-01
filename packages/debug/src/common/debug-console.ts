@@ -1,4 +1,4 @@
-import { ITree, ITreeNode } from '@opensumi/ide-components/lib/recycle-tree/types';
+import { ITree, ITreeNode } from '@opensumi/ide-components';
 import { Event } from '@opensumi/ide-core-common';
 
 export const IDebugConsoleModelService = Symbol('IDebugConsoleModelService');

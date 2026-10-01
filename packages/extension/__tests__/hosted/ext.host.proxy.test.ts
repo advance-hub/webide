@@ -1,15 +1,13 @@
 import path from 'path';
 
 import { Event, INodeLogger, getDebugLogger, sleep } from '@opensumi/ide-core-node';
-import { createNodeInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
+import { MockInjector, createNodeInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockEnvironmentVariableService } from '@opensumi/ide-dev-tool/mocks/environment-variable';
+import { EnvironmentVariableServiceToken } from '@opensumi/ide-terminal-next/environment-variables';
 
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
 import { IExtHostProxy, IExtensionHostManager } from '../../src/common';
 import { ExtHostProxy } from '../../src/hosted/ext.host.proxy-base';
 import { ExtensionHostProxyManager } from '../../src/node/extension.host.proxy.manager';
-
-import { MockEnvironmentVariableService } from './__mocks__/environmentVariableService';
 
 // re-install RAL in `@opensumi/vscode-jsonrpc`
 import '@opensumi/vscode-jsonrpc/lib/node/main';

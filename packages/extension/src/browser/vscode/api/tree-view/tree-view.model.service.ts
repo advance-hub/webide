@@ -22,12 +22,7 @@ import {
   PreferenceService,
   ThrottledDelayer,
 } from '@opensumi/ide-core-browser';
-import {
-  AbstractMenuService,
-  ICtxMenuRenderer,
-  MenuId,
-  generateCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractMenuService, ICtxMenuRenderer, MenuId, generateCtxMenu } from '@opensumi/ide-core-browser/menu';
 import {
   CancellationToken,
   CancellationTokenSource,
@@ -586,8 +581,8 @@ export class ExtensionTreeViewModel {
     return element.displayName
       ? element.displayName
       : element.uri
-      ? this.labelService.getName(URI.from(element.uri))
-      : undefined;
+        ? this.labelService.getName(URI.from(element.uri))
+        : undefined;
   }
 
   private handleDragAndLog(

@@ -1,13 +1,13 @@
 import { IContextKeyService, StorageProvider } from '@opensumi/ide-core-browser';
-import { MockedStorageProvider } from '@opensumi/ide-core-browser/__mocks__/storage';
-import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { Disposable } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugHoverSource } from '@opensumi/ide-debug/lib/browser/editor/debug-hover-source';
-import { DebugWatchNode } from '@opensumi/ide-debug/lib/browser/tree';
-import { DebugWatchModelService } from '@opensumi/ide-debug/lib/browser/view/watch/debug-watch-tree.model.service';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockedStorageProvider } from '@opensumi/ide-dev-tool/mocks/storage';
 
+import { DebugHoverSource } from '../../../../src/browser/editor/debug-hover-source';
+import { DebugWatchNode } from '../../../../src/browser/tree';
+import { DebugWatchModelService } from '../../../../src/browser/view/watch/debug-watch-tree.model.service';
 import styles from '../../../../src/browser/view/watch/debug-watch.module.less';
 
 describe('Debug Watch Tree Model', () => {
@@ -158,9 +158,8 @@ describe('Debug Watch Tree Model', () => {
     debugWatchModelService.initDecorations(mockRoot);
     const node = new DebugWatchNode(mockSession, 'test', mockRoot);
     debugWatchModelService.activeNodeDecoration(node);
-    let decoration = debugWatchModelService.decorations.getDecorations(node);
     debugWatchModelService.removeNodeDecoration();
-    decoration = debugWatchModelService.decorations.getDecorations(node);
+    const decoration = debugWatchModelService.decorations.getDecorations(node);
     expect(decoration).toBeDefined();
     expect(decoration!.classlist).toEqual([]);
   });

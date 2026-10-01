@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { AppConfig } from '@opensumi/ide-core-browser';
 import { Deferred, Schemes, StoragePaths, URI, isWindows, path } from '@opensumi/ide-core-common';
-import { IHashCalculateService } from '@opensumi/ide-core-common/lib/hash-calculate/hash-calculate';
+import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
 import { FileStat, IFileServiceClient } from '@opensumi/ide-file-service';
 import { ILoggerManagerClient } from '@opensumi/ide-logs';
 import {

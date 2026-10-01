@@ -15,7 +15,7 @@ import {
 import { Injector } from '@opensumi/di';
 import { uuid } from '@opensumi/ide-core-common';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+import { monacoApi } from '@opensumi/ide-monaco/api';
 
 import { TextModelBinding } from '../../src/browser/textmodel-binding';
 import { DEFAULT_COLLABORATION_PORT, ICollaborationService } from '../../src/common';
@@ -233,7 +233,9 @@ describe('TextModelBinding test for editor', () => {
 
     editor.setModel(textModel);
 
-    expect(editor.getModel() === textModel).toBeTruthy();
+    if (editor.getModel() !== textModel) {
+      throw new Error('The test editor did not retain its configured text model.');
+    }
   });
 
   it('should add editor and register corresponding events', () => {

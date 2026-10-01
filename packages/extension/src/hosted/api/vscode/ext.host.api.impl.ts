@@ -1,6 +1,6 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { CancellationTokenSource, Emitter, Event } from '@opensumi/ide-core-common';
-import { DEFAULT_VSCODE_ENGINE_VERSION } from '@opensumi/ide-core-common/lib/const';
+import { DEFAULT_VSCODE_ENGINE_VERSION } from '@opensumi/ide-core-common/const';
 
 import { IExtensionHostService } from '../../../common';
 import { ExtHostAppConfig } from '../../../common/ext.process';
@@ -86,22 +86,14 @@ export function createApiFactory(
     new ExtensionHostEditorService(rpcProtocol, extHostDocs),
   ) as ExtensionHostEditorService;
   const extHostEnv = rpcProtocol.set(ExtHostAPIIdentifier.ExtHostEnv, new ExtHostEnv(rpcProtocol));
-  const extHostLanguages = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostLanguages,
-    new ExtHostLanguages(rpcProtocol, extHostDocs, extHostCommands, extensionService.logger),
-  );
-  const extHostFileSystemInfo = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystemInfo,
-    new ExtHostFileSystemInfo(),
-  );
-  const extHostFileSystem = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystem,
-    new ExtHostFileSystem(rpcProtocol, extHostFileSystemInfo),
-  );
-  const extHostFileSystemEvent = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystemEvent,
-    new ExtHostFileSystemEvent(rpcProtocol, extHostDocs),
-  );
+  const extHostLanguages = new ExtHostLanguages(rpcProtocol, extHostDocs, extHostCommands, extensionService.logger);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostLanguages, extHostLanguages);
+  const extHostFileSystemInfo = new ExtHostFileSystemInfo();
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystemInfo, extHostFileSystemInfo);
+  const extHostFileSystem = new ExtHostFileSystem(rpcProtocol, extHostFileSystemInfo);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystem, extHostFileSystem);
+  const extHostFileSystemEvent = new ExtHostFileSystemEvent(rpcProtocol, extHostDocs);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystemEvent, extHostFileSystemEvent);
   const extHostMessage = rpcProtocol.set(ExtHostAPIIdentifier.ExtHostMessage, new ExtHostMessage(rpcProtocol));
   const extHostWorkspace = rpcProtocol.set(
     ExtHostAPIIdentifier.ExtHostWorkspace,

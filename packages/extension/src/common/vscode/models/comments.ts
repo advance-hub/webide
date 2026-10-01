@@ -86,14 +86,13 @@ export type CommentThreadChanges<T = IRange> = Partial<{
   isTemplate: boolean;
 }>;
 
-export {
+export { CommentMode, CommentThreadCollapsibleState };
+export type {
   Comment,
   CommentInput,
-  CommentMode,
   CommentOptions,
   CommentReaction,
   CommentThread,
   CommentThreadChangedEvent,
-  CommentThreadCollapsibleState,
   CommentingRanges,
 };

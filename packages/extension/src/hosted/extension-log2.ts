@@ -1,6 +1,6 @@
 import { Injector } from '@opensumi/di';
 import { IExtensionLogger, ILogService, LogLevel, SupportLogNamespace } from '@opensumi/ide-core-common';
-import { LogServiceManager } from '@opensumi/ide-logs/lib/node/log-manager';
+import { LogServiceManager } from '@opensumi/ide-logs/node/manager';
 
 import { ExtHostAppConfig } from '../common/ext.process';
 import { getNodeRequire } from '../common/utils';

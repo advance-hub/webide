@@ -1,10 +1,10 @@
 import { IReporterService } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugThread, DebugWatch } from '@opensumi/ide-debug/lib/browser/model';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol/lib/debugProtocol';
 
-import { createBrowserInjector } from '../../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../../tools/dev-tool/src/mock-injector';
+import { DebugThread, DebugWatch } from '../../../src/browser/model';
 
 describe('DebugWatch Model', () => {
   describe('DebugWatch should be work after init', () => {

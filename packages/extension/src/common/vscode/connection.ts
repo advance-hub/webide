@@ -1,5 +1,5 @@
 import { EventEmitter } from '@opensumi/events';
-import { BaseConnection } from '@opensumi/ide-connection/lib/common/connection';
+import { BaseConnection } from '@opensumi/ide-connection/rpc-contracts';
 import { IDisposable } from '@opensumi/ide-core-common';
 
 export interface IInterProcessConnection {

@@ -13,7 +13,7 @@ import {
 import { BreakpointManager } from '../breakpoint';
 import { DebugConfigurationManager } from '../debug-configuration-manager';
 
-import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import type { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 
 @Injectable()
 export class DebugModelManager extends Disposable implements IDebugModelManager {

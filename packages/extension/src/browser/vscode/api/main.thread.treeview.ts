@@ -21,14 +21,8 @@ import {
   localize,
   toDisposable,
 } from '@opensumi/ide-core-browser';
-import {
-  AbstractMenuService,
-  IMenuRegistry,
-  MenuId,
-  MenuNode,
-  generateCtxMenu,
-} from '@opensumi/ide-core-browser/lib/menu/next';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { AbstractMenuService, IMenuRegistry, MenuId, MenuNode, generateCtxMenu } from '@opensumi/ide-core-browser/menu';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMainLayoutService, ViewCollapseChangedEvent } from '@opensumi/ide-main-layout';
 import { IIconService, IThemeService, IconType } from '@opensumi/ide-theme';
@@ -104,7 +98,10 @@ export class MainThreadTreeView extends WithEventBus implements IMainThreadTreeV
   private disposableCollection: Map<string, DisposableStore> = new Map();
   private disposable: DisposableStore = new DisposableStore();
 
-  constructor(@Optional(IRPCProtocol) private rpcProtocol: IRPCProtocol, private extensionHostType: ExtensionHostType) {
+  constructor(
+    @Optional(IRPCProtocol) private rpcProtocol: IRPCProtocol,
+    private extensionHostType: ExtensionHostType,
+  ) {
     super();
     this.proxy = this.rpcProtocol.getProxy(ExtHostAPIIdentifier.ExtHostTreeView);
     this.disposable.add(toDisposable(() => this.treeModels.clear()));

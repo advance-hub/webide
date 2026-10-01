@@ -17,10 +17,11 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { TEST_RESULT_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
-import { TestingCanRefreshTests, TestingIsPeekVisible } from '@opensumi/ide-core-browser/lib/contextkey/testing';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { TestingCanRefreshTests, TestingIsPeekVisible } from '@opensumi/ide-core-browser/contextkeys';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { Emitter, IMarkdownString } from '@opensumi/ide-core-common';
+import { TEST_RESULT_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
+import { IEditor } from '@opensumi/ide-editor';
 import {
   BrowserEditorContribution,
   EditorComponentRegistry,
@@ -31,12 +32,11 @@ import {
   IResource,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser';
-import { IEditor } from '@opensumi/ide-editor/lib/common';
+} from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { MARKDOWN_EDITOR_COMPONENT_ID } from '@opensumi/ide-markdown/lib/browser/contribution';
-import { MarkdownEditorComponent } from '@opensumi/ide-markdown/lib/browser/editor.markdown';
+import { MARKDOWN_EDITOR_COMPONENT_ID } from '@opensumi/ide-markdown/contribution';
+import { MarkdownEditorComponent } from '@opensumi/ide-markdown/editor';
 
 import { TestServiceToken } from '../common';
 import {
@@ -57,6 +57,7 @@ import {
 } from '../common/commands';
 import { Testing } from '../common/constants';
 import { TestResultServiceToken } from '../common/test-result';
+import { testsInFile } from '../common/test-selection';
 import { TestRunProfileBitset } from '../common/testCollection';
 import { TestingPeekOpenerServiceToken } from '../common/testingPeekOpener';
 import { ITestTreeViewModel, TestTreeViewModelToken } from '../common/tree-view.model';
@@ -279,15 +280,11 @@ export class TestingContribution
     });
 
     commands.registerCommand(TestingRunCurrentFile, {
-      execute: async () => {
-        executeTestsInCurrentFile(TestRunProfileBitset.Run);
-      },
+      execute: () => executeTestsInCurrentFile(TestRunProfileBitset.Run),
     });
 
     commands.registerCommand(TestingDebugCurrentFile, {
-      execute: async () => {
-        executeTestsInCurrentFile(TestRunProfileBitset.Debug);
-      },
+      execute: () => executeTestsInCurrentFile(TestRunProfileBitset.Debug),
     });
 
     const executeTestsInCurrentFile = (group: TestRunProfileBitset) => {
@@ -301,13 +298,9 @@ export class TestingContribution
       }
 
       const demandedUri = model.uri.toString();
-      for (const test of this.testService.collection.all) {
-        if (test.item.uri?.toString() === demandedUri) {
-          this.testService.runTests({
-            tests: [test],
-            group,
-          });
-        }
+      const tests = testsInFile(this.testService.collection.all, demandedUri);
+      if (tests.length) {
+        return this.testService.runTests({ tests, group });
       }
     };
 

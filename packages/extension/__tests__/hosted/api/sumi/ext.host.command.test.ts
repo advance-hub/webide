@@ -1,9 +1,9 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { IMainThreadCommands, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { createCommandsApiFactory } from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.command';
-import { ExtHostCommands } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.command';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
+import { IMainThreadCommands, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { createCommandsApiFactory } from '../../../../src/hosted/api/sumi/ext.host.command';
+import { ExtHostCommands } from '../../../../src/hosted/api/vscode/ext.host.command';
 
 describe('extension/__tests__/hosted/api/sumi/ext.host.command.test.ts', () => {
   let sumiCommand;
@@ -37,7 +37,7 @@ describe('extension/__tests__/hosted/api/sumi/ext.host.command.test.ts', () => {
       const extTest = jest.fn();
       const commandId = 'ext.test';
       sumiCommand.registerCommandWithPermit(commandId, extTest, (extension) => extension.isBuiltin);
-      expect(sumiCommand.executeCommand(commandId)).rejects.toThrow(
+      await expect(sumiCommand.executeCommand(commandId)).rejects.toThrow(
         new Error(`Extension vscode.vim has not permit to execute ${commandId}`),
       );
       // 实际命令执行注册一次

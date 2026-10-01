@@ -9,7 +9,7 @@ import {
   IThreadComment,
 } from '@opensumi/ide-comments';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { MenuId } from '@opensumi/ide-core-browser/menu';
 import {
   CancellationToken,
   Disposable,
@@ -23,7 +23,7 @@ import {
   isUndefined,
 } from '@opensumi/ide-core-common';
 import { positionToRange } from '@opensumi/ide-monaco';
-import { transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { transaction } from '@opensumi/ide-monaco/observable';
 import {
   CommentInput,
   CommentThread,
@@ -64,7 +64,10 @@ export class MainThreadComments implements IDisposable, IMainThreadComments {
 
   private disposable = new Disposable();
 
-  constructor(private rpcProtocol: IRPCProtocol, private mainThreadCommands: IMainThreadCommands) {
+  constructor(
+    private rpcProtocol: IRPCProtocol,
+    private mainThreadCommands: IMainThreadCommands,
+  ) {
     this.proxy = this.rpcProtocol.getProxy(ExtHostAPIIdentifier.ExtHostComments);
     this.disposable.addDispose(this.registerCommentThreadTemplateHander());
     this.disposable.addDispose(this.registerArgumentProcessor());

@@ -1,7 +1,7 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@opensumi/di';
 import { EDITOR_COMMANDS, IContextKeyService, Schemes } from '@opensumi/ide-core-browser';
 import { CommandService, Disposable, IDisposable, MutableDisposable, URI } from '@opensumi/ide-core-common';
-import { IEditor, IEditorFeatureContribution } from '@opensumi/ide-editor/lib/browser';
+import { IEditor, IEditorFeatureContribution } from '@opensumi/ide-editor/browser';
 import { Range } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 import * as editorCommon from '@opensumi/monaco-editor-core/esm/vs/editor/common/editorCommon';
 

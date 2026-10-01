@@ -26,7 +26,7 @@ import {
   URI,
   localize,
 } from '@opensumi/ide-core-browser';
-import { message } from '@opensumi/ide-core-browser/lib/components';
+import { message } from '@opensumi/ide-core-browser/components';
 import {
   BrowserEditorContribution,
   EditorComponentRegistry,
@@ -34,10 +34,10 @@ import {
   IResource,
   ResourceService,
   WorkbenchEditorService,
-} from '@opensumi/ide-editor/lib/browser';
-import { IEditorDocumentModelContentRegistry } from '@opensumi/ide-editor/lib/browser/doc-model/types';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
-import { IThemeService, IconType } from '@opensumi/ide-theme/lib/common';
+} from '@opensumi/ide-editor/browser';
+import { IEditorDocumentModelContentRegistry } from '@opensumi/ide-editor/document-types';
+import { IThemeService, IconType } from '@opensumi/ide-theme';
+import { IconService } from '@opensumi/ide-theme/browser';
 
 import { KERNEL_PANEL_ID, KernelPanel, initKernelPanelColorToken } from './kernel-panel';
 import { LibroOpensumiModule } from './libro';

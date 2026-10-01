@@ -19,7 +19,7 @@ import {
   pSeries,
   path,
 } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { IDebugConsoleModelService, IDebugSession, IDebugSessionManager } from '../../../common';
 import { LinkDetector } from '../../debug-link-detector';

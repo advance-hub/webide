@@ -1,12 +1,7 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Deferred, Emitter } from '@opensumi/ide-core-common';
-import { ExtHostCommon } from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.common';
-import {
-  ExtHostToolbarActionService,
-  createToolbarAPIFactory,
-} from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.toolbar';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
 import { mockExtensions } from '../../../../__mocks__/extensions';
 import { ExtHostSumiAPIIdentifier, MainThreadSumiAPIIdentifier } from '../../../../src/common/sumi';
 import {
@@ -16,6 +11,8 @@ import {
   SELECT_STATE_CHANGE_ID,
 } from '../../../../src/common/sumi/toolbar';
 import { MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { ExtHostCommon } from '../../../../src/hosted/api/sumi/ext.host.common';
+import { ExtHostToolbarActionService, createToolbarAPIFactory } from '../../../../src/hosted/api/sumi/ext.host.toolbar';
 import { ExtHostCommands } from '../../../../src/hosted/api/vscode/ext.host.command';
 import { ExtensionLogger } from '../../__mocks__/extensionLogger';
 

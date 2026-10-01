@@ -1,7 +1,6 @@
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
-import { IContextKeyService } from '@opensumi/ide-core-browser';
-import { QuickPickService } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/lib/menu/next';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
+import { IContextKeyService, QuickPickService } from '@opensumi/ide-core-browser';
+import { AbstractContextMenuService, ICtxMenuRenderer } from '@opensumi/ide-core-browser/menu';
 import { Disposable, IFileServiceClient } from '@opensumi/ide-core-common';
 import {
   DebugModelFactory,
@@ -10,23 +9,10 @@ import {
   IDebugSession,
   IDebugSessionManager,
 } from '@opensumi/ide-debug';
-import { DebugContextKey } from '@opensumi/ide-debug/lib/browser/contextkeys/debug-contextkey.service';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import {
-  DebugSessionContributionRegistry,
-  DebugSessionFactory,
-} from '@opensumi/ide-debug/lib/browser/debug-session-contribution';
-import { DebugHoverSource } from '@opensumi/ide-debug/lib/browser/editor/debug-hover-source';
-import { DebugConsoleNode } from '@opensumi/ide-debug/lib/browser/tree';
-import { DebugConsoleFilterService } from '@opensumi/ide-debug/lib/browser/view/console/debug-console-filter.service';
-import {
-  DebugConsoleModelService,
-  IDebugConsoleModel,
-} from '@opensumi/ide-debug/lib/browser/view/console/debug-console-tree.model.service';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
+import { OutputService } from '@opensumi/ide-output/service';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { ITaskService } from '@opensumi/ide-task';
 import { ITerminalApiService } from '@opensumi/ide-terminal-next';
@@ -34,6 +20,19 @@ import { IVariableResolverService } from '@opensumi/ide-variable';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { MockDebugSession } from '../../../../__mocks__/debug-session';
+import { DebugContextKey } from '../../../../src/browser/contextkeys/debug-contextkey.service';
+import { DebugPreferences } from '../../../../src/browser/debug-preferences';
+import {
+  DebugSessionContributionRegistry,
+  DebugSessionFactory,
+} from '../../../../src/browser/debug-session-contribution';
+import { DebugHoverSource } from '../../../../src/browser/editor/debug-hover-source';
+import { DebugConsoleNode } from '../../../../src/browser/tree';
+import { DebugConsoleFilterService } from '../../../../src/browser/view/console/debug-console-filter.service';
+import {
+  DebugConsoleModelService,
+  IDebugConsoleModel,
+} from '../../../../src/browser/view/console/debug-console-tree.model.service';
 import styles from '../../../../src/browser/view/console/debug-console.module.less';
 
 describe('Debug Console Tree Model', () => {
@@ -283,9 +282,8 @@ describe('Debug Console Tree Model', () => {
     debugConsoleModelService.initDecorations(mockRoot);
     const node = new DebugConsoleNode({ session: mockSession }, 'test', mockRoot);
     debugConsoleModelService.activeNodeDecoration(node);
-    let decoration = debugConsoleModelService.decorations.getDecorations(node);
     debugConsoleModelService.removeNodeDecoration();
-    decoration = debugConsoleModelService.decorations.getDecorations(node);
+    const decoration = debugConsoleModelService.decorations.getDecorations(node);
     expect(decoration).toBeDefined();
     expect(decoration!.classlist).toEqual([]);
   });

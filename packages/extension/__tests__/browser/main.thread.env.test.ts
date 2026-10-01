@@ -1,23 +1,23 @@
 import { Injectable } from '@opensumi/di';
 import { AppConfig } from '@opensumi/ide-core-browser';
 import { LogLevel, LogServiceForClientPath, getLanguageId } from '@opensumi/ide-core-common';
-import { MainThreadEnv } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.env';
-import { MainThreadStorage } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.storage';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { IExtensionStorageService } from '@opensumi/ide-extension-storage';
+
+import { MainThreadEnv } from '../../src/browser/vscode/api/main.thread.env';
+import { MainThreadStorage } from '../../src/browser/vscode/api/main.thread.storage';
 import {
   ExtHostAPIIdentifier,
   IMainThreadEnv,
   IMainThreadStorage,
   MainThreadAPIIdentifier,
-} from '@opensumi/ide-extension/lib/common/vscode';
-import { createEnvApiFactory, envValue } from '@opensumi/ide-extension/lib/hosted/api/vscode/env/envApiFactory';
-import { ExtHostEnv } from '@opensumi/ide-extension/lib/hosted/api/vscode/env/ext.host.env';
-import { ExtHostStorage } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.storage';
-import { ExtHostTerminal } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.terminal';
-import ExtensionHostServiceImpl from '@opensumi/ide-extension/lib/hosted/ext.host';
-import { IExtensionStorageService } from '@opensumi/ide-extension-storage';
-
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
+} from '../../src/common/vscode';
+import { createEnvApiFactory, envValue } from '../../src/hosted/api/vscode/env/envApiFactory';
+import { ExtHostEnv } from '../../src/hosted/api/vscode/env/ext.host.env';
+import { ExtHostStorage } from '../../src/hosted/api/vscode/ext.host.storage';
+import { ExtHostTerminal } from '../../src/hosted/api/vscode/ext.host.terminal';
+import ExtensionHostServiceImpl from '../../src/hosted/ext.host';
 import { MockExtensionStorageService } from '../hosted/__mocks__/extensionStorageService';
 
 const { rpcProtocolExt, rpcProtocolMain } = createMockPairRPCProtocol();

@@ -1,5 +1,5 @@
 import { localize } from '@opensumi/ide-core-browser';
-import { registerColor } from '@opensumi/ide-theme/lib/common';
+import { registerColor } from '@opensumi/ide-theme';
 
 export const initTocPanelColorToken = () => {
   registerColor(

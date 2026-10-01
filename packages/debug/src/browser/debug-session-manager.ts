@@ -25,6 +25,7 @@ import {
   IContextKey,
   IContextKeyService,
   IReporterService,
+  LabelService,
   URI,
   Uri,
   WaitUntilEvent,
@@ -32,10 +33,9 @@ import {
   localize,
   uuid,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMessageService } from '@opensumi/ide-overlay';
-import { ITaskService } from '@opensumi/ide-task/lib/common';
+import { ITaskService } from '@opensumi/ide-task';
 import { IVariableResolverService } from '@opensumi/ide-variable';
 
 import {

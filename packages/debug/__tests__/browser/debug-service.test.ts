@@ -1,8 +1,8 @@
 import { IDebugService } from '@opensumi/ide-debug';
-import { DebugService } from '@opensumi/ide-debug/lib/browser/debug-service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { DebugService } from '../../src/browser/debug-service';
 
 describe('DebugService', () => {
   let debugService: IDebugService;
@@ -37,7 +37,7 @@ describe('DebugService', () => {
     ]);
   });
 
-  it('registerDebugContributionPoints should emit change', () => {
+  it('unregisterDebugContributionPoints should remove registration', () => {
     expect(debugService.debugContributionPoints.size).toBe(1);
 
     debugService.unregisterDebugContributionPoints('file://extensions/a');

@@ -22,7 +22,7 @@ import {
   useInjectable,
 } from '@opensumi/ide-core-browser';
 import { Disposable } from '@opensumi/ide-core-common';
-import { IMainLayoutService } from '@opensumi/ide-main-layout/lib/common/main-layout.definition';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import { DEBUG_CONSOLE_CONTAINER_ID } from '../../../common';
 import { LinkDetector } from '../../debug-link-detector';

@@ -9,8 +9,8 @@ import {
   objects,
 } from '@opensumi/ide-core-common';
 import { IDebugService, IDebuggerContribution } from '@opensumi/ide-debug';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
-import { DebugSchemaManager } from '@opensumi/ide-debug/lib/browser/debug-schema-manager';
+import { DebugConfigurationManager } from '@opensumi/ide-debug/configuration-manager';
+import { DebugSchemaManager } from '@opensumi/ide-debug/schema';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';
 import { Extension } from '../../extension';

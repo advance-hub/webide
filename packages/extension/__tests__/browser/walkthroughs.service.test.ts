@@ -1,11 +1,10 @@
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IExtension } from '@opensumi/ide-extension';
-import { AbstractExtInstanceManagementService } from '@opensumi/ide-extension/lib/browser/types';
 
+import { AbstractExtInstanceManagementService } from '../../src/browser/types';
 import { WalkthroughsService } from '../../src/browser/walkthroughs.service';
 
-import { MOCK_EXTENSIONS } from './extension-service/extension-service-mock-helper';
-import { setupExtensionServiceInjector } from './extension-service/extension-service-mock-helper';
+import { MOCK_EXTENSIONS, setupExtensionServiceInjector } from './extension-service/extension-service-mock-helper';
 
 describe('walkthroughs api test', () => {
   let injector: MockInjector;

@@ -1,14 +1,15 @@
 import { Disposable, IContextKeyService, QuickPickService } from '@opensumi/ide-core-browser';
 import { DebugModelFactory, IDebugServer } from '@opensumi/ide-debug';
-import { BreakpointManager } from '@opensumi/ide-debug/lib/browser/breakpoint';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
-import { DebugPreferences } from '@opensumi/ide-debug/lib/browser/debug-preferences';
-import { DebugModelManager } from '@opensumi/ide-debug/lib/browser/editor';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 import { EditorCollectionService, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/browser';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IWorkspaceService, IWorkspaceStorageService } from '@opensumi/ide-workspace';
+
+import { BreakpointManager } from '../../../src/browser/breakpoint';
+import { DebugConfigurationManager } from '../../../src/browser/debug-configuration-manager';
+import { DebugPreferences } from '../../../src/browser/debug-preferences';
+import { DebugModelManager } from '../../../src/browser/editor';
 
 describe('Debug Model Manager', () => {
   const mockInjector = createBrowserInjector([]);

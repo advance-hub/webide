@@ -1,7 +1,12 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { IRPCProtocol, SumiConnectionMultiplexer, WSChannel, createExtMessageIO } from '@opensumi/ide-connection';
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser';
-import { BaseConnection } from '@opensumi/ide-connection/lib/common/connection';
+import {
+  BaseConnection,
+  IRPCProtocol,
+  SumiConnectionMultiplexer,
+  WSChannel,
+  createExtMessageIO,
+} from '@opensumi/ide-connection';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   AppConfig,
   ContributionProvider,
@@ -31,6 +36,58 @@ import { createSumiAPIFactory } from './sumi/main.thread.api.impl';
 import { initNodeThreadAPIProxy } from './vscode/api/main.thread.api.impl';
 import { initSharedAPIProxy } from './vscode/api/main.thread.api.shared-impl';
 
+type NodeExtHostGenerationState = 'idle' | 'starting' | 'ready' | 'failed' | 'disposed';
+
+interface NodeExtHostGeneration {
+  readonly id: number;
+  readonly ready: Deferred<void>;
+  readonly updated: Deferred<void>;
+  readonly apiFactoryDisposables: DisposableStore;
+  state: NodeExtHostGenerationState;
+  connection?: BaseConnection<Uint8Array>;
+  channel?: WSChannel;
+  protocol?: IRPCProtocol;
+}
+
+/**
+ * Keep the public Deferred object stable for existing consumers while making
+ * every access to `promise` follow the current Extension Host generation.
+ */
+class GenerationDeferred<T> {
+  constructor(private current: Deferred<T>) {}
+
+  public get promise(): Promise<T> {
+    return this.current.promise;
+  }
+
+  public readonly resolve = (value?: T | PromiseLike<T>) => {
+    this.current.resolve(value);
+  };
+
+  public readonly reject = (error?: unknown) => {
+    this.current.reject(error);
+  };
+
+  public bind(deferred: Deferred<T>): void {
+    this.current = deferred;
+  }
+}
+
+class StaleNodeExtHostGenerationError extends Error {
+  constructor(generation: number) {
+    super(`Node Extension Host generation ${generation} is no longer current`);
+    this.name = 'StaleNodeExtHostGenerationError';
+  }
+}
+
+function createHandledDeferred<T>(): Deferred<T> {
+  const deferred = new Deferred<T>();
+  // A generation can be retired without a waiter. Mark the rejection handled
+  // while preserving the rejected promise for callers that await it later.
+  void deferred.promise.catch(() => undefined);
+  return deferred;
+}
+
 @Injectable()
 export class NodeExtProcessService implements AbstractNodeExtProcessService<IExtensionHostService> {
   @Autowired(AppConfig)
@@ -54,42 +111,73 @@ export class NodeExtProcessService implements AbstractNodeExtProcessService<IExt
   @Autowired(MainThreadExtenderContribution)
   private readonly mainThreadExtenderContributionProvider: ContributionProvider<MainThreadExtenderContribution>;
 
-  private _apiFactoryDisposables = new DisposableStore();
+  private generationCounter = 0;
+  private generation = this.createGeneration();
+  private readonly readyBarrier = new GenerationDeferred(this.generation.ready);
+  private activation?: { generation: NodeExtHostGeneration; promise: Promise<IRPCProtocol> };
+  private disposePromise?: Promise<void>;
 
-  public ready: Deferred<void> = new Deferred();
-  private _extHostUpdated: Deferred<void> = new Deferred();
+  public ready: Deferred<void> = this.readyBarrier as Deferred<void>;
 
   private extensions: IExtension[] = [];
   public protocol: IRPCProtocol;
+  public connection: BaseConnection<Uint8Array>;
+  public channel: WSChannel;
 
   public disposeApiFactory() {
-    this._apiFactoryDisposables.clear();
+    this.generation.apiFactoryDisposables.clear();
   }
 
-  public async disposeProcess() {
-    this.disposeApiFactory();
-    await this.extensionNodeClient.disposeClientExtProcess(this.clientId, false);
-  }
-
-  public async activate(): Promise<IRPCProtocol> {
-    await this.createExtProcess();
-    if (this.protocol) {
-      this.ready.resolve();
-      await this.createBrowserMainThreadAPI();
-
-      const proxy = await this.getProxy();
-      await proxy.$updateExtHostData();
-      this._extHostUpdated.resolve();
+  public disposeProcess(): Promise<void> {
+    if (this.disposePromise) {
+      return this.disposePromise;
     }
 
-    return this.protocol;
+    const retiringGeneration = this.generation;
+    const activation = this.activation?.generation === retiringGeneration ? this.activation.promise : undefined;
+    this.replaceGeneration('disposed by Browser restart');
+
+    const disposePromise = (async () => {
+      await activation?.catch(() => undefined);
+      await this.extensionNodeClient.disposeClientExtProcess(this.clientId, false);
+    })();
+    this.disposePromise = disposePromise;
+    void disposePromise.then(
+      () => this.clearDisposePromise(disposePromise),
+      () => this.clearDisposePromise(disposePromise),
+    );
+    return disposePromise;
+  }
+
+  public activate(): Promise<IRPCProtocol> {
+    const currentActivation = this.activation;
+    if (currentActivation?.generation === this.generation) {
+      return currentActivation.promise;
+    }
+    const generation =
+      this.generation.state === 'idle'
+        ? this.generation
+        : this.replaceGeneration('superseded by a newer Browser activation');
+    generation.state = 'starting';
+    const pendingDispose = this.disposePromise;
+    const promise = (async () => {
+      await pendingDispose;
+      this.assertCurrentGeneration(generation);
+      return this.activateGeneration(generation);
+    })();
+    const activation = { generation, promise };
+    this.activation = activation;
+    void promise.then(
+      () => this.clearActivation(activation),
+      () => this.clearActivation(activation),
+    );
+    return promise;
   }
 
   public async activeExtension(extension: IExtension, isWebExtension: boolean): Promise<void> {
     if (!this.appConfig.noExtHost && !isWebExtension) {
       // 只有当 proxy.$updateExtHostData 调用之后才可以开始激活插件
-      await this._extHostUpdated.promise;
-      const proxy = await this.getProxy();
+      const proxy = await this.getUpdatedProxy();
       await proxy.$activateExtension(extension.id);
     }
   }
@@ -122,16 +210,46 @@ export class NodeExtProcessService implements AbstractNodeExtProcessService<IExt
   }
 
   public async getProxy(): Promise<IExtensionHostService> {
-    await this.ready.promise;
-    return this.protocol.getProxy<IExtensionHostService>(ExtHostAPIIdentifier.ExtHostExtensionService);
+    while (true) {
+      const generation = this.generation;
+      try {
+        await generation.ready.promise;
+      } catch (error) {
+        if (generation !== this.generation) {
+          continue;
+        }
+        throw error;
+      }
+      if (generation === this.generation && generation.state === 'ready' && generation.protocol) {
+        return this.getGenerationProxy(generation);
+      }
+    }
   }
 
-  private async createBrowserMainThreadAPI() {
-    const apiProxy = initSharedAPIProxy(this.protocol, this.injector);
-    this._apiFactoryDisposables.add(apiProxy);
-    this._apiFactoryDisposables.add(toDisposable(initNodeThreadAPIProxy(this.protocol, this.injector, this)));
-    this._apiFactoryDisposables.add(toDisposable(createSumiAPIFactory(this.protocol, this.injector)));
-    this._apiFactoryDisposables.add(this.createExternalSumiAPIFactory());
+  private async getUpdatedProxy(): Promise<IExtensionHostService> {
+    while (true) {
+      const generation = this.generation;
+      try {
+        await generation.updated.promise;
+      } catch (error) {
+        if (generation !== this.generation) {
+          continue;
+        }
+        throw error;
+      }
+      if (generation === this.generation && generation.state === 'ready' && generation.protocol) {
+        return this.getGenerationProxy(generation);
+      }
+    }
+  }
+
+  private async createBrowserMainThreadAPI(generation: NodeExtHostGeneration) {
+    const protocol = generation.protocol!;
+    const apiProxy = initSharedAPIProxy(protocol, this.injector);
+    generation.apiFactoryDisposables.add(apiProxy);
+    generation.apiFactoryDisposables.add(toDisposable(initNodeThreadAPIProxy(protocol, this.injector, this)));
+    generation.apiFactoryDisposables.add(toDisposable(createSumiAPIFactory(protocol, this.injector)));
+    generation.apiFactoryDisposables.add(this.createExternalSumiAPIFactory(protocol));
     await apiProxy.setup();
   }
 
@@ -143,7 +261,7 @@ export class NodeExtProcessService implements AbstractNodeExtProcessService<IExt
    * register external main thread class
    * @returns disposer
    */
-  private createExternalSumiAPIFactory() {
+  private createExternalSumiAPIFactory(protocol: IRPCProtocol) {
     const disposer = new Disposable();
     // register main thread extender contribution
     const contributions = this.mainThreadExtenderContributionProvider.getContributions();
@@ -153,8 +271,8 @@ export class NodeExtProcessService implements AbstractNodeExtProcessService<IExt
     // instantiate this MainThreadExtenderClass
     const extenders = this.mainThreadExtenderService.getMainThreadExtenders();
     for (const extender of extenders) {
-      const service = this.injector.get(extender.serviceClass, [this.protocol]);
-      this.protocol.set(extender.identifier, service);
+      const service = this.injector.get(extender.serviceClass, [protocol]);
+      protocol.set(extender.identifier, service);
       disposer.addDispose(service);
     }
     return disposer;
@@ -169,38 +287,153 @@ export class NodeExtProcessService implements AbstractNodeExtProcessService<IExt
     return this.applicationService.clientId;
   }
 
-  private async createExtProcess() {
-    await this.extensionNodeClient.createProcess(this.clientId, {
-      enableDebugExtensionHost: this.appConfig.enableDebugExtensionHost,
-      inspectExtensionHost: this.appConfig.inspectExtensionHost,
-      extensionConnectOption: this.appConfig.extensionConnectOption,
-      extHostSpawnOptions: this.getSpawnOptions(),
-    });
-
-    await this.initExtProtocol();
-  }
-
-  connection: BaseConnection<Uint8Array>;
-  channel: WSChannel;
-
   /**
    * 这个 protocol 需要每次都重新创建，因为服务端是会在该 channel 连上后才开始进行插件进程相关的逻辑的
    */
-  private async initExtProtocol() {
-    if (this.channel) {
-      this.channel.dispose();
-    }
-    if (this.protocol) {
-      (this.protocol as SumiConnectionMultiplexer).dispose?.();
+  private async initExtProtocol(generation: NodeExtHostGeneration): Promise<void> {
+    const channel = await this.channelHandler.openChannel(CONNECTION_HANDLE_BETWEEN_EXTENSION_AND_MAIN_THREAD);
+    if (generation !== this.generation || generation.state !== 'starting') {
+      channel.dispose();
+      throw new StaleNodeExtHostGenerationError(generation.id);
     }
 
-    this.channel = await this.channelHandler.openChannel(CONNECTION_HANDLE_BETWEEN_EXTENSION_AND_MAIN_THREAD);
-    this.connection = this.channel.createConnection();
+    try {
+      const connection = channel.createConnection();
+      const protocol = this.createProtocol(connection);
+      if (generation !== this.generation || generation.state !== 'starting') {
+        (protocol as SumiConnectionMultiplexer).dispose?.();
+        throw new StaleNodeExtHostGenerationError(generation.id);
+      }
+      generation.channel = channel;
+      generation.connection = connection;
+      generation.protocol = protocol;
+    } catch (error) {
+      if (generation.channel !== channel) {
+        channel.dispose();
+      }
+      throw error;
+    }
+  }
 
-    this.protocol = new SumiConnectionMultiplexer(this.connection, {
+  private createProtocol(connection: BaseConnection<Uint8Array>): IRPCProtocol {
+    return new SumiConnectionMultiplexer(connection, {
       timeout: this.appConfig.rpcMessageTimeout,
       name: 'node-ext-host',
       io: createExtMessageIO(knownProtocols),
     });
+  }
+
+  private async activateGeneration(generation: NodeExtHostGeneration): Promise<IRPCProtocol> {
+    try {
+      await this.extensionNodeClient.createProcess(this.clientId, {
+        enableDebugExtensionHost: this.appConfig.enableDebugExtensionHost,
+        inspectExtensionHost: this.appConfig.inspectExtensionHost,
+        extensionConnectOption: this.appConfig.extensionConnectOption,
+        extHostSpawnOptions: this.getSpawnOptions(),
+      });
+      this.assertCurrentGeneration(generation);
+
+      await this.initExtProtocol(generation);
+      this.assertCurrentGeneration(generation);
+
+      await this.createBrowserMainThreadAPI(generation);
+      this.assertCurrentGeneration(generation);
+
+      const proxy = this.getGenerationProxy(generation);
+      await proxy.$updateExtHostData();
+      this.assertCurrentGeneration(generation);
+
+      generation.state = 'ready';
+      this.channel = generation.channel!;
+      this.connection = generation.connection!;
+      this.protocol = generation.protocol!;
+      generation.updated.resolve();
+      generation.ready.resolve();
+      return generation.protocol!;
+    } catch (error) {
+      if (generation === this.generation && generation.state !== 'disposed') {
+        generation.state = 'failed';
+        this.disposeGenerationResources(generation);
+        generation.updated.reject(error);
+        generation.ready.reject(error);
+        try {
+          await this.extensionNodeClient.disposeClientExtProcess(this.clientId, false);
+        } catch {
+          // Preserve the activation error; Node owns idempotent Host cleanup.
+        }
+      }
+      throw error;
+    }
+  }
+
+  private getGenerationProxy(generation: NodeExtHostGeneration): IExtensionHostService {
+    return generation.protocol!.getProxy<IExtensionHostService>(ExtHostAPIIdentifier.ExtHostExtensionService);
+  }
+
+  private createGeneration(): NodeExtHostGeneration {
+    return {
+      id: ++this.generationCounter,
+      ready: createHandledDeferred<void>(),
+      updated: createHandledDeferred<void>(),
+      apiFactoryDisposables: new DisposableStore(),
+      state: 'idle',
+    };
+  }
+
+  private replaceGeneration(reason: string): NodeExtHostGeneration {
+    const previous = this.generation;
+    const next = this.createGeneration();
+    this.generation = next;
+    this.readyBarrier.bind(next.ready);
+    this.retireGeneration(previous, reason);
+    return next;
+  }
+
+  private retireGeneration(generation: NodeExtHostGeneration, reason: string): void {
+    if (generation.state === 'disposed') {
+      return;
+    }
+    generation.state = 'disposed';
+    this.disposeGenerationResources(generation);
+    const error = new StaleNodeExtHostGenerationError(generation.id);
+    error.message = `${error.message}: ${reason}`;
+    generation.updated.reject(error);
+    generation.ready.reject(error);
+  }
+
+  private disposeGenerationResources(generation: NodeExtHostGeneration): void {
+    if (this.channel === generation.channel) {
+      this.channel = undefined as unknown as WSChannel;
+    }
+    if (this.connection === generation.connection) {
+      this.connection = undefined as unknown as BaseConnection<Uint8Array>;
+    }
+    if (this.protocol === generation.protocol) {
+      this.protocol = undefined as unknown as IRPCProtocol;
+    }
+    generation.apiFactoryDisposables.dispose();
+    generation.channel?.dispose();
+    (generation.protocol as SumiConnectionMultiplexer | undefined)?.dispose?.();
+    generation.channel = undefined;
+    generation.connection = undefined;
+    generation.protocol = undefined;
+  }
+
+  private assertCurrentGeneration(generation: NodeExtHostGeneration): void {
+    if (generation !== this.generation || generation.state !== 'starting') {
+      throw new StaleNodeExtHostGenerationError(generation.id);
+    }
+  }
+
+  private clearActivation(activation: { generation: NodeExtHostGeneration; promise: Promise<IRPCProtocol> }): void {
+    if (this.activation === activation) {
+      this.activation = undefined;
+    }
+  }
+
+  private clearDisposePromise(disposePromise: Promise<void>): void {
+    if (this.disposePromise === disposePromise) {
+      this.disposePromise = undefined;
+    }
   }
 }

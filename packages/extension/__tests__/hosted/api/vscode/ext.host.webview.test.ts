@@ -1,9 +1,10 @@
 import { IExtensionInfo, Uri } from '@opensumi/ide-core-common';
-import { IMainThreadWebview, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { ExtHostWebview } from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.webview';
-import { ExtHostWebviewService } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.api.webview';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
+import { IMainThreadWebview, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import { ExtHostWebview } from '../../../../src/hosted/api/sumi/ext.host.webview';
+import { ExtHostWebviewService } from '../../../../src/hosted/api/vscode/ext.host.api.webview';
+
 describe('vscode extHostWebview Test', () => {
   const map = new Map();
   const rpcProtocol = {

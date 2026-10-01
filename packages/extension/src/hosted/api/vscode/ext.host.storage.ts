@@ -1,6 +1,6 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Emitter, IDisposable, Uri, UriUtils } from '@opensumi/ide-core-common';
-import { IExtensionStorageUri } from '@opensumi/ide-extension-storage/lib/common/storage';
+import { IExtensionStorageUri } from '@opensumi/ide-extension-storage';
 
 import {
   IExtHostStorage,

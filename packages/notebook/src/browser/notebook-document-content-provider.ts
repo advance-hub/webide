@@ -11,7 +11,7 @@ import {
   SaveTaskResponseState,
   URI,
 } from '@opensumi/ide-core-common';
-import { IEditorDocumentModelContentProvider } from '@opensumi/ide-editor/lib/browser/doc-model/types';
+import { IEditorDocumentModelContentProvider } from '@opensumi/ide-editor/document-types';
 
 import { ILibroOpensumiService } from './libro.service';
 

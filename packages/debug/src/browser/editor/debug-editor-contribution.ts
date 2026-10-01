@@ -17,11 +17,11 @@ import {
   strings,
 } from '@opensumi/ide-core-browser';
 import { IDecorationApplyOptions, IEditor, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { IEditorFeatureContribution } from '@opensumi/ide-editor/lib/browser';
-import { MonacoCodeService } from '@opensumi/ide-editor/lib/browser/editor.override';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { IEditorFeatureContribution } from '@opensumi/ide-editor/browser';
+import { MonacoCodeService } from '@opensumi/ide-editor/runtime';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 import * as monaco from '@opensumi/ide-monaco';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
 import { Range } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 import { StandardTokenType } from '@opensumi/monaco-editor-core/esm/vs/editor/common/encodedTokenAttributes';
 import { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
@@ -46,7 +46,10 @@ const MAX_TOKENIZATION_LINE_LEN = 500; // 如果这行太长了，则跳过该�
 const { flatten } = arrays;
 
 class InlineSegment {
-  constructor(public column: number, public text: string) {}
+  constructor(
+    public column: number,
+    public text: string,
+  ) {}
 }
 
 function createInlineValueDecoration(

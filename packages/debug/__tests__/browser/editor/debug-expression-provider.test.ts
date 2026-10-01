@@ -1,10 +1,11 @@
-import { DebugExpressionProvider } from '@opensumi/ide-debug/lib/browser/editor';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { monacoApi } from '@opensumi/ide-monaco/api';
+
+import { DebugExpressionProvider } from '../../../src/browser/editor';
 import {
   EvaluatableExpressionServiceImpl,
   IEvaluatableExpressionService,
-} from '@opensumi/ide-debug/lib/browser/editor/evaluatable-expression';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
+} from '../../../src/browser/editor/evaluatable-expression';
 
 import type { ITextModel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/model';
 

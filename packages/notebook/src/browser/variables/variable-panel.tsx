@@ -4,7 +4,7 @@ import React, { PropsWithChildren, memo, useEffect, useState } from 'react';
 
 import { URI, ViewState, localize, useInjectable } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 
 import { LIBRO_COMPONENTS_SCHEME_ID } from '../libro.protocol';
 import { ILibroOpensumiService } from '../libro.service';

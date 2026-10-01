@@ -2,7 +2,7 @@ import os from 'os';
 
 import { Injector } from '@opensumi/di';
 import { ISchemaStore, PreferenceService } from '@opensumi/ide-core-browser';
-import { AppLifeCycleService } from '@opensumi/ide-core-browser/lib/bootstrap/lifecycle.service';
+import { AppLifeCycleService } from '@opensumi/ide-core-browser/lifecycle';
 import {
   AppLifeCycleServiceToken,
   CommandRegistry,
@@ -13,22 +13,19 @@ import {
   LifeCyclePhase,
   Uri,
 } from '@opensumi/ide-core-common';
-import { TextmateService } from '@opensumi/ide-editor/lib/browser/monaco-contrib/tokenizer/textmate.service';
-import {
-  AbstractExtInstanceManagementService,
-  ExtensionWillContributeEvent,
-} from '@opensumi/ide-extension/lib/browser/types';
+import { MockPreferenceService } from '@opensumi/ide-dev-tool/mocks/terminal';
+import { TextmateService } from '@opensumi/ide-editor/runtime';
 import { IExtensionStoragePathServer } from '@opensumi/ide-extension-storage';
-import { IFileServiceClient } from '@opensumi/ide-file-service/lib/common';
+import { IFileServiceClient } from '@opensumi/ide-file-service';
 import { IJSONSchemaRegistry } from '@opensumi/ide-monaco';
-import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/lib/browser/contrib/tokenizer';
-import { SchemaRegistry, SchemaStore } from '@opensumi/ide-monaco/lib/browser/schema-registry';
+import { SchemaRegistry, SchemaStore } from '@opensumi/ide-monaco/runtime';
+import { ITextmateTokenizer, ITextmateTokenizerService } from '@opensumi/ide-monaco/tokenizer';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
-import { IconService } from '@opensumi/ide-theme/lib/browser';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
+import { IconService } from '@opensumi/ide-theme/browser';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
 
-import { MockPreferenceService } from '../../../terminal-next/__tests__/browser/mock.service';
 import { mockExtensionProps } from '../../__mocks__/extensions';
+import { AbstractExtInstanceManagementService, ExtensionWillContributeEvent } from '../../src/browser/types';
 import { VSCodeContributesService, VSCodeContributesServiceToken } from '../../src/browser/vscode/contributes';
 import { ExtensionNodeServiceServerPath } from '../../src/common';
 

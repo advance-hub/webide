@@ -1,7 +1,7 @@
-import { ProxyIdentifier } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { ProxyIdentifier } from '@opensumi/ide-connection';
 import { IDisposable, Uri, path } from '@opensumi/ide-core-common';
-import { EditorComponentRenderMode } from '@opensumi/ide-editor/lib/browser';
-import { ToolBarPosition } from '@opensumi/ide-toolbar/lib/browser';
+import { EditorComponentRenderMode } from '@opensumi/ide-editor/browser';
+import { ToolBarPosition } from '@opensumi/ide-toolbar/types';
 import { ContextKeyExpr } from '@opensumi/monaco-editor-core/esm/vs/platform/contextkey/common/contextkey';
 
 import { IExtension } from '../..';
@@ -228,7 +228,10 @@ export interface IRunTimeParams {
 }
 
 export abstract class AbstractSumiBrowserContributionRunner {
-  constructor(protected extension: IExtension, protected contribution: ISumiBrowserContributions) {}
+  constructor(
+    protected extension: IExtension,
+    protected contribution: ISumiBrowserContributions,
+  ) {}
 
   abstract run(param: IRunTimeParams): IDisposable;
 }

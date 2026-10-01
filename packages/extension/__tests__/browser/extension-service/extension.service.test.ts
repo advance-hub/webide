@@ -2,33 +2,33 @@ import {
   CommandRegistry,
   CommandRegistryImpl,
   IPreferenceSettingsService,
+  IToolbarRegistry,
   KeybindingRegistry,
   KeybindingRegistryImpl,
   PreferenceScope,
 } from '@opensumi/ide-core-browser';
-import { IToolbarRegistry } from '@opensumi/ide-core-browser/lib/toolbar';
-import { IMenuItem, IMenuRegistry, MenuRegistryImpl } from '@opensumi/ide-core-browser/src/menu/next';
-import { NextToolbarRegistryImpl } from '@opensumi/ide-core-browser/src/toolbar/toolbar.registry';
+import { IMenuItem, IMenuRegistry, MenuRegistryImpl } from '@opensumi/ide-core-browser/menu';
+import { NextToolbarRegistryImpl } from '@opensumi/ide-core-browser/toolbar';
 import { AppLifeCycleServiceToken, IAppLifeCycleService, IEventBus, LifeCyclePhase } from '@opensumi/ide-core-common';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { IMainLayoutService } from '@opensumi/ide-main-layout';
+import { LayoutService } from '@opensumi/ide-main-layout/layout';
+import { TabbarService } from '@opensumi/ide-main-layout/tabbar';
+import { PreferenceSettingsService } from '@opensumi/ide-preferences/settings';
+import { IThemeService, getColorRegistry } from '@opensumi/ide-theme';
+import { WorkbenchThemeService } from '@opensumi/ide-theme/workbench';
+import '@opensumi/ide-i18n';
+
+import { SumiContributionsServiceToken } from '../../../src/browser/sumi/contributes';
 import {
   AbstractExtInstanceManagementService,
   ExtensionBeforeActivateEvent,
   IActivationEventService,
-} from '@opensumi/ide-extension/lib/browser/types';
-import { IMainLayoutService } from '@opensumi/ide-main-layout';
-import { LayoutService } from '@opensumi/ide-main-layout/lib/browser/layout.service';
-import { TabbarService } from '@opensumi/ide-main-layout/lib/browser/tabbar/tabbar.service';
-import { PreferenceSettingsService } from '@opensumi/ide-preferences/lib/browser/preference-settings.service';
-import { WorkbenchThemeService } from '@opensumi/ide-theme/lib/browser/workbench.theme.service';
-import { IThemeService, getColorRegistry } from '@opensumi/ide-theme/lib/common';
-
-import '@opensumi/ide-i18n';
-
-import { SumiContributionsServiceToken } from '../../../src/browser/sumi/contributes';
+} from '../../../src/browser/types';
 import { VSCodeContributesService, VSCodeContributesServiceToken } from '../../../src/browser/vscode/contributes';
 import {
   AbstractExtensionManagementService,
+  ERestartPolicy,
   ExtensionService,
   IExtCommandManagement,
   IRequireInterceptorService,
@@ -197,12 +197,6 @@ describe('Extension service', () => {
       expect(tabbar?.containerId).toBe('test.sumi-extension:KaitianViewContribute');
     });
 
-    it('should register browserView', () => {
-      const layoutService: IMainLayoutService = injector.get(IMainLayoutService);
-      const tabbar = layoutService.getTabbarHandler('test.sumi-extension:KaitianViewContribute');
-      expect(tabbar).toBeDefined();
-    });
-
     it('should register keybinding for HelloKaitian command', () => {
       const keyBinding: KeybindingRegistryImpl = injector.get(KeybindingRegistry);
       const commandKeyBindings = keyBinding.getKeybindingsForCommand('HelloKaitian');
@@ -243,20 +237,34 @@ describe('Extension service', () => {
   });
 
   describe('extension process restart', () => {
+    const setVisibility = (visibilityState: 'hidden' | 'visible') => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => visibilityState,
+      });
+    };
+
+    afterEach(() => {
+      setVisibility('visible');
+      jest.restoreAllMocks();
+      extensionService['isExtProcessWaitingForRestart'] = undefined;
+      extensionService['requestedRestartPolicy'] = undefined;
+      extensionService['restartRequestPromise'] = undefined;
+      extensionService['restartAfterVisibilityDelay'] = false;
+      extensionService['isExtProcessRestarting'] = false;
+    });
+
     it('restart ext process when visibility change', async () => {
       /**
        * 如果页面不可见，那么不会执行插件进程重启操作
        */
-      Object.defineProperty(document, 'visibilityState', {
-        configurable: true,
-        get() {
-          return 'hidden';
-        },
-      });
+      setVisibility('hidden');
 
-      const extProcessRestartHandler = jest.spyOn(extensionService as any, 'extProcessRestartHandler');
+      const extProcessRestartHandler = jest
+        .spyOn(extensionService as any, 'extProcessRestartHandler')
+        .mockResolvedValue(undefined);
 
-      extensionService.restartExtProcess();
+      await extensionService.restartExtProcess();
 
       expect(extProcessRestartHandler).not.toHaveBeenCalled();
       expect(extensionService['isExtProcessWaitingForRestart']).toBeTruthy();
@@ -264,12 +272,7 @@ describe('Extension service', () => {
       /**
        * 页面变为可见后，开始执行插件进程重启操作
        */
-      Object.defineProperty(document, 'visibilityState', {
-        configurable: true,
-        get() {
-          return 'visible';
-        },
-      });
+      setVisibility('visible');
 
       // 手动派发一个 visibilitychange 事件
       const visibilityChangeEvent = new Event('visibilitychange');
@@ -278,6 +281,53 @@ describe('Extension service', () => {
       document.dispatchEvent(visibilityChangeEvent);
 
       expect(extProcessRestartHandler).toHaveBeenCalled();
+    });
+
+    it('coalesces duplicate Always restart requests into one transaction', async () => {
+      expect.hasAssertions();
+      setVisibility('visible');
+      let finishRestart: (restarted: boolean) => void = () => undefined;
+      const restartProgress = jest.spyOn(extensionService, 'restartProgress').mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            finishRestart = resolve;
+          }),
+      );
+
+      const first = extensionService.restartExtProcess(ERestartPolicy.Always);
+      const second = extensionService.restartExtProcess(ERestartPolicy.Always);
+
+      expect(first).toBe(second);
+      expect(restartProgress).toHaveBeenCalledTimes(1);
+      finishRestart(true);
+      await first;
+      expect(extensionService['restartRequestPromise']).toBeUndefined();
+      expect(extensionService['isExtProcessRestarting']).toBe(false);
+    });
+
+    it('serially upgrades an in-flight conditional request to Always', async () => {
+      expect.hasAssertions();
+      setVisibility('visible');
+      const resolvers: Array<(restarted: boolean) => void> = [];
+      const restartProgress = jest.spyOn(extensionService, 'restartProgress').mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolvers.push(resolve);
+          }),
+      );
+
+      const conditional = extensionService.restartExtProcess(ERestartPolicy.WhenExit);
+      const forced = extensionService.restartExtProcess(ERestartPolicy.Always);
+
+      expect(conditional).toBe(forced);
+      expect(restartProgress).toHaveBeenNthCalledWith(1, ERestartPolicy.WhenExit);
+      resolvers[0](false);
+      await Promise.resolve();
+      expect(restartProgress).toHaveBeenNthCalledWith(2, ERestartPolicy.Always);
+      resolvers[1](true);
+      await conditional;
+      expect(restartProgress).toHaveBeenCalledTimes(2);
+      expect(extensionService['isExtProcessRestarting']).toBe(false);
     });
   });
 });

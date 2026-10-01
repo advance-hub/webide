@@ -2,11 +2,11 @@ import { Autowired, INJECTOR_TOKEN, Injectable, Injector, Optional } from '@open
 import { VALIDATE_TYPE } from '@opensumi/ide-components';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Disposable } from '@opensumi/ide-core-browser';
-import { IQuickInputService } from '@opensumi/ide-core-browser/lib/quick-open';
+import { IQuickInputService } from '@opensumi/ide-core-browser/quick-open';
 import { QuickInputOptions, QuickPickItem, QuickPickOptions, QuickPickService } from '@opensumi/ide-quick-open';
-import { QuickOpenItemService } from '@opensumi/ide-quick-open/lib/browser/quick-open-item.service';
-import { QuickTitleBar } from '@opensumi/ide-quick-open/lib/browser/quick-title-bar';
-import { InputBoxImpl } from '@opensumi/ide-quick-open/lib/browser/quickInput.inputBox';
+import { InputBoxImpl } from '@opensumi/ide-quick-open/input-box';
+import { QuickOpenItemService } from '@opensumi/ide-quick-open/item-service';
+import { QuickTitleBar } from '@opensumi/ide-quick-open/title-bar';
 
 import { ExtHostAPIIdentifier, IExtHostQuickOpen, IMainThreadQuickOpen, Severity } from '../../../common/vscode';
 

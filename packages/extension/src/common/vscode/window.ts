@@ -213,6 +213,11 @@ export interface IExtHostWindowState {
   onDidChangeWindowState: Event<types.WindowState>;
 }
 
+/** Lifecycle owned by the main-thread window event bridge. */
+export interface IMainThreadWindowState {
+  dispose(): void;
+}
+
 export interface IExtHostWindow {
   $onOpenDialogResult(id: string, result: UriComponents[] | undefined): void;
   $onSaveDialogResult(id: string, result: UriComponents | undefined): void;

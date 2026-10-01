@@ -2,7 +2,7 @@ import { Autowired, Injectable } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Disposable, IEventBus, ILogger } from '@opensumi/ide-core-browser';
 import { IMainLayoutService, TabBarRegistrationEvent } from '@opensumi/ide-main-layout';
-import { TabBarHandler } from '@opensumi/ide-main-layout/lib/browser/tabbar-handler';
+import { TabBarHandler } from '@opensumi/ide-main-layout/tabbar/handler';
 import { IIconService, IconShape, IconType } from '@opensumi/ide-theme';
 
 import { ExtHostSumiAPIIdentifier } from '../../common/sumi';

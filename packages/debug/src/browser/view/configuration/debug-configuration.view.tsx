@@ -3,7 +3,7 @@ import React from 'react';
 
 import { Option, Popover, Select } from '@opensumi/ide-components';
 import { AppConfig, URI, localize, useAutorun, useInjectable } from '@opensumi/ide-core-browser';
-import { Select as NativeSelect } from '@opensumi/ide-core-browser/lib/components/select';
+import { Select as NativeSelect } from '@opensumi/ide-core-browser/components/select';
 
 import {
   DEFAULT_ADD_CONFIGURATION_KEY,

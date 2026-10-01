@@ -16,14 +16,15 @@ import { ISingleEditOperation } from '@opensumi/ide-editor';
 import { IndentAction, SymbolKind } from './ext-types';
 
 import type { editor, languages } from '@opensumi/ide-monaco';
-// eslint-disable-next-line import/no-restricted-paths
-import type { CallHierarchyItem } from '@opensumi/ide-monaco/lib/browser/contrib/callHierarchy';
-// eslint-disable-next-line import/no-restricted-paths
-import type { TypeHierarchyItem } from '@opensumi/ide-monaco/lib/browser/contrib/typeHierarchy';
+// eslint-disable-next-line import-x/no-restricted-paths
+import type { CallHierarchyItem } from '@opensumi/ide-monaco/hierarchy';
+// eslint-disable-next-line import-x/no-restricted-paths
+import type { TypeHierarchyItem } from '@opensumi/ide-monaco/hierarchy';
 import type { CompletionItemLabel } from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 // 内置的api类型声明
 import type vscode from 'vscode';
-export { CallHierarchyItem, IMarkdownString, SymbolTag, TypeHierarchyItem };
+export { SymbolTag };
+export type { CallHierarchyItem, IMarkdownString, TypeHierarchyItem };
 
 export interface IRawColorInfo {
   color: [number, number, number, number];
@@ -400,7 +401,7 @@ export interface DefinitionLink {
   selectionRange?: Range;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Matches VS Code's augmentable public API.
 export interface FoldingContext {}
 
 export interface FoldingRange {

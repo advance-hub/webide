@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import React from 'react';
 
-import { HistoryInputBox, IHistoryInputBoxHandler } from '@opensumi/ide-components/lib/input/HistoryInputBox';
+import { HistoryInputBox, IHistoryInputBoxHandler } from '@opensumi/ide-components/input';
 import { Key, localize, useDesignStyles, useInjectable } from '@opensumi/ide-core-browser';
 
 import { DebugConsoleFilterService } from './debug-console-filter.service';

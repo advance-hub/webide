@@ -1,4 +1,4 @@
-import { WSChannelHandler } from '@opensumi/ide-connection/lib/browser/ws-channel-handler';
+import { WSChannelHandler } from '@opensumi/ide-connection/browser';
 import {
   CommandRegistry,
   CommandService,
@@ -11,12 +11,12 @@ import {
   isWindows,
 } from '@opensumi/ide-core-browser';
 import { IApplicationService, uuid } from '@opensumi/ide-core-common';
+import { MockInjector, mockService } from '@opensumi/ide-dev-tool/injector';
 import { IFileTreeService } from '@opensumi/ide-file-tree-next';
-import { FileTreeContribution } from '@opensumi/ide-file-tree-next/lib/browser/file-tree-contribution';
-import { PreferenceContribution } from '@opensumi/ide-preferences/lib/browser/preference-contribution';
+import { FileTreeContribution } from '@opensumi/ide-file-tree-next/contribution';
+import { PreferenceContribution } from '@opensumi/ide-preferences/contribution';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
-import { MockInjector, mockService } from '../../../../tools/dev-tool/src/mock-injector';
 import { ExtensionNodeServiceServerPath, IExtensionNodeClientService } from '../../src';
 import { ExtensionClientAppContribution, ExtensionCommandContribution } from '../../src/browser/extension.contribution';
 

@@ -1,5 +1,5 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { IToolbarPopoverStyle } from '@opensumi/ide-core-browser/lib/toolbar';
+import { IToolbarPopoverStyle } from '@opensumi/ide-core-browser';
 import { Disposable, Emitter, IExtensionLogger } from '@opensumi/ide-core-common';
 
 import {
@@ -69,6 +69,7 @@ export class ExtHostToolbarActionService implements IExtHostToolbar {
     extensionPath: string,
     contribution: IToolbarButtonContribution | IToolbarSelectContribution | IToolbarDropdownButtonContribution,
   ): Promise<IToolbarButtonActionHandle | IToolbarSelectActionHandle<T> | IToolbarDropdownButtonActionHandle<T>> {
+    const contributionId = contribution.id;
     switch (contribution.type) {
       case TOOLBAR_ACTION_TYPE.BUTTON:
         await this.proxy.$registerToolbarButtonAction(extensionId, extensionPath, contribution);
@@ -78,14 +79,14 @@ export class ExtHostToolbarActionService implements IExtHostToolbar {
         return this.getToolbarDropdownButtonActionHandle(contribution.id, extensionId);
       case TOOLBAR_ACTION_TYPE.SELECT:
         await this.proxy.$registerToolbarSelectAction(extensionId, extensionPath, contribution);
-        return this.getToolbarSelectActionHandle(contribution.id, extensionId);
+        return this.getToolbarSelectActionHandle(contributionId, extensionId);
       default:
         await this.proxy.$registerToolbarSelectAction(
           extensionId,
           extensionPath,
           contribution as IToolbarSelectContribution<T>,
         );
-        return this.getToolbarSelectActionHandle(contribution.id, extensionId);
+        return this.getToolbarSelectActionHandle(contributionId, extensionId);
     }
   }
 

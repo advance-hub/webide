@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 // some code copied and modified from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/api/common/extHostTask.ts
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 import { Task, TaskExecution, TaskFilter, TaskProvider } from 'vscode';
 
 import { IRPCProtocol } from '@opensumi/ide-connection';
@@ -18,7 +18,6 @@ import {
   asPromise,
   getDebugLogger,
 } from '@opensumi/ide-core-common';
-
 
 import { IExtensionProps } from '../../../../common';
 import {
@@ -52,7 +51,7 @@ import { Terminal } from '../ext.host.terminal';
 
 import { TaskDto, toTask } from './taskTypes';
 
-import type { UriComponents } from '@opensumi/ide-editor/lib/common';
+import type { UriComponents } from '@opensumi/ide-editor';
 import type vscode from 'vscode';
 
 namespace TaskDefinitionDTO {
@@ -367,7 +366,11 @@ namespace TaskDTO {
  * VS Code 似乎不打算实现？
  */
 class TaskExecutionImpl implements vscode.TaskExecution {
-  constructor(private readonly _tasks: IExtHostTasks, readonly _id: string, private readonly _task: vscode.Task) {}
+  constructor(
+    private readonly _tasks: IExtHostTasks,
+    readonly _id: string,
+    private readonly _task: vscode.Task,
+  ) {}
 
   public get task(): vscode.Task {
     return this._task;

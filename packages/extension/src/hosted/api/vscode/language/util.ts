@@ -1,5 +1,5 @@
 import { Event, IRelativePattern, Uri, match as matchGlobPattern } from '@opensumi/ide-core-common';
-import { normalize } from '@opensumi/ide-utils/lib/path';
+import { normalize } from '@opensumi/ide-utils/path';
 
 import * as types from '../../../../common/vscode/ext-types';
 

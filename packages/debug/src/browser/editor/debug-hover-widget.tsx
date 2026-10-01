@@ -11,7 +11,7 @@ import {
   IReporterService,
 } from '@opensumi/ide-core-browser';
 import * as monaco from '@opensumi/ide-monaco';
-import { monacoBrowser } from '@opensumi/ide-monaco/lib/browser';
+import { monacoBrowser } from '@opensumi/ide-monaco/browser';
 
 import {
   DEBUG_REPORT_NAME,

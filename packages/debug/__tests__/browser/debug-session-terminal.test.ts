@@ -1,7 +1,8 @@
 import { Disposable, Emitter } from '@opensumi/ide-core-common';
-import { DebugSession } from '@opensumi/ide-debug/lib/browser/debug-session';
 
-import type { DebugSessionOptions } from '@opensumi/ide-debug/lib/common';
+import { DebugSession } from '../../src/browser/debug-session';
+
+import type { DebugSessionOptions } from '../../src/common';
 import type { TerminalOptions } from '@opensumi/ide-terminal-next';
 
 class TestDebugSession extends DebugSession {

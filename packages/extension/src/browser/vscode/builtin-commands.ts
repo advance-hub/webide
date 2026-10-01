@@ -9,7 +9,7 @@ import {
   TERMINAL_COMMANDS,
 } from '@opensumi/ide-core-browser';
 import { DEBUG_COMMANDS } from '@opensumi/ide-debug';
-import { THEME_TOGGLE_COMMAND } from '@opensumi/ide-theme/lib/browser/theme.contribution';
+import { THEME_TOGGLE_COMMAND } from '@opensumi/ide-theme/commands';
 
 /**
  * 插件进程内置 command 的命名空间

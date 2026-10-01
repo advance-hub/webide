@@ -1,9 +1,9 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { AppConfig, IClipboardService, IExternalUriService, IOpenerService } from '@opensumi/ide-core-browser';
-import { HttpOpener } from '@opensumi/ide-core-browser/lib/opener/http-opener';
+import { HttpOpener } from '@opensumi/ide-core-browser/openers';
 import { IApplicationService, URI, firstSessionDateStorageKey, getCodeLanguage } from '@opensumi/ide-core-common';
-import { ILoggerManagerClient } from '@opensumi/ide-logs/lib/browser';
+import { ILoggerManagerClient } from '@opensumi/ide-logs/browser';
 
 import { ExtHostAPIIdentifier, IExtHostEnv, IMainThreadEnv } from '../../../common/vscode';
 import { UIKind, UriComponents } from '../../../common/vscode/ext-types';
@@ -41,7 +41,10 @@ export class MainThreadEnv implements IMainThreadEnv {
     return HttpOpener.standardSupportedLinkSchemes.has(uri.scheme) || uri.scheme === this.appConfig.uriScheme;
   }
 
-  constructor(@Optional(IRPCProtocol) private rpcProtocol: IRPCProtocol, private storage: MainThreadStorage) {
+  constructor(
+    @Optional(IRPCProtocol) private rpcProtocol: IRPCProtocol,
+    private storage: MainThreadStorage,
+  ) {
     this.proxy = this.rpcProtocol.getProxy(ExtHostAPIIdentifier.ExtHostEnv);
 
     this.eventDispose = this.loggerManger.onDidChangeLogLevel((level) => {

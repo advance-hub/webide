@@ -18,8 +18,8 @@ import {
   ILogger,
 } from '@opensumi/ide-core-common';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
-import { dirname } from '@opensumi/ide-utils/lib/path';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
+import { dirname } from '@opensumi/ide-utils/path';
 import {
   ContextKeyExpr,
   ContextKeyExpression,

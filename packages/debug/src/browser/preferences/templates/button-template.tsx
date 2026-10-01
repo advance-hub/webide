@@ -2,11 +2,10 @@ import { IconButtonProps, SubmitButtonProps } from '@rjsf/utils';
 import React, { useCallback, useEffect } from 'react';
 
 import { Button, getIcon } from '@opensumi/ide-components';
-import { defaultIconfont } from '@opensumi/ide-components/lib/icon/iconfont/iconMap';
+import { defaultIconfont } from '@opensumi/ide-components/icon';
 import { useInjectable } from '@opensumi/ide-core-browser';
-import { MenuActionList } from '@opensumi/ide-core-browser/lib/components/actions/index';
-import { MenuNode } from '@opensumi/ide-core-browser/lib/menu/next/base';
-import { LabelMenuItemNode } from '@opensumi/ide-core-browser/lib/menu/next/menu.interface';
+import { MenuActionList } from '@opensumi/ide-core-browser/components/actions';
+import { LabelMenuItemNode, MenuNode } from '@opensumi/ide-core-browser/menu';
 import { Disposable, localize } from '@opensumi/ide-core-common';
 
 import { ILaunchService } from '../../../common';

@@ -5,18 +5,20 @@ import {
   IChatAgentWelcomeMessage,
   IChatFollowup,
   IChatReplyFollowup,
-} from '@opensumi/ide-ai-native/lib/common';
+} from '@opensumi/ide-ai-native';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { CancellationToken, Emitter, Progress, getDebugLogger, raceCancellation } from '@opensumi/ide-core-common';
-import { IChatMessage, IChatProgress } from '@opensumi/ide-core-common/lib/types/ai-native';
+import {
+  CancellationToken,
+  Emitter,
+  IChatMessage,
+  IChatProgress,
+  Progress,
+  getDebugLogger,
+  raceCancellation,
+} from '@opensumi/ide-core-common';
 
 import { MainThreadSumiAPIIdentifier } from '../../../common/sumi';
-import {
-  IChatProgressChunk,
-  IExtHostChatAgents,
-  IInlineChatPreviewProviderMetadata,
-  IMainThreadChatAgents,
-} from '../../../common/sumi/chat-agents';
+import { IChatProgressChunk, IExtHostChatAgents, IMainThreadChatAgents } from '../../../common/sumi/chat-agents';
 import { IExtensionDescription } from '../../../common/vscode';
 import * as typeConverters from '../../../common/vscode/converter';
 

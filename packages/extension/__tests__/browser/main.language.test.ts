@@ -1,33 +1,30 @@
 import { CancellationToken, DisposableCollection, MonacoService } from '@opensumi/ide-core-browser';
-import { useMockStorage } from '@opensumi/ide-core-browser/__mocks__/storage';
 import { URI, Uri } from '@opensumi/ide-core-common';
 import {
   EvaluatableExpressionServiceImpl,
   IEvaluatableExpressionService,
-} from '@opensumi/ide-debug/lib/browser/editor/evaluatable-expression';
-import { addEditorProviders } from '@opensumi/ide-dev-tool/src/injector-editor';
+} from '@opensumi/ide-debug/editor/evaluatable-expression';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { addEditorProviders } from '@opensumi/ide-dev-tool/editor';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MockedMonacoService } from '@opensumi/ide-dev-tool/mocks/monaco/service';
+import { useMockStorage } from '@opensumi/ide-dev-tool/mocks/storage';
 import { IDocPersistentCacheProvider } from '@opensumi/ide-editor';
-import {
-  EditorDocumentModelContentRegistryImpl,
-  EditorDocumentModelServiceImpl,
-} from '@opensumi/ide-editor/lib/browser/doc-model/main';
-import { CallHierarchyService, TypeHierarchyService } from '@opensumi/ide-editor/lib/browser/monaco-contrib';
 import {
   EmptyDocCacheImpl,
   IEditorDocumentModelContentRegistry,
   IEditorDocumentModelService,
-} from '@opensumi/ide-editor/src/browser';
+} from '@opensumi/ide-editor/browser';
+import { EditorDocumentModelContentRegistryImpl, EditorDocumentModelServiceImpl } from '@opensumi/ide-editor/documents';
+import { CallHierarchyService, TypeHierarchyService } from '@opensumi/ide-editor/runtime';
 import * as monaco from '@opensumi/ide-monaco';
-import { ICallHierarchyService, ITypeHierarchyService } from '@opensumi/ide-monaco/lib/browser/contrib';
-import { monaco as monacoApi } from '@opensumi/ide-monaco/lib/browser/monaco-api';
-import { languageFeaturesService } from '@opensumi/ide-monaco/lib/browser/monaco-api/languages';
-import { ITextModel } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { monaco as monacoApi } from '@opensumi/ide-monaco/api';
+import { languageFeaturesService } from '@opensumi/ide-monaco/api/languages';
+import { ICallHierarchyService, ITypeHierarchyService } from '@opensumi/ide-monaco/hierarchy';
+import { ITextModel } from '@opensumi/ide-monaco/types';
 import { createModel } from '@opensumi/monaco-editor-core/esm/vs/editor/standalone/browser/standaloneEditor';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { mockService } from '../../../../tools/dev-tool/src/mock-injector';
-import { MockedMonacoService } from '../../../monaco/__mocks__/monaco.service.mock';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
 import { MainThreadCommands } from '../../src/browser/vscode/api/main.thread.commands';
 import { MainThreadLanguages } from '../../src/browser/vscode/api/main.thread.language';
 import { ExtHostAPIIdentifier, IExtensionDescription, MainThreadAPIIdentifier } from '../../src/common/vscode';
@@ -175,7 +172,6 @@ describe('ExtHostLanguageFeatures', () => {
             return [new types.CodeLens(new types.Range(0, 0, 0, 0), { command: 'id', title: 'Title' })];
           }
           resolveCodeLens(): any {
-            // eslint-disable-next-line no-console
             console.warn('do not resolve');
           }
         })(),

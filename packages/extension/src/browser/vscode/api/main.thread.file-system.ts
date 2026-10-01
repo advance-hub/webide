@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { BinaryBuffer, Disposable, Emitter, Event, IDisposable, URI, Uri, dispose } from '@opensumi/ide-core-browser';
-import { ensureDir } from '@opensumi/ide-core-common/lib/browser-fs/ensure-dir';
+import { ensureDir } from '@opensumi/ide-core-common/browser-fs';
 import { FileChange, FileSystemProviderCapabilities, FileStat as IFileStat } from '@opensumi/ide-file-service';
 import {
   FileOperationError,
@@ -10,7 +10,7 @@ import {
   FileType,
   IBrowserFileSystemRegistry,
   IFileServiceClient,
-} from '@opensumi/ide-file-service/lib/common';
+} from '@opensumi/ide-file-service';
 
 import { ExtHostAPIIdentifier } from '../../../common/vscode';
 import { fromFileStat, toFileStat } from '../../../common/vscode/converter';

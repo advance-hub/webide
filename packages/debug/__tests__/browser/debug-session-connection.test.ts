@@ -1,11 +1,11 @@
 import { Emitter, sleep } from '@opensumi/ide-core-browser';
 import { CancellationToken, CancellationTokenSource, Deferred, Disposable } from '@opensumi/ide-core-common';
 import { IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugSessionConnection } from '@opensumi/ide-debug/lib/browser/debug-session-connection';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { DebugSessionConnection } from '../../src/browser/debug-session-connection';
 
 describe('DebugSessionConnection', () => {
   let debugSessionConnection: DebugSessionConnection;
@@ -215,13 +215,13 @@ describe('DebugSessionConnection', () => {
                 }),
               );
             }),
-          } as any),
+          }) as any,
         traceOutputChannel,
       ]);
 
       const requestToken = getNewCancellationToken(threadId);
 
-      delayDebugSessionConnection
+      const responsePromise = delayDebugSessionConnection
         .sendRequest(
           'threads',
           {},
@@ -243,6 +243,7 @@ describe('DebugSessionConnection', () => {
 
       cancellationRequestMap.forEach((c) => c.forEach((t) => t.cancel()));
       cancellationRequestMap.clear();
+      await responsePromise;
     },
     20 * 1000,
   );

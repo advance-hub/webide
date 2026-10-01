@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { ILogger, LifeCyclePhase } from '@opensumi/ide-core-common';
-import { ISemanticTokenRegistry } from '@opensumi/ide-theme/lib/common/semantic-tokens-registry';
+import { ISemanticTokenRegistry } from '@opensumi/ide-theme/semantic-tokens';
 
 import {
   Contributes,

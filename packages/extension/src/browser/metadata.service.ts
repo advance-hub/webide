@@ -4,6 +4,7 @@ import { Disposable, ExtensionEnabledEvent, IEventBus, ILogger } from '@opensumi
 import { IExtension } from '../common';
 
 // import { SumiContributesRunner } from './sumi/contributes';
+import { getActivationEvents } from './activation-events';
 import { IActivationEventService } from './types';
 // import { VSCodeContributeRunner } from './vscode/contributes';
 
@@ -27,7 +28,7 @@ export class ExtensionMetadataService extends Disposable {
   }
 
   private registerActivationEvent(extension: IExtension) {
-    const { activationEvents = [] } = extension.packageJSON;
+    const activationEvents = getActivationEvents(extension);
     const activateDisposer = new Disposable();
 
     activationEvents.forEach((event) => {

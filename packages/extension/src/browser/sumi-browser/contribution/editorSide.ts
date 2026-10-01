@@ -1,8 +1,8 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { Disposable, IDisposable } from '@opensumi/ide-core-common';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorComponentRegistry } from '@opensumi/ide-editor/lib/browser';
-import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/lib/browser/workbench-editor.service';
+import { EditorComponentRegistry } from '@opensumi/ide-editor/browser';
+import { WorkbenchEditorServiceImpl } from '@opensumi/ide-editor/workbench';
 
 import { AbstractSumiBrowserContributionRunner, IEditorSideViewContribution, IRunTimeParams } from '../types';
 

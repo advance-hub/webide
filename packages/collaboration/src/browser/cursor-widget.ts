@@ -4,7 +4,7 @@ import { Awareness } from 'y-protocols/awareness';
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
 import { IDisposable } from '@opensumi/ide-core-common';
 import { ICodeEditor } from '@opensumi/ide-monaco';
-import { monacoBrowser } from '@opensumi/ide-monaco/lib/browser';
+import { monacoBrowser } from '@opensumi/ide-monaco/browser';
 import {
   IContentWidget,
   IContentWidgetPosition,
@@ -85,6 +85,7 @@ export class CursorWidgetRegistry implements ICursorWidgetRegistry {
     this.widgets.forEach((widget) => {
       this.editor.removeContentWidget(widget);
     });
+    this.widgets.clear();
     this.awareness.off('update', this.onAwarenessStateChange);
     if (this.disposable) {
       this.disposable.dispose();
@@ -96,6 +97,8 @@ export class CursorWidgetRegistry implements ICursorWidgetRegistry {
       const widget = this.injector.get(CursorWidget, [nickname, clientID]);
       this.editor.addContentWidget(widget);
       this.widgets.set(clientID, widget);
+    } else {
+      this.widgets.get(clientID)!.setNickname(nickname);
     }
   }
 
@@ -108,7 +111,8 @@ export class CursorWidgetRegistry implements ICursorWidgetRegistry {
   }
 
   private onAwarenessStateChange = (changes: { added: number[]; updated: number[]; removed: number[] }) => {
-    if (changes.added.length > 0) {
+    changes.removed.forEach((clientID) => this.deleteWidget(clientID));
+    if (changes.added.length > 0 || changes.updated.length > 0) {
       this.getWidgetFromRegistry();
     }
   };
@@ -122,15 +126,21 @@ export class CursorWidget implements IContentWidget {
 
   position: IContentWidgetPosition | null = null;
 
-  constructor(nickname: string, clientID: string) {
+  constructor(nickname: string, clientID: number) {
     // init dom node
     this.domNode = document.createElement('div');
-    this.domNode.innerHTML = nickname;
+    this.setNickname(nickname);
     this.domNode.style.opacity = '1';
     this.domNode.style.whiteSpace = 'nowrap';
     this.domNode.className = `${Y_REMOTE_SELECTION}-${clientID}`;
     // set id
-    this.id = `cursor-widget-${nickname}`;
+    this.id = `cursor-widget-${clientID}`;
+  }
+
+  setNickname(nickname: string) {
+    if (this.domNode.textContent !== nickname) {
+      this.domNode.textContent = nickname;
+    }
   }
 
   getId(): string {

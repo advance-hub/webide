@@ -18,24 +18,25 @@ import {
   PreferenceContribution,
   PreferenceSchema,
   PreferenceService,
+  TabBarToolbarContribution,
+  ToolbarRegistry,
   formatLocalize,
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { browserViews } from '@opensumi/ide-core-browser/lib/extensions/schema/browserViews';
-import { TabBarToolbarContribution, ToolbarRegistry } from '@opensumi/ide-core-browser/lib/layout';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { browserViews } from '@opensumi/ide-core-browser/contribution-schemas';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
 import { IExtensionsSchemaService, URI, runWhenIdle } from '@opensumi/ide-core-common';
 import {
   BrowserEditorContribution,
   EditorComponentRegistry,
   IEditor,
   IEditorFeatureRegistry,
-} from '@opensumi/ide-editor/lib/browser';
+} from '@opensumi/ide-editor/browser';
 import { IFileServiceClient, IShadowFileProvider } from '@opensumi/ide-file-service';
-import { FileServiceClient } from '@opensumi/ide-file-service/lib/browser/file-service-client';
+import { FileServiceClient } from '@opensumi/ide-file-service/browser/client';
 import { IMainLayoutService, IViewsRegistry } from '@opensumi/ide-main-layout';
-import { WelcomeView } from '@opensumi/ide-main-layout/lib/browser/welcome.view';
+import { WelcomeView } from '@opensumi/ide-main-layout/welcome';
 import * as monaco from '@opensumi/ide-monaco';
 
 import {

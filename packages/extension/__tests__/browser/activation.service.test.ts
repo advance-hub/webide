@@ -1,6 +1,6 @@
 import { ILogger } from '@opensumi/ide-core-common';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { ExtensionModule } from '../../src/browser';
 import { IActivationEventService } from '../../src/browser/types';
 

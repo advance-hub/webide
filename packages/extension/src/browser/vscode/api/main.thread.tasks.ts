@@ -12,7 +12,7 @@ import {
   uuid,
   withNullAsUndefined,
 } from '@opensumi/ide-core-common';
-import { ITaskProvider, ITaskService, IWorkspaceFolder } from '@opensumi/ide-task/lib/common';
+import { ITaskProvider, ITaskService, IWorkspaceFolder } from '@opensumi/ide-task';
 import {
   CommandConfiguration,
   CommandOptions,
@@ -30,7 +30,7 @@ import {
   TaskScope,
   TaskSource,
   TaskSourceKind,
-} from '@opensumi/ide-task/lib/common/task';
+} from '@opensumi/ide-task/tasks';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 
 import { ExtHostAPIIdentifier } from '../../../common/vscode';

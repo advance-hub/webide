@@ -1,8 +1,7 @@
 import { Autowired, INJECTOR_TOKEN, Injectable, Injector } from '@opensumi/di';
-import { warning } from '@opensumi/ide-components/lib/utils/warning';
+import { warning } from '@opensumi/ide-components/utils';
 import { IRPCProtocol, ProxyIdentifier } from '@opensumi/ide-connection';
-import { AppConfig, IToolbarPopoverRegistry, URI, path } from '@opensumi/ide-core-browser';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { AppConfig, IToolbarPopoverRegistry, StaticResourceService, URI, path } from '@opensumi/ide-core-browser';
 import {
   ContributionProvider,
   Disposable,

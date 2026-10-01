@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IContextKey } from '@opensumi/ide-core-browser';
-import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
+import { AbstractContextMenuService, ICtxMenuRenderer, MenuId } from '@opensumi/ide-core-browser/menu';
 
 import { DebugStackFrame, DebugThread } from '../../model';
 
@@ -85,15 +85,15 @@ export class DebugCallStackService {
             frameId: data.id,
           }
         : data instanceof DebugThread
-        ? {
-            sessionId: data.session.id,
-            threadId: data.id,
-          }
-        : data instanceof DebugSession
-        ? {
-            sessionId: data.id,
-          }
-        : undefined;
+          ? {
+              sessionId: data.session.id,
+              threadId: data.id,
+            }
+          : data instanceof DebugSession
+            ? {
+                sessionId: data.id,
+              }
+            : undefined;
 
     this.ctxMenuRenderer.show({
       anchor: { x, y },

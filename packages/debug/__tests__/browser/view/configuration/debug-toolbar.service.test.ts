@@ -1,8 +1,9 @@
 import { EventBusImpl, IEventBus } from '@opensumi/ide-core-common';
-import { DebugToolbarService } from '@opensumi/ide-debug/lib/browser/view/configuration/debug-toolbar.service';
-import { DebugViewModel } from '@opensumi/ide-debug/lib/browser/view/debug-view-model';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+
+import { DebugToolbarService } from '../../../../src/browser/view/configuration/debug-toolbar.service';
+import { DebugViewModel } from '../../../../src/browser/view/debug-view-model';
 
 function flushPromises() {
   return Promise.resolve();

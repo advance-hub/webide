@@ -1,6 +1,6 @@
 import { Autowired, Injectable, Optional } from '@opensumi/di';
 import { IRPCProtocol } from '@opensumi/ide-connection';
-import { IProgressService } from '@opensumi/ide-core-browser/lib/progress';
+import { IProgressService } from '@opensumi/ide-core-browser/progress';
 import {
   IProgress,
   IProgressNotificationOptions,

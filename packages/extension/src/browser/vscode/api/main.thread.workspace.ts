@@ -11,9 +11,9 @@ import {
 } from '@opensumi/ide-core-browser';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IExtensionStorageService } from '@opensumi/ide-extension-storage';
-import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search/lib/common';
+import { FileSearchServicePath, IFileSearchService } from '@opensumi/ide-file-search';
 import { FileStat } from '@opensumi/ide-file-service';
-import { IBulkEditResult, ResourceEdit } from '@opensumi/ide-monaco/lib/browser/monaco-api/index';
+import { IBulkEditResult, ResourceEdit } from '@opensumi/ide-monaco/api';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
 import { IBulkEditServiceShape, WorkspaceEditDidRenameFileEvent } from '@opensumi/ide-workspace-edit';
 

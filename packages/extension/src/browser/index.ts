@@ -1,13 +1,13 @@
 import { Injectable, Provider } from '@opensumi/di';
 import { BrowserModule } from '@opensumi/ide-core-browser';
-import { DebugSessionContributionRegistry } from '@opensumi/ide-debug/lib/browser/debug-session-contribution';
-import { IDebugServer } from '@opensumi/ide-debug/lib/common';
-import { FileSearchServicePath } from '@opensumi/ide-file-search/lib/common';
+import { IDebugServer } from '@opensumi/ide-debug';
+import { DebugSessionContributionRegistry } from '@opensumi/ide-debug/session-contributions';
+import { FileSearchServicePath } from '@opensumi/ide-file-search';
 
 import {
   AbstractExtensionManagementService,
+  ExtensionHostControlRuntimeBinding,
   ExtensionHostProfilerServicePath,
-  ExtensionNodeServiceServerPath,
   ExtensionService,
   IExtCommandManagement,
   IRequireInterceptorService,
@@ -109,7 +109,7 @@ export class ExtensionModule extends BrowserModule {
 
   backServices = [
     {
-      servicePath: ExtensionNodeServiceServerPath,
+      servicePath: ExtensionHostControlRuntimeBinding.servicePath,
       clientToken: ExtensionService,
     },
     {

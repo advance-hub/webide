@@ -90,8 +90,6 @@ function compareResourceStatesDecorations(
   a: vscode.SourceControlResourceDecorations,
   b: vscode.SourceControlResourceDecorations,
 ): number {
-  let result = 0;
-
   if (a.strikeThrough !== b.strikeThrough) {
     return a.strikeThrough ? 1 : -1;
   }
@@ -104,7 +102,7 @@ function compareResourceStatesDecorations(
     return (a.tooltip || '').localeCompare(b.tooltip || '');
   }
 
-  result = compareResourceThemableDecorations(a, b);
+  let result = compareResourceThemableDecorations(a, b);
 
   if (result !== 0) {
     return result;
@@ -535,8 +533,8 @@ class ExtHostSourceControl implements vscode.SourceControl {
       internal = {
         command: this._commands.converter.toInternal(actionButton as any, this._actionButtonDisposables.value)!,
         secondaryCommands: actionButton.secondaryCommands?.map((commandGroup) =>
-          commandGroup.map(
-            (command) => this._commands.converter.toInternal(command, this._actionButtonDisposables.value!)!,
+          commandGroup.map((command) =>
+            this._commands.converter.toInternal(command, this._actionButtonDisposables.value!)!,
           ),
         ),
         description: (actionButton as any).title,
@@ -546,8 +544,8 @@ class ExtHostSourceControl implements vscode.SourceControl {
       internal = {
         command: this._commands.converter.toInternal(actionButton.command, this._actionButtonDisposables.value)!,
         secondaryCommands: actionButton.secondaryCommands?.map((commandGroup) =>
-          commandGroup.map(
-            (command) => this._commands.converter.toInternal(command, this._actionButtonDisposables.value!)!,
+          commandGroup.map((command) =>
+            this._commands.converter.toInternal(command, this._actionButtonDisposables.value!)!,
           ),
         ),
         description: actionButton.description || (actionButton as any).tooltip,
@@ -808,7 +806,10 @@ export class ExtHostSCM implements IExtHostSCMShape {
 
   private _selectedSourceControlHandles = new Set<number>();
 
-  constructor(rpc: IRPCProtocol, private _commands: ExtHostCommands) {
+  constructor(
+    rpc: IRPCProtocol,
+    private _commands: ExtHostCommands,
+  ) {
     this._proxy = rpc.getProxy(MainThreadAPIIdentifier.MainThreadSCM);
 
     _commands.registerArgumentProcessor({

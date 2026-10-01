@@ -3,7 +3,7 @@ import React from 'react';
 
 import { INodeRendererWrapProps, IRecycleTreeHandle, RecycleTree, TreeNodeEvent } from '@opensumi/ide-components';
 import { useInjectable } from '@opensumi/ide-core-browser';
-import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/lib/layout/constants';
+import { LayoutViewSizeConfig } from '@opensumi/ide-core-browser/layout';
 import { IDisposable } from '@opensumi/ide-core-common';
 
 import {

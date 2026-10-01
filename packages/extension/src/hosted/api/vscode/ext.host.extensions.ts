@@ -1,5 +1,5 @@
 import { Uri } from '@opensumi/ide-core-common';
-import { join } from '@opensumi/ide-utils/lib/path';
+import { join } from '@opensumi/ide-utils/path';
 
 import { IExtendProxy, IExtensionHost, IExtensionProps } from '../../../common';
 import { IExtHostStorage, IExtHostTerminal } from '../../../common/vscode';

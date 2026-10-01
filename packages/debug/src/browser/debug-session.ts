@@ -7,12 +7,12 @@ import {
   Event,
   IDisposable,
   IPosition,
+  LabelService,
   Mutable,
   URI,
   canceled,
   localize,
 } from '@opensumi/ide-core-browser';
-import { LabelService } from '@opensumi/ide-core-browser/lib/services';
 import {
   CancellationToken,
   CancellationTokenSource,
@@ -261,13 +261,11 @@ export class DebugSession implements IDebugSession {
       this.on('invalidated', async (event: DebugProtocol.InvalidatedEvent) => {
         this._onDidInvalidated.fire(event);
 
-        if (
-          !(
-            event.body.areas &&
-            event.body.areas.length === 1 &&
-            (event.body.areas[0] === 'variables' || event.body.areas[0] === 'watch')
-          )
-        ) {
+        if (!(
+          event.body.areas &&
+          event.body.areas.length === 1 &&
+          (event.body.areas[0] === 'variables' || event.body.areas[0] === 'watch')
+        )) {
           this.cancelAllRequests();
           this.clearThreads();
           await this.updateThreads(this.stoppedDetails);

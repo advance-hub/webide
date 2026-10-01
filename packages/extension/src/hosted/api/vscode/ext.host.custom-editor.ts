@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 import { CustomDocumentOpenContext } from 'vscode';
 
 import { IRPCProtocol } from '@opensumi/ide-connection';
@@ -10,7 +10,6 @@ import {
   Schemes,
   iconvEncode,
 } from '@opensumi/ide-core-common';
-
 
 import {
   CustomEditorType,
@@ -193,7 +192,10 @@ class CustomDocumentHostData<T extends CustomDocument = any> {
 
   private _forceDirty = false;
 
-  constructor(private _document: T, private provider: CustomEditorProvider<T> | CustomReadonlyEditorProvider<T>) {
+  constructor(
+    private _document: T,
+    private provider: CustomEditorProvider<T> | CustomReadonlyEditorProvider<T>,
+  ) {
     if (isNotReadonlyProvider(this.provider)) {
       this.provider.onDidChangeCustomDocument((e) => {
         if (e.document !== this.document) {

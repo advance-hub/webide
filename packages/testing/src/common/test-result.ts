@@ -36,7 +36,7 @@ export interface ITestRunTaskResults extends ITestRunTask {
 
 export const TestResultServiceToken = Symbol('TestResultService');
 
-export const enum TestResultItemChangeReason {
+export enum TestResultItemChangeReason {
   Retired,
   ParentRetired,
   ComputedStateChange,
@@ -150,7 +150,10 @@ export class TestResultImpl implements ITestResult {
     return this.testById.values();
   }
 
-  constructor(public readonly id: string, public readonly request: ResolvedTestRunRequest) {}
+  constructor(
+    public readonly id: string,
+    public readonly request: ResolvedTestRunRequest,
+  ) {}
 
   protected setAllToState(
     state: TestResultState,
@@ -173,7 +176,7 @@ export class TestResultImpl implements ITestResult {
     getParents: (i) => {
       const { testById: testByExtId } = this;
       return (function* () {
-        for (let parentId = i.parent; parentId; ) {
+        for (let parentId = i.parent; parentId;) {
           const parent = testByExtId.get(parentId);
           if (!parent) {
             break;

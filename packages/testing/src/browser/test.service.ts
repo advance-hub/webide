@@ -4,13 +4,14 @@ import {
   CancellationTokenSource,
   Disposable,
   Emitter,
+  IContextKey,
+  IContextKeyService,
   IDisposable,
   SlotLocation,
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IContextKey, IContextKeyService } from '@opensumi/ide-core-browser/lib/context-key';
-import { TestingCanRefreshTests, TestingServiceProviderCount } from '@opensumi/ide-core-browser/lib/contextkey/testing';
+import { TestingCanRefreshTests, TestingServiceProviderCount } from '@opensumi/ide-core-browser/contextkeys';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 
 import { AmbiguousRunTestsRequest, ITestController, ITestService, TestId } from '../common';

@@ -1,11 +1,11 @@
 import { Injector } from '@opensumi/di';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { ExtHostAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
-import { OutputPreferences } from '@opensumi/ide-output/lib/browser/output-preference';
-import { OutputService } from '@opensumi/ide-output/lib/browser/output.service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { OutputPreferences } from '@opensumi/ide-output/preferences';
+import { OutputService } from '@opensumi/ide-output/service';
 
 import { MockOutputService } from '../../__mocks__/api/output.service';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
+import { ExtHostAPIIdentifier } from '../../src/common/vscode';
 import * as types from '../../src/common/vscode/ext-types';
 import { ExtHostOutput } from '../../src/hosted/api/vscode/ext.host.output';
 

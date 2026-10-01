@@ -14,16 +14,15 @@ import {
   MaybeNull,
   STORAGE_SCHEMA,
   Schemes,
+  StaticResourceService,
   StorageProvider,
   URI,
   arrays,
 } from '@opensumi/ide-core-browser';
-import { CommandOpener } from '@opensumi/ide-core-browser/lib/opener/command-opener';
-import { HttpOpener } from '@opensumi/ide-core-browser/lib/opener/http-opener';
-import { StaticResourceService } from '@opensumi/ide-core-browser/lib/static-resource';
+import { CommandOpener, HttpOpener } from '@opensumi/ide-core-browser/openers';
 import { CancellationToken, OnEvent, WithEventBus } from '@opensumi/ide-core-common';
 import { IResource, WorkbenchEditorService } from '@opensumi/ide-editor';
-import { EditorGroupChangeEvent, IEditorOpenType } from '@opensumi/ide-editor/lib/browser';
+import { EditorGroupChangeEvent, IEditorOpenType } from '@opensumi/ide-editor/browser';
 import { IMainLayoutService, ViewCollapseChangedEvent } from '@opensumi/ide-main-layout';
 import { IIconService, IconType } from '@opensumi/ide-theme';
 import {
@@ -653,7 +652,10 @@ export class MainThreadWebviewView extends WithEventBus implements IMainThreadWe
   @Autowired(IWebviewService)
   webviewService: IWebviewService;
 
-  constructor(rpcProtocol: IRPCProtocol, private mainThreadWebview: MainThreadWebview) {
+  constructor(
+    rpcProtocol: IRPCProtocol,
+    private mainThreadWebview: MainThreadWebview,
+  ) {
     super();
     this.proxy = rpcProtocol.getProxy(ExtHostAPIIdentifier.ExtHostWebviewView);
   }

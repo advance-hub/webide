@@ -1,14 +1,14 @@
-import { IContextKeyService, PreferenceService } from '@opensumi/ide-core-browser/src';
-import { IMenuRegistry } from '@opensumi/ide-core-browser/src/menu/next';
+import { IContextKeyService, PreferenceService } from '@opensumi/ide-core-browser';
+import { IMenuRegistry } from '@opensumi/ide-core-browser/menu';
 import { Disposable, Emitter } from '@opensumi/ide-core-common';
-import { MainThreadTreeView } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.treeview';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockFileServiceClient } from '@opensumi/ide-dev-tool/mocks/file-service-client';
 import { IFileServiceClient } from '@opensumi/ide-file-service';
-import { MockFileServiceClient } from '@opensumi/ide-file-service/__mocks__/file-service-client';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IIconService, IThemeService } from '@opensumi/ide-theme';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
+import { MainThreadTreeView } from '../../src/browser/vscode/api/main.thread.treeview';
 
 const mockExtThreadTreeViewProxy = {
   $postMessage: jest.fn(),
@@ -105,8 +105,6 @@ describe('MainThreadTreeView API Test Suite', () => {
     expect(mockMenuRegistry.registerMenuItem).toHaveBeenCalledTimes(1);
     mainThreadTreeView.$unregisterTreeDataProvider('testView1');
   });
-
-  it('$resolveDropFileData api should be worked', async () => {});
 
   it('$refresh api should be worked', async () => {
     await mainThreadTreeView.$refresh(treeViewId);

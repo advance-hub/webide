@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { getIcon } from '@opensumi/ide-core-browser';
-import { browserViews } from '@opensumi/ide-core-browser/lib/extensions/schema/browserViews';
+import { browserViews } from '@opensumi/ide-core-browser/contribution-schemas';
 import { DisposableCollection, LifeCyclePhase, getDebugLogger } from '@opensumi/ide-core-common';
 import { IMainLayoutService } from '@opensumi/ide-main-layout';
 import { IIconService } from '@opensumi/ide-theme';

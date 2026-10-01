@@ -1,6 +1,6 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
+import { IRPCProtocol } from '@opensumi/ide-connection';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
 import { mockExtensions } from '../../../../__mocks__/extensions';
 import { MainThreadLayout } from '../../../../src/browser/sumi/main.thread.layout';
 import { MainThreadSumiAPIIdentifier } from '../../../../src/common/sumi';

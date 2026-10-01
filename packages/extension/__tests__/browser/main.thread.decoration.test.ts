@@ -1,18 +1,14 @@
 import { CancellationToken, DisposableCollection, Emitter, Event, Uri } from '@opensumi/ide-core-common';
 import { IDecorationsService } from '@opensumi/ide-decoration';
-import { FileDecorationsService } from '@opensumi/ide-decoration/lib/browser/decorationsService';
-import { MainThreadDecorations } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.decoration';
-import {
-  ExtHostAPIIdentifier,
-  IMainThreadEnv,
-  MainThreadAPIIdentifier,
-} from '@opensumi/ide-extension/lib/common/vscode';
-import { createWindowApiFactory } from '@opensumi/ide-extension/lib/hosted/api/vscode/ext.host.window.api.impl';
+import { FileDecorationsService } from '@opensumi/ide-decoration/service';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
 import { mockExtensions } from '../../__mocks__/extensions';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
+import { MainThreadDecorations } from '../../src/browser/vscode/api/main.thread.decoration';
+import { ExtHostAPIIdentifier, IMainThreadEnv, MainThreadAPIIdentifier } from '../../src/common/vscode';
 import { ExtHostDecorations } from '../../src/hosted/api/vscode/ext.host.decoration';
+import { createWindowApiFactory } from '../../src/hosted/api/vscode/ext.host.window.api.impl';
 import ExtensionHostextWindowAPIImpl from '../../src/hosted/ext.host';
 
 import type vscode from 'vscode';

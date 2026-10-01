@@ -17,9 +17,9 @@ import {
 import { Injector } from '@opensumi/di';
 import { IEventBus, URI, uuid } from '@opensumi/ide-core-common';
 import { EditorCollectionService, IEditorDocumentModelRef, ICodeEditor as IOpensumiEditor } from '@opensumi/ide-editor';
-import { IEditorDocumentModelService } from '@opensumi/ide-editor/lib/browser/doc-model/types';
+import { IEditorDocumentModelService } from '@opensumi/ide-editor/document-types';
 import * as monacoTypes from '@opensumi/ide-monaco';
-import { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/lib/browser/monaco-api/types';
+import { ICodeEditor as IMonacoCodeEditor } from '@opensumi/ide-monaco/types';
 import { Selection } from '@opensumi/monaco-editor-core';
 import { Range as MonacoRange } from '@opensumi/monaco-editor-core/esm/vs/editor/common/core/range';
 

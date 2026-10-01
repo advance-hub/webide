@@ -1,5 +1,6 @@
-import { DebugStackFrame, DebugThread } from '@opensumi/ide-debug/lib/browser/model';
 import { DebugProtocol } from '@opensumi/vscode-debugprotocol/lib/debugProtocol';
+
+import { DebugStackFrame, DebugThread } from '../../../src/browser/model';
 
 describe('DebugStackFrame Model', () => {
   describe('DebugStackFrame should be work after init', () => {

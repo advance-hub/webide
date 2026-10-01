@@ -9,7 +9,7 @@ import {
   ITerminalLinkDto,
   ITerminalProfile,
 } from '@opensumi/ide-terminal-next';
-import { SerializableEnvironmentVariableCollection } from '@opensumi/ide-terminal-next/lib/common/environmentVariable';
+import { SerializableEnvironmentVariableCollection } from '@opensumi/ide-terminal-next/environment-variables';
 
 import { IExtensionDescription } from './extension';
 

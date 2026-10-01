@@ -12,8 +12,8 @@ import {
   getIcon,
   localize,
 } from '@opensumi/ide-core-browser';
-import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/lib/menu/next';
-import { Domain } from '@opensumi/ide-core-common/lib/di-helper';
+import { IMenuRegistry, MenuContribution, MenuId } from '@opensumi/ide-core-browser/menu';
+import { Domain } from '@opensumi/ide-core-common';
 
 import { DEBUG_COMMANDS, DEBUG_CONSOLE_CONTAINER_ID, IDebugConsoleModelService } from '../../../common';
 import { DebugContextKey } from '../../contextkeys/debug-contextkey.service';

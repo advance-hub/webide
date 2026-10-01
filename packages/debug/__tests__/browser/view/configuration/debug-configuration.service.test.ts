@@ -1,13 +1,14 @@
 import { PreferenceService } from '@opensumi/ide-core-browser';
 import { Disposable, EventBusImpl, IEventBus, StorageProvider, URI } from '@opensumi/ide-core-common';
 import { DEFAULT_CONFIGURATION_NAME_SEPARATOR, IDebugSessionManager } from '@opensumi/ide-debug';
-import { DebugConfigurationManager } from '@opensumi/ide-debug/lib/browser/debug-configuration-manager';
-import { DebugConfigurationService } from '@opensumi/ide-debug/lib/browser/view/configuration/debug-configuration.service';
-import { DebugConsoleService } from '@opensumi/ide-debug/lib/browser/view/console/debug-console.service';
-import { DebugViewModel } from '@opensumi/ide-debug/lib/browser/view/debug-view-model';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { IWorkspaceService } from '@opensumi/ide-workspace';
+
+import { DebugConfigurationManager } from '../../../../src/browser/debug-configuration-manager';
+import { DebugConfigurationService } from '../../../../src/browser/view/configuration/debug-configuration.service';
+import { DebugConsoleService } from '../../../../src/browser/view/console/debug-console.service';
+import { DebugViewModel } from '../../../../src/browser/view/debug-view-model';
 
 describe('Debug Configuration Service', () => {
   const mockInjector = createBrowserInjector(

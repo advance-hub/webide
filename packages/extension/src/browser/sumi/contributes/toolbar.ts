@@ -1,6 +1,6 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { IJSONSchema, IToolbarRegistry } from '@opensumi/ide-core-browser';
-import { toolbar } from '@opensumi/ide-core-browser/lib/extensions/schema/toolbar';
+import { toolbar } from '@opensumi/ide-core-browser/contribution-schemas';
 import { LifeCyclePhase } from '@opensumi/ide-core-common';
 
 import { Contributes, LifeCycle, VSCodeContributePoint } from '../../../common';

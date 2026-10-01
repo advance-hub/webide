@@ -1,9 +1,10 @@
 import { Deferred, Emitter, URI } from '@opensumi/ide-core-common';
-import { createBrowserInjector } from '@opensumi/ide-dev-tool/src/injector-helper';
-import { MockInjector } from '@opensumi/ide-dev-tool/src/mock-injector';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
-import { MainThreadEditorTabsService } from '@opensumi/ide-extension/lib/browser/vscode/api/main.thread.editor-tabs';
-import { TabModelOperationKind } from '@opensumi/ide-extension/lib/common/vscode/editor-tabs';
+
+import { MainThreadEditorTabsService } from '../../src/browser/vscode/api/main.thread.editor-tabs';
+import { TabModelOperationKind } from '../../src/common/vscode/editor-tabs';
 
 describe('MainThreadEditorTabsService', () => {
   it('publishes pinned state in initial, update, and move DTOs', async () => {
@@ -82,6 +83,30 @@ describe('MainThreadEditorTabsService', () => {
 
     await expect(service.$closeGroup([group.groupId])).resolves.toBe(true);
     expect(group.closeAll).toHaveBeenCalledWith({ closePinned: true });
+
+    // Preview rendering can emit multiple body/tab changes before TAB_OPEN.
+    const preview = { uri: new URI('test://pin/preview'), name: 'preview.ts' } as any;
+    group.resources.push(preview);
+    bodyChanged.fire();
+    group.currentResource = preview;
+    tabChanged.fire();
+    const previewId = '1~test://pin/preview';
+    expect(proxy.$acceptTabOperation.mock.calls.filter(([operation]) => operation.tabDto.id === previewId)).toEqual([]);
+    tabOperation.fire({ type: 'open', resource: preview, index: 2 });
+    expect(proxy.$acceptTabOperation).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        kind: TabModelOperationKind.TAB_OPEN,
+        tabDto: expect.objectContaining({ id: previewId }),
+      }),
+    );
+    group.previewURI = preview.uri;
+    bodyChanged.fire();
+    expect(proxy.$acceptTabOperation).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        kind: TabModelOperationKind.TAB_UPDATE,
+        tabDto: expect.objectContaining({ id: previewId }),
+      }),
+    );
 
     service.dispose();
     await injector.disposeAll();

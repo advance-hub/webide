@@ -1,9 +1,9 @@
 import { CommandRegistry, CommandRegistryImpl } from '@opensumi/ide-core-common';
-import { MonacoCommandService } from '@opensumi/ide-editor/lib/browser/monaco-contrib/command/command.service';
-import { ICommandServiceToken } from '@opensumi/ide-monaco/lib/browser/contrib/command';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { createMockPairRPCProtocol } from '@opensumi/ide-dev-tool/mocks/extension-rpc';
+import { MonacoCommandService } from '@opensumi/ide-editor/commands';
+import { ICommandServiceToken } from '@opensumi/ide-monaco/commands';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { createMockPairRPCProtocol } from '../../__mocks__/initRPCProtocol';
 import { MainThreadCommands } from '../../src/browser/vscode/api/main.thread.commands';
 import { ExtHostAPIIdentifier, MainThreadAPIIdentifier } from '../../src/common/vscode';
 import { ExtHostCommands } from '../../src/hosted/api/vscode/ext.host.command';

@@ -1,11 +1,14 @@
-import { IRPCProtocol } from '@opensumi/ide-connection/lib/common/rpc/multiplexer';
-import { IWindowInfo } from '@opensumi/ide-extension/lib/common/sumi/window';
-import { ExtHostIDEWindow, ExtIDEWebviewWindow } from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.window';
-import { createWindowApiFactory } from '@opensumi/ide-extension/lib/hosted/api/sumi/ext.host.window';
+import { IRPCProtocol } from '@opensumi/ide-connection';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
 
-import { createBrowserInjector } from '../../../../../../tools/dev-tool/src/injector-helper';
 import { MainThreadSumiAPIIdentifier } from '../../../../src/common/sumi';
+import { IWindowInfo } from '../../../../src/common/sumi/window';
 import { MainThreadAPIIdentifier } from '../../../../src/common/vscode';
+import {
+  ExtHostIDEWindow,
+  ExtIDEWebviewWindow,
+  createWindowApiFactory,
+} from '../../../../src/hosted/api/sumi/ext.host.window';
 import { ExtHostCommands } from '../../../../src/hosted/api/vscode/ext.host.command';
 
 const mockMainThreadIDEWindowProxy = {

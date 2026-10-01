@@ -1,20 +1,17 @@
 import { Emitter, IContextKeyService, IReporterService, LabelService } from '@opensumi/ide-core-browser';
 import { IDebugModelManager, IDebugProgress, IDebugServer, IDebugSessionManager } from '@opensumi/ide-debug';
-import { BreakpointManager } from '@opensumi/ide-debug/lib/browser/breakpoint';
-import {
-  DebugSessionContributionRegistry,
-  DebugSessionFactory,
-} from '@opensumi/ide-debug/lib/browser/debug-session-contribution';
-import { DebugSessionManager } from '@opensumi/ide-debug/lib/browser/debug-session-manager';
+import { createBrowserInjector } from '@opensumi/ide-dev-tool/browser';
+import { MockInjector } from '@opensumi/ide-dev-tool/injector';
+import { MockContextKeyService } from '@opensumi/ide-dev-tool/mocks/monaco/context-keys';
 import { WorkbenchEditorService } from '@opensumi/ide-editor';
 import { IMessageService } from '@opensumi/ide-overlay';
 import { ITaskService } from '@opensumi/ide-task';
 import { IVariableResolverService } from '@opensumi/ide-variable';
 
-import { createBrowserInjector } from '../../../../tools/dev-tool/src/injector-helper';
-import { MockInjector } from '../../../../tools/dev-tool/src/mock-injector';
-import { MockContextKeyService } from '../../../monaco/__mocks__/monaco.context-key.service';
 import { MockDebugSession } from '../../__mocks__/debug-session';
+import { BreakpointManager } from '../../src/browser/breakpoint';
+import { DebugSessionContributionRegistry, DebugSessionFactory } from '../../src/browser/debug-session-contribution';
+import { DebugSessionManager } from '../../src/browser/debug-session-manager';
 
 describe('DebugSessionManager', () => {
   let debugSessionManager: IDebugSessionManager;
@@ -45,7 +42,7 @@ describe('DebugSessionManager', () => {
   };
 
   const mockTaskService = {
-    getTask: jest.fn(() => ({ task: 'yarn run build' })),
+    getTask: jest.fn(() => ({ task: 'pnpm run build' })),
     run: jest.fn(() => ({ exitCode: 200 })),
   };
 

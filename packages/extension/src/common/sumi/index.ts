@@ -3,7 +3,7 @@ import {
   ProxyIdentifier,
   createExtHostContextProxyIdentifier,
   createMainContextProxyIdentifier,
-} from '@opensumi/ide-connection';
+} from '@opensumi/ide-connection/rpc-contracts';
 
 import { IExtHostChatAgents, IMainThreadChatAgents } from './chat-agents';
 import { IExtHostCommon, IMainThreadCommon } from './common';

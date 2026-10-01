@@ -1,8 +1,8 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { Uri } from '@opensumi/ide-core-common';
-import { IMainThreadUrls, MainThreadAPIIdentifier } from '@opensumi/ide-extension/lib/common/vscode';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
 
-import { mockService } from '../../../../../../tools/dev-tool/src/mock-injector';
+import { IMainThreadUrls, MainThreadAPIIdentifier } from '../../../../src/common/vscode';
 import { ExtHostUrls } from '../../../../src/hosted/api/vscode/ext.host.urls';
 
 describe('extension/__tests__/hosted/api/vscode/ext.host.urls.test.ts', () => {

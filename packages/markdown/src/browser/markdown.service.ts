@@ -1,7 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
-import { IMarkedOptions, parseMarkdown } from '@opensumi/ide-components/lib/utils';
+import { IMarkedOptions, parseMarkdown } from '@opensumi/ide-components/utils';
 import { CancellationToken, Disposable, Event, IDisposable, IOpenerService, URI } from '@opensumi/ide-core-browser';
-import { HttpOpener } from '@opensumi/ide-core-browser/lib/opener/http-opener';
+import { HttpOpener } from '@opensumi/ide-core-browser/openers';
 import { IWebviewService } from '@opensumi/ide-webview';
 
 import { IMarkdownService, MarkdownOptions } from '../common';

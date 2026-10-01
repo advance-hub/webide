@@ -1,6 +1,6 @@
 import { IRPCProtocol } from '@opensumi/ide-connection';
 import { CancellationTokenSource, DefaultReporter, Emitter, Event } from '@opensumi/ide-core-common';
-import { DEFAULT_VSCODE_ENGINE_VERSION } from '@opensumi/ide-core-common/lib/const';
+import { DEFAULT_VSCODE_ENGINE_VERSION } from '@opensumi/ide-core-common/const';
 
 import { IExtensionHostService, IExtensionWorkerHost, WorkerHostAPIIdentifier } from '../../../common';
 import {
@@ -70,10 +70,8 @@ export function createAPIFactory(
     ExtHostAPIIdentifier.ExtHostCommands,
     new ExtHostCommands(rpcProtocol),
   ) as ExtHostCommands;
-  const extHostLanguages = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostLanguages,
-    new ExtHostLanguages(rpcProtocol, extHostDocs, extHostCommands, extensionService.logger),
-  );
+  const extHostLanguages = new ExtHostLanguages(rpcProtocol, extHostDocs, extHostCommands, extensionService.logger);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostLanguages, extHostLanguages);
   const extHostEditors = rpcProtocol.set(
     ExtHostAPIIdentifier.ExtHostEditors,
     new ExtensionHostEditorService(rpcProtocol, extHostDocs),
@@ -83,23 +81,17 @@ export function createAPIFactory(
     ExtHostAPIIdentifier.ExtHostWorkspace,
     new ExtHostWorkspace(rpcProtocol, extHostMessage, extHostDocs),
   ) as ExtHostWorkspace;
-  const extHostFileSystemInfo = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystemInfo,
-    new ExtHostFileSystemInfo(),
-  );
-  const extHostFileSystem = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystem,
-    new ExtHostFileSystem(rpcProtocol, extHostFileSystemInfo),
-  );
+  const extHostFileSystemInfo = new ExtHostFileSystemInfo();
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystemInfo, extHostFileSystemInfo);
+  const extHostFileSystem = new ExtHostFileSystem(rpcProtocol, extHostFileSystemInfo);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystem, extHostFileSystem);
   const extHostTerminal = rpcProtocol.set(ExtHostAPIIdentifier.ExtHostTerminal, new ExtHostTerminal(rpcProtocol));
   const extHostTasks = rpcProtocol.set(
     ExtHostAPIIdentifier.ExtHostTasks,
     new ExtHostTasks(rpcProtocol, extHostTerminal, extHostWorkspace),
   );
-  const extHostFileSystemEvent = rpcProtocol.set(
-    ExtHostAPIIdentifier.ExtHostFileSystemEvent,
-    new ExtHostFileSystemEvent(rpcProtocol, extHostDocs),
-  );
+  const extHostFileSystemEvent = new ExtHostFileSystemEvent(rpcProtocol, extHostDocs);
+  rpcProtocol.set(ExtHostAPIIdentifier.ExtHostFileSystemEvent, extHostFileSystemEvent);
   const extHostPreference = rpcProtocol.set(
     ExtHostAPIIdentifier.ExtHostPreference,
     new ExtHostPreference(rpcProtocol, extHostWorkspace),

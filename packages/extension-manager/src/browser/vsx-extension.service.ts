@@ -10,16 +10,16 @@ import {
   localize,
   pMemoize,
 } from '@opensumi/ide-core-browser';
-import { WorkbenchEditorService } from '@opensumi/ide-editor/lib/browser';
-import { ExtensionManagementService } from '@opensumi/ide-extension/lib/browser/extension-management.service';
-import { AbstractExtInstanceManagementService } from '@opensumi/ide-extension/lib/browser/types';
-import { observableValue, transaction } from '@opensumi/ide-monaco/lib/common/observable';
+import { WorkbenchEditorService } from '@opensumi/ide-editor/browser';
+import { ExtensionManagementService } from '@opensumi/ide-extension/browser/management';
+import { AbstractExtInstanceManagementService } from '@opensumi/ide-extension/browser/types';
+import { observableValue, transaction } from '@opensumi/ide-monaco/observable';
 import { IIconService, IProductIconService, IThemeService } from '@opensumi/ide-theme';
 import {
   ICON_THEME_TOGGLE_COMMAND,
   PRODUCT_ICON_THEME_TOGGLE_COMMAND,
   THEME_TOGGLE_COMMAND,
-} from '@opensumi/ide-theme/lib/browser/theme.contribution';
+} from '@opensumi/ide-theme/commands';
 
 import {
   IVSXExtensionBackService,

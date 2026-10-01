@@ -3,7 +3,7 @@ import { Container } from '@difizen/mana-app';
 
 import { Autowired } from '@opensumi/di';
 import { CommandContribution, CommandRegistry, Domain, EDITOR_COMMANDS } from '@opensumi/ide-core-browser';
-import { MARKER_CONTAINER_ID } from '@opensumi/ide-core-browser/lib/common/container-id';
+import { MARKER_CONTAINER_ID } from '@opensumi/ide-core-common/workbench';
 
 import { ManaContainer } from './mana';
 
