@@ -1,9 +1,8 @@
 import { Injector } from '@opensumi/di';
-import { IClipboardService } from '@opensumi/ide-core-browser';
-import { PreferenceService } from '@opensumi/ide-core-browser/lib/preferences/types';
-import { mockService } from '@opensumi/ide-dev-tool/src/mock-injector';
-import { MessageService } from '@opensumi/ide-overlay/lib/browser/message.service';
-import { IThemeService } from '@opensumi/ide-theme/lib/common/theme.service';
+import { IClipboardService, PreferenceService } from '@opensumi/ide-core-browser';
+import { mockService } from '@opensumi/ide-dev-tool/injector';
+import { MessageService } from '@opensumi/ide-overlay/messages';
+import { IThemeService } from '@opensumi/ide-theme/types';
 
 import { XTerm } from '../../src/browser/xterm';
 

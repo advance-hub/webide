@@ -405,7 +405,7 @@ test('package src imports are deep while public roots and common subpaths are no
 test('architecture CI covers workspace tools and compares new-branch pushes with HEAD^', () => {
   const ciPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.github/workflows/ci.yml');
   const ci = fs.readFileSync(ciPath, 'utf8');
-  assert.match(ci, /^\s+- ['"]tools\/\*\*['"]$/m);
+  assert.doesNotMatch(ci, /^\s+paths(?:-ignore)?:/m, 'All workspace changes, including tools, trigger regression');
   assert.match(ci, /^\s+fetch-depth: 2$/m);
   assert.match(ci, /^\s+ARCHITECTURE_BASELINE_REF=HEAD\^$/m);
 });

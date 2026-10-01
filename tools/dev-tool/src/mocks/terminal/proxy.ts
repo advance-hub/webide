@@ -34,6 +34,12 @@ export const existPtyProcessId = uuid();
 const cache = new Map<string, pty.IPty>();
 const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 
+function closePtySocket(ptyProcess: pty.IPty) {
+  // node-pty can emit exit after EIO without destroying its macOS read stream.
+  // This fixture owns the stream; close it even when the shell already exited.
+  (ptyProcess as pty.IPty & { _socket?: { destroy(): void } })._socket?.destroy();
+}
+
 export function localhost(port: number) {
   return `ws://localhost:${port}`;
 }
@@ -105,6 +111,7 @@ export function createPty(
   });
 
   ptyProcess.onExit(() => {
+    closePtySocket(ptyProcess);
     cache.delete(sessionId);
     try {
       channel.close();
@@ -121,10 +128,11 @@ export async function disposePtys() {
       ([sessionId, ptyProcess]) =>
         new Promise<void>((resolve) => {
           let exitListener: { dispose(): void } | undefined;
-          const timeout = setTimeout(finish, 5000);
+          const timeout = setTimeout(finish, 1500);
           function finish() {
             clearTimeout(timeout);
             exitListener?.dispose();
+            closePtySocket(ptyProcess);
             cache.delete(sessionId);
             resolve();
           }
