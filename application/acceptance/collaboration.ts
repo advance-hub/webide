@@ -585,6 +585,15 @@ try {
           .innerText()
           .catch(() => '页面已关闭'),
       ).catch(() => {});
+      // 握手阻断页的摘要省略了原因，通过页面提供的诊断按钮保留完整错误。
+      const copyDiagnostics = page.getByRole('button', { name: 'Copy diagnostics', exact: true });
+      if (await copyDiagnostics.isVisible().catch(() => false)) {
+        await copyDiagnostics.click().catch(() => {});
+        await writeFile(
+          path.join(path.dirname(output), `failure-${index}-handshake.json`),
+          await page.evaluate(() => navigator.clipboard.readText()).catch(() => '诊断复制失败'),
+        ).catch(() => {});
+      }
     }
   }
   await closePages();
