@@ -88,7 +88,7 @@ export class ChatManagerService extends Disposable {
   private storageProvider: StorageProvider;
 
   @Autowired(PreferenceService)
-  private preferenceService: PreferenceService;
+  protected preferenceService: PreferenceService;
 
   @Autowired(ChatFeatureRegistryToken)
   protected chatFeatureRegistry: ChatFeatureRegistry;

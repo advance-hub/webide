@@ -4,6 +4,7 @@ import { act } from 'react-dom/test-utils';
 
 jest.mock('@opensumi/ide-core-browser', () => ({
   AINativeConfigService: Symbol('AINativeConfigService'),
+  PreferenceService: Symbol('PreferenceService'),
   useInjectable: jest.fn(),
 }));
 
@@ -13,6 +14,7 @@ jest.mock('@opensumi/ide-core-browser/progress', () => ({
 
 jest.mock('@opensumi/ide-core-common', () => ({
   AIBackSerivcePath: Symbol('AIBackSerivcePath'),
+  AINativeSettingSectionsId: { AcpBackgroundStartup: 'ai-native.acp.backgroundStartup' },
   localize: (_key: string, defaultValue?: string) => defaultValue || _key,
 }));
 
@@ -44,6 +46,7 @@ function createServices({
   sessionModel,
   supportsAgentMode = true,
   loadSessionList = jest.fn(() => Promise.resolve()),
+  backgroundStartup = true,
 }: {
   createSessionModel?: jest.Mock;
   ensureBootstrapSessionModel?: jest.Mock;
@@ -51,6 +54,7 @@ function createServices({
   ready?: jest.Mock;
   sessionModel?: unknown;
   supportsAgentMode?: boolean;
+  backgroundStartup?: boolean;
 } = {}) {
   const aiBackService = {
     ready,
@@ -75,6 +79,9 @@ function createServices({
 
     if (key.includes('AINativeConfigService')) {
       return { capabilities: { supportsAgentMode } };
+    }
+    if (key.includes('PreferenceService')) {
+      return { get: () => backgroundStartup };
     }
 
     if (key.includes('AIBackSerivcePath')) {
@@ -145,6 +152,15 @@ describe('AcpChatViewWrapper', () => {
     expect(services.aiChatService.ensureBootstrapSessionModel).not.toHaveBeenCalled();
     expect(services.chatManagerService.loadSessionList).toHaveBeenCalledTimes(1);
     expect(services.chatManagerService.fallbackToLocal).not.toHaveBeenCalled();
+    expect(container.querySelector('[data-testid="child"]')).not.toBeNull();
+  });
+
+  it('按需启动时只初始化界面，不查询会启动外部进程的历史', async () => {
+    const services = createServices({ backgroundStartup: false });
+    await renderWrapper(services.aiChatService);
+    expect(services.aiChatService.init).toHaveBeenCalledTimes(1);
+    expect(services.chatManagerService.loadSessionList).not.toHaveBeenCalled();
+    expect(services.aiChatService.createSessionModel).not.toHaveBeenCalled();
     expect(container.querySelector('[data-testid="child"]')).not.toBeNull();
   });
 

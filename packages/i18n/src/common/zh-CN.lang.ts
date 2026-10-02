@@ -1371,6 +1371,9 @@ export const localizationBundle = {
     'preference.ai.native.chat.system.prompt': '默认聊天系统提示词',
 
     'preference.ai.native.agent.configs.title': 'Agent 配置',
+    'preference.ai-native.acp.backgroundStartup': '后台启动 Agent',
+    'preference.ai-native.acp.backgroundStartup.description':
+      '启动 IDE 时预热 Agent 并读取远端历史；关闭后，在首次发送请求或查看历史时按需启动。',
     'preference.ai.native.agent.configs': 'Agent 配置',
     'preference.ai.native.agent.configs.description':
       'Agent 配置，用于配置不同 Agent 的启动命令和参数。这里必须是 JSON 对象，不能是字符串。',

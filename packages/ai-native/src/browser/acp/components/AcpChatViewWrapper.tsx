@@ -11,9 +11,9 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { AINativeConfigService, useInjectable } from '@opensumi/ide-core-browser';
+import { AINativeConfigService, PreferenceService, useInjectable } from '@opensumi/ide-core-browser';
 import { Progress } from '@opensumi/ide-core-browser/progress';
-import { AIBackSerivcePath, IAIBackService, localize } from '@opensumi/ide-core-common';
+import { AIBackSerivcePath, AINativeSettingSectionsId, IAIBackService, localize } from '@opensumi/ide-core-common';
 
 import { ChatProxyServiceToken, IChatManagerService } from '../../../common';
 import { AcpChatManagerService } from '../../chat/chat-manager.service.acp';
@@ -32,6 +32,7 @@ export function AcpChatViewWrapper({ children, aiChatService }: AcpChatViewWrapp
   const aiBackService = useInjectable<IAIBackService>(AIBackSerivcePath);
   const chatManagerService = useInjectable<AcpChatManagerService>(IChatManagerService);
   const chatProxyService = useInjectable<AcpChatProxyService>(ChatProxyServiceToken);
+  const preferenceService = useInjectable<PreferenceService>(PreferenceService);
 
   // ACP 模式初始化状态
   const [initState, setInitState] = useState<{
@@ -88,11 +89,13 @@ export function AcpChatViewWrapper({ children, aiChatService }: AcpChatViewWrapp
         // 先调用 aiChatService.init() 注册 onStorageInit 监听器
         aiChatService.init();
 
-        // History loading is a best-effort warm-up. Do not block rendering or first send on it.
-        try {
-          void Promise.resolve(chatManagerService.loadSessionList()).catch(() => undefined);
-        } catch {
-          // Ignore warm-up failures. The first real send still creates a session lazily.
+        // 历史查询也会启动 Agent，只在显式启用后台启动时预加载。
+        if (preferenceService.get(AINativeSettingSectionsId.AcpBackgroundStartup, false)) {
+          try {
+            void Promise.resolve(chatManagerService.loadSessionList()).catch(() => undefined);
+          } catch {
+            // 预加载失败不阻止页面和首次按需发送。
+          }
         }
 
         if (cancelled()) {

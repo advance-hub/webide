@@ -76,6 +76,17 @@ describe('AcpChatManagerService', () => {
     return service;
   };
 
+  it.each([true, false])('启动历史加载遵守后台启动设置：%s', async (enabled) => {
+    const service = createService();
+    Object.defineProperty(service, 'preferenceService', { value: { get: () => enabled } });
+    const load = jest.spyOn(service, 'loadSessionList').mockResolvedValue(undefined);
+    await service.init();
+    expect(load).toHaveBeenCalledTimes(enabled ? 1 : 0);
+    if (!enabled) {
+      expect(service.storageInitEmitter.fireAndAwait).toHaveBeenCalledTimes(1);
+    }
+  });
+
   const createConstructedService = () => {
     const aiNativeConfig = {
       capabilities: {

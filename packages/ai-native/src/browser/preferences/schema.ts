@@ -300,6 +300,11 @@ export const aiNativePreferenceSchema: PreferenceSchema = {
       minimum: 1,
       description: '%preference.ai-native.acp.threadPoolSize.description%',
     },
+    [AINativeSettingSectionsId.AcpBackgroundStartup]: {
+      type: 'boolean',
+      default: false,
+      description: '%preference.ai-native.acp.backgroundStartup.description%',
+    },
     [AINativeSettingSectionsId.AcpDeliveryMode]: {
       type: 'string',
       enum: [EAcpDeliveryMode.minimal, EAcpDeliveryMode.stream],

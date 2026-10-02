@@ -939,6 +939,10 @@ export class AINativeBrowserContribution
             localized: 'preference.ai-native.acp.threadPoolSize',
           },
           {
+            id: AINativeSettingSectionsId.AcpBackgroundStartup,
+            localized: 'preference.ai-native.acp.backgroundStartup',
+          },
+          {
             id: AINativeSettingSectionsId.AcpDeliveryMode,
             localized: 'preference.ai-native.acp.deliveryMode',
           },

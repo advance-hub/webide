@@ -69,6 +69,10 @@ export class DefaultACPConfigProvider implements IACPConfigProvider {
   async resolvePrewarmConfig(): Promise<AgentProcessConfig | undefined> {
     await this.workspaceService.whenReady;
 
+    if (!this.preferenceService.get(AINativeSettingSectionsId.AcpBackgroundStartup, false)) {
+      return undefined;
+    }
+
     const agentType = getDefaultAgentType(this.preferenceService);
     const agentConfigs = this.preferenceService.resolve<Record<string, AgentConfig>>(
       AINativeSettingSectionsId.AgentConfigs,

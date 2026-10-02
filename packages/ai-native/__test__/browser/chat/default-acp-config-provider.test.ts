@@ -3,6 +3,7 @@ import { AINativeSettingSectionsId, PreferenceScope, URI } from '@opensumi/ide-c
 
 describe('DefaultACPConfigProvider', () => {
   interface ProviderFixtureOptions {
+    backgroundStartup?: boolean;
     webMcpEnabled?: boolean;
     isMultiRoot?: boolean;
     defaultAgentType?: string;
@@ -53,6 +54,9 @@ describe('DefaultACPConfigProvider', () => {
         preferenceService: {
           value: {
             get: jest.fn((id: string, fallback: unknown) => {
+              if (id === AINativeSettingSectionsId.AcpBackgroundStartup) {
+                return options.backgroundStartup ?? true;
+              }
               if (id === AINativeSettingSectionsId.DefaultAgentType) {
                 return options.defaultAgentType || 'claude-agent-acp';
               }
@@ -127,6 +131,18 @@ describe('DefaultACPConfigProvider', () => {
     expect((provider as any).mcpConfigService.getACPServers).toHaveBeenCalled();
     expect(config.webMcp).toEqual({ enabled: false });
     expect(config.cwd).toBe(rootA);
+  });
+
+  it('关闭后台启动后显式配置的 Agent 不预热，首次前台配置仍可用', async () => {
+    const provider = await createProvider({
+      backgroundStartup: false,
+      builtInsEnabled: false,
+      defaultAgentType: 'opencode',
+      agentConfigs: { opencode: { command: 'opencode', args: ['acp'] } },
+    });
+    await expect(provider.resolvePrewarmConfig()).resolves.toBeUndefined();
+    expect((provider as any).mcpConfigService.getACPServers).not.toHaveBeenCalled();
+    await expect(provider.resolveConfig()).resolves.toMatchObject({ command: 'opencode', args: ['acp'], cwd: rootA });
   });
 
   it('resolves a custom ACP agent config from preferences', async () => {

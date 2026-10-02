@@ -63,6 +63,9 @@ export enum AINativeSettingSectionsId {
    */
   AcpThreadPoolSize = 'ai-native.acp.threadPoolSize',
 
+  /** 是否在启动 IDE 时预热 Agent 并读取远端历史；默认按需启动。 */
+  AcpBackgroundStartup = 'ai-native.acp.backgroundStartup',
+
   /**
    * ACP: Browser delivery strategy for agent output.
    */

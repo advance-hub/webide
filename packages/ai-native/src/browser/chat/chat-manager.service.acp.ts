@@ -1,6 +1,7 @@
 import { Autowired, Injectable } from '@opensumi/di';
 import { AINativeConfigService, ILogger } from '@opensumi/ide-core-browser';
 import {
+  AINativeSettingSectionsId,
   AvailableCommand,
   ChatMessageRole,
   Emitter,
@@ -111,7 +112,12 @@ export class AcpChatManagerService extends ChatManagerService {
 
   override async init() {
     await this.initDisplayTitleOverrides();
-    await this.loadSessionList();
+    if (this.preferenceService.get(AINativeSettingSectionsId.AcpBackgroundStartup, false)) {
+      await this.loadSessionList();
+    } else {
+      // 不为加载空闲历史启动外部 Agent；仍通知前端本地存储已就绪。
+      await this.storageInitEmitter.fireAndAwait();
+    }
   }
 
   private async initDisplayTitleOverrides(): Promise<void> {

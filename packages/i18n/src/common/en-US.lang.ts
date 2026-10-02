@@ -1606,6 +1606,9 @@ export const localizationBundle = {
     'preference.ai.native.globalRules.description': 'These rules will be sent to all chats and Agents.',
 
     'preference.ai.native.agent.configs.title': 'Agent Configurations',
+    'preference.ai-native.acp.backgroundStartup': 'Start Agent in Background',
+    'preference.ai-native.acp.backgroundStartup.description':
+      'Prewarm the Agent and fetch its history when the IDE starts. Disable to start it on the first request or history lookup.',
     'preference.ai.native.agent.configs': 'Agent Configs',
     'preference.ai.native.agent.configs.description':
       'Agent configurations for setting up different Agent commands and arguments. This setting must be a JSON object, not a string.',

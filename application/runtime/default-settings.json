@@ -22,5 +22,6 @@
     }
   },
   "ai.native.agent.defaultType": "opencode",
+  "ai-native.acp.backgroundStartup": false,
   "ai.native.webmcp.enabled": false
 }
