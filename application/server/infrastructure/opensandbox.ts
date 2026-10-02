@@ -3,6 +3,8 @@ import { ConnectionConfig, Sandbox, SandboxManager } from '@alibaba-group/opensa
 import { Config } from '../platform/config';
 import { HTTPError } from '../platform/validation';
 
+import { SandboxClients } from './sandbox-clients';
+
 import type { SandboxInfo } from '@alibaba-group/opensandbox';
 
 export function shellQuote(value: string): string {
@@ -13,6 +15,8 @@ export function shellQuote(value: string): string {
 export class SandboxService {
   readonly connection: ConnectionConfig;
   readonly manager: SandboxManager;
+  private readonly clients: SandboxClients;
+  private closing?: Promise<void>;
 
   constructor(readonly config: Config) {
     const origin = new URL(config.sandboxURL);
@@ -33,6 +37,20 @@ export class SandboxService {
       requestTimeoutSeconds: config.sandboxRequestTimeout || 300,
     });
     this.manager = SandboxManager.create({ connectionConfig: this.connection });
+    this.clients = new SandboxClients((id, timeoutSeconds, signal) =>
+      Sandbox.connect({
+        sandboxId: id,
+        connectionConfig: new ConnectionConfig({
+          domain: this.connection.domain,
+          protocol: this.connection.protocol,
+          apiKey: this.config.sandboxKey,
+          useServerProxy: true,
+          requestTimeoutSeconds: timeoutSeconds,
+        }),
+        skipHealthCheck: true,
+        signal,
+      }),
+    );
   }
 
   async list(metadata?: Record<string, string>): Promise<SandboxInfo[]> {
@@ -64,19 +82,7 @@ export class SandboxService {
   }
 
   async withSandbox<T>(id: string, task: (sandbox: Sandbox) => Promise<T>, timeoutSeconds = 120): Promise<T> {
-    const connectionConfig = new ConnectionConfig({
-      domain: this.connection.domain,
-      protocol: this.connection.protocol,
-      apiKey: this.config.sandboxKey,
-      useServerProxy: true,
-      requestTimeoutSeconds: timeoutSeconds,
-    });
-    const sandbox = await Sandbox.connect({ sandboxId: id, connectionConfig, skipHealthCheck: true });
-    try {
-      return await task(sandbox);
-    } finally {
-      await sandbox.close();
-    }
+    return this.clients.use(id, task, timeoutSeconds);
   }
 
   async run(id: string, script: string, timeoutSeconds = 120): Promise<string> {
@@ -110,8 +116,9 @@ export class SandboxService {
     });
   }
 
-  async close(): Promise<void> {
-    await this.manager.close();
+  close(): Promise<void> {
+    this.closing ||= this.clients.close().finally(() => this.manager.close());
+    return this.closing;
   }
 
   async health(): Promise<void> {
