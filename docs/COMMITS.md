@@ -84,3 +84,26 @@ git log --reverse --format=fuller 7ffc64a7c..HEAD
 结构检查覆盖 112 个产品源码文件；工作台 25 项、辅助工具 29 项、工程脚本 67 项、Server 诊断 26 项及上游 4,745 项测试通过，上游另有 57 项跳过。完整构建与产物摘要检查通过，实际 Docker/OpenSandbox 六阶段验收通过并回收测试资源。注释调整的 34 个源码文件经语法树比较没有结构变化。
 
 详细分层、兼容约束和删除依据见 [架构说明](architecture/product-structure.md)，本轮计数、镜像与未验收范围见 [可移植摘要](architecture/product-structure-acceptance-20261002.json)。产品和维护入口使用中文说明性注释，上游既有 API 说明与版权原文保留。原始日志、失败尝试和 SHA-256 索引留在忽略目录 `output/refactor/`。
+
+## 2026-10-02 依赖维护与内存修复
+
+本轮从 `7f8cc66eb` 开始，更新 41 种依赖并统一工作区版本契约，修复控制面的缓存、代理缓冲与有限读取问题，以及 RPC 调用完成后未释放的取消监听。保留 Node 24、原生 TypeScript 7、OpenSumi 公开 API 和数据格式；Go 后端保持删除。
+
+| 提交        | 主题                                                   |
+| ----------- | ------------------------------------------------------ |
+| `6fe4d0717` | chore(deps): 更新 41 种依赖并统一工作区版本契约        |
+| `0f8725dc3` | fix(workbench): 限制认证缓存与代理缓冲并避免保留大日志 |
+| `a54508265` | fix(rpc): 释放已结束请求的调用方取消监听               |
+| `7633cf7fd` | docs(maintenance): 保存依赖策略与内存修复验收证据      |
+
+本表由最后的 `docs(commits): 登记依赖更新与内存修复的分批提交` 保存，该记录提交自身的哈希以 `git log` 为准。本轮共 5 次本地提交，未推送。
+
+```sh
+git log --reverse --format=fuller 7f8cc66eb..HEAD
+```
+
+最终上游 Node 1,485 项、jsdom 3,268 项，共 4,753 项通过，另有 57 项原有跳过项。工作台 31 项、工程脚本 69 项、运行辅助工具 29 项、Server 诊断 26 项，以及类型、完整构建与产物摘要检查通过。Linux amd64 最终镜像通过编译入口的 HTTP/静态资源/认证/退出检查及隔离 OpenSandbox 六阶段验收，专属测试环境已清理，原有服务保留。
+
+三轮受控保留堆中位数：过期票据约 `13.003 → 0.214 MiB`，64 MiB 日志尾部约 `64.015 → 0.018 MiB`。这只比较同一依赖环境中的指定函数，不代表整体 IDE、语言服务或 RSS 同比例下降。一次原生 watcher 空文件新建事件缺失的失败仍保留，独立套件和最终全量重跑通过，原因未确定。
+
+版本选择、复现步骤和大版本迁移边界见 [维护记录](DEPENDENCIES-AND-MEMORY.md)，完整计数、镜像 ID、测量与证据索引摘要见 [可移植验收结果](dependency-memory-acceptance-20261002.json)。所有提交执行格式化、ESLint 与 commitlint 钩子，每批暂存均检查明确文件范围及 `git diff --cached --check`。原始日志、采样、失败尝试和 SHA-256 索引保存在忽略目录 `output/runtime-profiles/dependency-memory-20261002/`，不进入 Git。
