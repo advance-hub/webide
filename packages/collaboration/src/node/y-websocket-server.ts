@@ -13,8 +13,7 @@ import { FileService } from '@opensumi/ide-file-service/node';
 
 import { DEFAULT_COLLABORATION_PORT, IYWebsocketServer, ROOM_NAME } from '../common';
 
-// The package publishes a CommonJS `require` runtime entry but ESM declarations.
-// Keep the boundary explicit until this framework package emits ESM.
+// 该包提供 CommonJS 运行入口和 ESM 类型声明，框架迁移前保留明确的兼容边界。
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const websocketServerUtils = require('@y/websocket-server/utils') as {
   docs: Map<string, YDoc>;
@@ -79,6 +78,8 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
   private accumulatedUpdateBytes = 0;
 
   private documentPressureExceeded = false;
+  private stopping = false;
+  private destroyed = false;
 
   initialize() {
     this.logger.debug('init y-websocket server');
@@ -115,36 +116,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
     });
 
     this.server.on('upgrade', (req, socket, head) => {
-      const requestUrl = new URL(req.url || '/', 'ws://localhost');
-      const room = decodeURIComponent(requestUrl.pathname.replace(/^\/+/, ''));
-      if (room !== ROOM_NAME) {
-        socket.write('HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
-        socket.destroy();
-        return;
-      }
-
-      if (collaborationOptions?.shouldAcceptConnection && !collaborationOptions.shouldAcceptConnection()) {
-        socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
-        socket.destroy();
-        return;
-      }
-
-      const maxConnections = positiveOrFallback(collaborationOptions?.maxConnections, DEFAULT_MAX_CONNECTIONS);
-      if (this.websocketServer.clients.size >= maxConnections) {
-        socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
-        socket.destroy();
-        return;
-      }
-
-      const handleAuth = (ws) => {
-        this.websocketServer.emit('connection', ws, req);
-      };
-      try {
-        this.websocketServer.handleUpgrade(req, socket, head, handleAuth);
-      } catch (error) {
-        this.logger.error('[Collaboration] websocket upgrade failed', error);
-        socket.destroy();
-      }
+      this.upgrade(req, socket, head);
     });
 
     const maxBufferedAmount = positiveOrFallback(collaborationOptions?.maxBufferedAmount, DEFAULT_MAX_BUFFERED_AMOUNT);
@@ -159,35 +131,88 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
     }, PRESSURE_CHECK_INTERVAL);
     this.pressureCheckTimer.unref?.();
 
-    const listenPort = positiveOrFallback(collaborationOptions?.port, DEFAULT_COLLABORATION_PORT);
-
-    // Initialize the shared document before accepting the first connection.
+    // 先初始化共享文档，再接纳连接；托管工作区仅使用已有 IDE 入口。
     this.attachSharedDocument();
-
-    this.server.listen(listenPort, () => {
-      this.logger.log(`y-websocket server listening on port ${listenPort}`);
-    });
+    if (collaborationOptions?.transport !== 'shared') {
+      const listenPort = positiveOrFallback(collaborationOptions?.port, DEFAULT_COLLABORATION_PORT);
+      this.server.listen(listenPort, () => this.logger.log(`y-websocket server listening on port ${listenPort}`));
+    }
 
     this.fileChangeDisposable = this.fileService.onFilesChanged((e) => {
       e.changes
-        .filter((e) => e.type === FileChangeType.DELETED)
-        .forEach((e) => {
-          if (e.type === FileChangeType.DELETED) {
-            this.logger.debug('on file event deleted', e);
-            this.removeYText(e.uri);
-            this.logger.debug('removed YText of', e.uri);
-          }
-        });
-
+        .filter((change) => change.type === FileChangeType.DELETED)
+        .forEach((change) => this.removeYText(change.uri));
       e.changes
-        .filter((e) => e.type === FileChangeType.ADDED)
-        .forEach((e) => {
-          this.logger.debug('on file event added', e);
-          void this.requestInitContent(e.uri).catch((error) => {
-            this.logger.debug('[Collaboration] file initialization was cancelled', e.uri, error);
-          });
+        .filter((change) => change.type === FileChangeType.ADDED)
+        .forEach((change) => {
+          void this.requestInitContent(change.uri).catch((error) =>
+            this.logger.debug('[Collaboration] file initialization was cancelled', change.uri, error),
+          );
         });
     });
+  }
+
+  /** 路由器拥有入口生命周期，协同贡献拥有文档和连接的释放。 */
+  handleUpgrade(pathname: string, req: http.IncomingMessage, socket: import('stream').Duplex, head: Buffer): boolean {
+    if (pathname !== `/collaboration/${ROOM_NAME}`) {
+      return false;
+    }
+    this.upgrade(req, socket, head);
+    return true;
+  }
+
+  private upgrade(req: http.IncomingMessage, socket: import('stream').Duplex, head: Buffer): void {
+    const collaborationOptions = this.appConfig.collaborationOptions;
+    const requestUrl = new URL(req.url || '/', 'ws://localhost');
+    const expectedPath = collaborationOptions?.transport === 'shared' ? `/collaboration/${ROOM_NAME}` : `/${ROOM_NAME}`;
+    if (requestUrl.pathname !== expectedPath) {
+      socket.write('HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    let authorized: boolean;
+    try {
+      authorized = collaborationOptions?.authorizeConnection?.(req) ?? true;
+    } catch (error) {
+      this.logger.warn('[Collaboration] authorization failed', error);
+      authorized = false;
+    }
+    if (!authorized) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    if (
+      this.stopping ||
+      (collaborationOptions?.shouldAcceptConnection && !collaborationOptions.shouldAcceptConnection())
+    ) {
+      socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    const maxConnections = positiveOrFallback(collaborationOptions?.maxConnections, DEFAULT_MAX_CONNECTIONS);
+    if (this.websocketServer.clients.size >= maxConnections) {
+      socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    const handleAuth = (ws) => {
+      this.websocketServer.emit('connection', ws, req);
+    };
+    try {
+      this.websocketServer.handleUpgrade(req, socket, head, handleAuth);
+    } catch (error) {
+      this.logger.error('[Collaboration] websocket upgrade failed', error);
+      socket.destroy();
+    }
+  }
+
+  beginDrain(): void {
+    this.stopping = true;
   }
 
   private attachSharedDocument() {
@@ -267,7 +292,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
     this.logger.debug('trying to remove uri', uri);
     this.contentReferences.delete(uri);
 
-    // break all still-awaiting promise
+    // 删除文件时取消仍在等待的初始化，防止迟到结果重新创建文档。
     const pendingRequests = this.pendingContentRequests.get(uri);
     if (pendingRequests) {
       this.pendingContentRequests.delete(uri);
@@ -289,7 +314,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
       if (this.yMap.has(uri)) {
         return;
       }
-      // load content from disk, not client
+      // 初始内容由磁盘提供，客户端只提交后续协同更新。
       const { content } = await this.fileService.resolveContent(uri);
       const maxDocumentBytes = positiveOrFallback(
         this.appConfig.collaborationOptions?.maxDocumentBytes,
@@ -303,7 +328,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
       }
       this.logger.debug('resolved content', content.substring(0, 20), 'from', uri);
       if (!pendingRequest.cancelled && !this.yMap.has(uri)) {
-        const yText = new YText(content); // create yText with initial content
+        const yText = new YText(content);
         this.yMap.set(uri, yText);
       }
     } catch (e) {
@@ -335,8 +360,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
       pendingRequest = { cancelled: false, reject };
       const existingRequest = requestsForUri.values().next().value;
       requestsForUri.add(pendingRequest);
-      // Concurrent clients share the disk load, but retain separate cancellation
-      // and reference accounting so one close cannot remove another client's text.
+      // 并发客户端共享磁盘读取，但独立持有取消状态和引用，关闭一方不会删除其他人的内容。
       pendingRequest.initialization = existingRequest?.initialization ?? this.doRequestInitContent(uri, pendingRequest);
       void pendingRequest.initialization.then(resolve, reject);
     });
@@ -367,6 +391,10 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
   }
 
   private scheduleIdleCleanup(delay?: number): void {
+    // 停止后的迟到 close 事件不能重新挂定时器或创建共享房间。
+    if (this.stopping) {
+      return;
+    }
     if (this.idleCleanupTimer) {
       clearTimeout(this.idleCleanupTimer);
     }
@@ -374,7 +402,7 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
       delay ?? positiveOrFallback(this.appConfig.collaborationOptions?.idleTimeout, DEFAULT_IDLE_TIMEOUT);
     this.idleCleanupTimer = setTimeout(() => {
       this.idleCleanupTimer = undefined;
-      if (this.websocketServer.clients.size === 0) {
+      if (!this.stopping && this.websocketServer.clients.size === 0) {
         this.resetSharedDocument();
       }
     }, idleTimeout);
@@ -382,6 +410,11 @@ export class YWebsocketServerImpl implements IYWebsocketServer {
   }
 
   destroy() {
+    if (this.destroyed) {
+      return;
+    }
+    this.destroyed = true;
+    this.stopping = true;
     if (this.pressureCheckTimer) {
       clearInterval(this.pressureCheckTimer);
       this.pressureCheckTimer = undefined;

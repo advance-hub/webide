@@ -211,6 +211,9 @@ export interface AppConfig extends Partial<Config> {
 }
 
 export interface ICollaborationServerOpts {
+  /** 共享 IDE 的 HTTP 入口时不再监听独立协同端口。 */
+  transport?: 'standalone' | 'shared';
+  authorizeConnection?: (request: http.IncomingMessage) => boolean;
   port?: number;
   maxPayload?: number;
   maxConnections?: number;

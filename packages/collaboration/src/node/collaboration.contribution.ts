@@ -7,6 +7,7 @@ import { YWebsocketServerImpl } from './y-websocket-server';
 
 @Domain(ServerAppContribution)
 export class CollaborationNodeContribution implements ServerAppContribution {
+  readonly startupRequired = true;
   @Autowired(IYWebsocketServer)
   private server: YWebsocketServerImpl;
 

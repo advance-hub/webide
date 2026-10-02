@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore
+import { once } from 'node:events';
+import http from 'node:http';
+
+import WebSocket from 'ws';
 import * as Y from 'yjs';
 
-import { INodeLogger } from '@opensumi/ide-core-node';
+import { AppConfig, INodeLogger } from '@opensumi/ide-core-node';
 import { MockInjector, createNodeInjector } from '@opensumi/ide-dev-tool/injector';
 import { IFileService } from '@opensumi/ide-file-service';
 import { FileService } from '@opensumi/ide-file-service/node';
@@ -198,5 +202,107 @@ describe('Collaboration node ws server test', () => {
   afterAll(() => {
     // @ts-ignore
     yDoc.destroy();
+  });
+});
+
+describe('托管工作区协同入口与连接租约', () => {
+  let injector: MockInjector;
+  let server: YWebsocketServerImpl;
+  beforeEach(() => {
+    injector = createNodeInjector([]);
+    injector.mockService(INodeLogger);
+    injector.mockService(IFileService);
+    injector.overrideProviders({
+      token: AppConfig,
+      useValue: {
+        collaborationOptions: {
+          transport: 'shared',
+          maxConnections: 5,
+          authorizeConnection: (req: http.IncomingMessage) => req.headers.authorization === 'Bearer fixture',
+        },
+      },
+    });
+    injector.addProviders({ token: IYWebsocketServer, useClass: YWebsocketServerImpl });
+    jest
+      .spyOn(injector.get<FileService>(IFileService), 'resolveContent')
+      .mockResolvedValue({ content: 'shared fixture' } as any);
+    server = injector.get(IYWebsocketServer);
+    server.initialize();
+  });
+  afterEach(() => server.destroy());
+
+  it('仅在 IDE 原有入口接纳五个认证连接，并拒绝未认证、超额与排空期间的连接', async () => {
+    expect.hasAssertions();
+    const host = http.createServer();
+    host.on('upgrade', (req, socket, head) => {
+      if (!server.handleUpgrade(new URL(req.url!, 'http://localhost').pathname, req, socket, head)) {
+        socket.destroy();
+      }
+    });
+    host.listen(0, '127.0.0.1');
+    await once(host, 'listening');
+    const url = `ws://127.0.0.1:${(host.address() as { port: number }).port}/collaboration/${ROOM_NAME}`;
+    const sockets: WebSocket[] = [];
+    const connect = async (authorization = 'Bearer fixture') => {
+      const socket = new WebSocket(url, { headers: { Authorization: authorization } });
+      sockets.push(socket);
+      await once(socket, 'open');
+      return socket;
+    };
+    try {
+      expect((server as any).server.listening).toBe(false);
+      await expect(connect('Bearer wrong')).rejects.toThrow('401');
+      for (let index = 0; index < 5; index++) {
+        await connect();
+      }
+      await expect(connect()).rejects.toThrow('503');
+      const closed = once(sockets[1], 'close');
+      sockets[1].terminate();
+      await closed;
+      server.beginDrain();
+      await expect(connect()).rejects.toThrow('503');
+    } finally {
+      sockets.forEach((socket) => socket.terminate());
+      server.destroy();
+      await new Promise<void>((resolve) => host.close(() => resolve()));
+      expect((server as any).idleCleanupTimer).toBeUndefined();
+    }
+  });
+
+  it('销毁客户端只释放自身文档引用，其他客户端继续持有内容', async () => {
+    expect.hasAssertions();
+    const create = () => {
+      const client = new CollaborationServiceForClient();
+      Object.defineProperty(client, 'server', { value: server });
+      return client;
+    };
+    const first = create();
+    const second = create();
+    await first.requestInitContent('file:///shared.ts');
+    await second.requestInitContent('file:///shared.ts');
+    first.dispose();
+    first.dispose();
+    expect((server as any).contentReferences.get('file:///shared.ts')).toBe(1);
+    expect(server.getYDoc(ROOM_NAME).getMap().has('file:///shared.ts')).toBe(true);
+    await second.releaseContent('file:///shared.ts');
+    expect(server.getYDoc(ROOM_NAME).getMap().has('file:///shared.ts')).toBe(false);
+  });
+
+  it('连接关闭后迟到的磁盘加载立即退租，不遗留初始化引用', async () => {
+    expect.hasAssertions();
+    let finish!: (value: any) => void;
+    (injector.get<FileService>(IFileService).resolveContent as jest.Mock).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const client = new CollaborationServiceForClient();
+    Object.defineProperty(client, 'server', { value: server });
+    const loading = client.requestInitContent('file:///late.ts');
+    client.dispose();
+    finish({ content: 'late' });
+    await expect(loading).rejects.toThrow('closed while loading');
+    expect((server as any).contentReferences.size).toBe(0);
+    expect((server as any).pendingContentRequests.size).toBe(0);
   });
 });
