@@ -339,6 +339,8 @@ const config: Configuration = {
         {
           from: path.join(repoRoot, 'packages/monaco/worker/editor.worker.bundle.js'),
           to: 'monaco/editor.worker.bundle.js',
+          // Worker 已完成独立编译，保留原字节，避免客户端构建再次压缩。
+          info: { minimized: true },
         },
       ],
     }),
