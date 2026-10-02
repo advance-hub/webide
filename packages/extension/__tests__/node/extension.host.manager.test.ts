@@ -33,6 +33,108 @@ extensionHostManagerTester({
 });
 
 describe('ExtensionHostManager resource cleanup', () => {
+  it('等待退役进程释放物理租约后才为下一位用户提供名额', async () => {
+    expect.hasAssertions();
+    const manager = new ExtensionHostManager();
+    (manager as any).maxProcessCount = 1;
+    const old = Object.assign(new EventEmitter(), { pid: 600_001, kill: jest.fn() }) as any;
+    const next = Object.assign(new EventEmitter(), { pid: 600_002, kill: jest.fn() }) as any;
+    const fork = jest.spyOn(cp, 'fork').mockReturnValueOnce(old).mockReturnValueOnce(next);
+    let finishKill!: () => void;
+    const treeKill = jest.spyOn(manager, 'treeKill').mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishKill = resolve;
+      }),
+    );
+    try {
+      const registration = manager.forkWithLease('/old-host', [], {}, {});
+      const killed = manager.treeKillLease(registration.lease);
+      let admitted = false;
+      const waiting = manager.waitForProcessCapacity(5000).then(() => {
+        admitted = true;
+      });
+      await Promise.resolve();
+      expect(admitted).toBe(false);
+      expect(() => manager.fork('/too-early')).toThrow('Managed extension child process limit (1) reached');
+      expect(fork).toHaveBeenCalledTimes(1);
+      finishKill();
+      await killed;
+      // 树停止回调完成仍不能提前丢掉精确租约；退出或显式释放才提供新名额。
+      expect(admitted).toBe(false);
+      old.emit('exit', 0, 'SIGTERM');
+      await waiting;
+      expect(manager.fork('/next-host')).toBe(next.pid);
+      expect((manager as any).processRecords.size).toBe(1);
+      expect((manager as any).capacityWaiters.size).toBe(0);
+    } finally {
+      finishKill();
+      treeKill.mockRestore();
+      fork.mockRestore();
+      await manager.dispose();
+    }
+  });
+
+  it('活跃用户占满时立即拒绝，退役等待有期限且不会扩大物理上限', async () => {
+    expect.hasAssertions();
+    jest.useFakeTimers();
+    const manager = new ExtensionHostManager();
+    (manager as any).maxProcessCount = 1;
+    const child = Object.assign(new EventEmitter(), { pid: 600_003, kill: jest.fn() }) as any;
+    const fork = jest.spyOn(cp, 'fork').mockReturnValue(child);
+    let finishKill!: () => void;
+    const treeKill = jest.spyOn(manager, 'treeKill').mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishKill = resolve;
+      }),
+    );
+    try {
+      const registration = manager.forkWithLease('/active-host', [], {}, {});
+      await expect(manager.waitForProcessCapacity(1000)).rejects.toThrow(
+        'Managed extension child process limit (1) reached',
+      );
+      manager.treeKillLease(registration.lease);
+      const waiting = manager.waitForProcessCapacity(1000).catch((error: Error) => error);
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(await waiting).toMatchObject({ message: 'Managed extension child process limit (1) reached' });
+      expect((manager as any).processRecords.size).toBe(1);
+      expect((manager as any).capacityWaiters.size).toBe(0);
+      expect(fork).toHaveBeenCalledTimes(1);
+    } finally {
+      finishKill();
+      treeKill.mockRestore();
+      fork.mockRestore();
+      await manager.dispose();
+      jest.useRealTimers();
+    }
+  });
+
+  it('管理器排空时唤醒正在等待退役名额的创建请求', async () => {
+    expect.hasAssertions();
+    const manager = new ExtensionHostManager();
+    (manager as any).maxProcessCount = 1;
+    const child = Object.assign(new EventEmitter(), { pid: 600_004, kill: jest.fn() }) as any;
+    const fork = jest.spyOn(cp, 'fork').mockReturnValue(child);
+    let finishKill!: () => void;
+    const treeKill = jest.spyOn(manager, 'treeKill').mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishKill = resolve;
+      }),
+    );
+    try {
+      const registration = manager.forkWithLease('/retiring-host', [], {}, {});
+      manager.treeKillLease(registration.lease);
+      const waiting = manager.waitForProcessCapacity(5000).catch((error: Error) => error);
+      await manager.dispose();
+      expect(await waiting).toMatchObject({ name: 'ExtensionHostManagerDrainingError' });
+      expect((manager as any).capacityWaiters.size).toBe(0);
+    } finally {
+      finishKill();
+      treeKill.mockRestore();
+      fork.mockRestore();
+      await manager.dispose();
+    }
+  });
+
   it('refuses to fork beyond the managed process hard limit', async () => {
     expect.hasAssertions();
     const manager = new ExtensionHostManager();

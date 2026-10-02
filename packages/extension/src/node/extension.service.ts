@@ -627,6 +627,11 @@ export class ExtensionNodeServiceImpl implements IExtensionNodeService, Extensio
 
     this.assertServiceRunning();
     await this.ensureExtensionHostCapacity(clientId);
+    // 逻辑宿主关闭后，底层树清理仍可能未完成；等待物理租约释放，保持原容量上限。
+    await this.getExtensionHostProcessManager().waitForProcessCapacity?.(
+      this.appConfig.extensionHostShutdownTimeout ?? 5_000,
+    );
+    this.assertServiceRunning();
     this.assertExtensionHostClientConnected(clientId);
 
     const handle = new ExtensionHostRuntimeHandle(

@@ -33,6 +33,7 @@ interface ManagedExtensionHostProcessRecord {
   readonly disposables: IDisposable[];
   readonly exitListeners: Set<(code: number, signal: string) => void>;
   state: 'active' | 'superseded' | 'released';
+  retiring?: boolean;
 }
 
 @Injectable()
@@ -61,6 +62,7 @@ export class ExtensionHostManager implements IExtensionHostProcessLeaseManager {
       }
     | undefined;
   private disposePromise: Promise<void> | undefined;
+  private readonly capacityWaiters = new Set<() => void>();
 
   private readonly maxProcessCount = (() => {
     const configured = Number(process.env.MAX_MANAGED_EXTENSION_PROCESSES);
@@ -108,16 +110,50 @@ export class ExtensionHostManager implements IExtensionHostProcessLeaseManager {
     return this.forkManaged(modulePath, [args, options], observer);
   }
 
-  private forkManaged(
-    modulePath: string,
-    args: any[],
-    observer: ExtensionHostProcessLeaseObserver,
-  ): ExtensionHostProcessRegistration {
+  async waitForProcessCapacity(timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      this.assertAcceptingProcesses();
+      if (this.processRecords.size + this.forksInFlight < this.maxProcessCount) {
+        return;
+      }
+      const remaining = deadline - Date.now();
+      if (remaining <= 0 || ![...this.processRecords.values()].some((record) => record.retiring)) {
+        throw new Error(`Managed extension child process limit (${this.maxProcessCount}) reached`);
+      }
+      let wake!: () => void;
+      let timer: NodeJS.Timeout | undefined;
+      try {
+        await new Promise<void>((resolve, reject) => {
+          wake = resolve;
+          this.capacityWaiters.add(wake);
+          timer = setTimeout(
+            () => reject(new Error(`Managed extension child process limit (${this.maxProcessCount}) reached`)),
+            remaining,
+          );
+          timer.unref?.();
+        });
+      } finally {
+        this.capacityWaiters.delete(wake);
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  private assertAcceptingProcesses(): void {
     if (this.lifecycleState !== 'running') {
       const error = new Error('Extension host manager is draining and does not accept new processes');
       error.name = 'ExtensionHostManagerDrainingError';
       throw error;
     }
+  }
+
+  private forkManaged(
+    modulePath: string,
+    args: any[],
+    observer: ExtensionHostProcessLeaseObserver,
+  ): ExtensionHostProcessRegistration {
+    this.assertAcceptingProcesses();
     if (this.processRecords.size + this.forksInFlight >= this.maxProcessCount) {
       throw new Error(`Managed extension child process limit (${this.maxProcessCount}) reached`);
     }
@@ -239,6 +275,8 @@ export class ExtensionHostManager implements IExtensionHostProcessLeaseManager {
         this.processDisposables.delete(record.lease.pid);
       }
     }
+    // 强制停止可能晚于宿主的绝对关闭期限完成，释放租约后再唤醒下一次创建。
+    this.capacityWaiters.forEach((wake) => wake());
     record.disposables.splice(0).forEach((disposable) => disposable.dispose());
     record.exitListeners.clear();
   }
@@ -310,7 +348,9 @@ export class ExtensionHostManager implements IExtensionHostProcessLeaseManager {
   }
 
   treeKillLease(lease: ExtensionHostProcessLease): Promise<void> {
-    return this.treeKill(this.requireActiveRecord(lease, 'tree-kill').lease.pid);
+    const record = this.requireActiveRecord(lease, 'tree-kill');
+    record.retiring = true;
+    return this.treeKill(record.lease.pid);
   }
 
   kill(pid: number, signal?: NodeJS.Signals): void {
@@ -457,6 +497,7 @@ export class ExtensionHostManager implements IExtensionHostProcessLeaseManager {
   dispose(): Promise<void> {
     if (!this.disposePromise) {
       this.lifecycleState = 'draining';
+      this.capacityWaiters.forEach((wake) => wake());
       this.disposePromise = this.disposeOnce();
     }
     return this.disposePromise;

@@ -47,6 +47,31 @@ function installRuntime(service: any): ExtensionHostRuntimeHandle {
 }
 
 describe('ExtensionNodeServiceImpl startup disconnect lifecycle', () => {
+  it('等待底层进程名额期间浏览器关闭时不再创建宿主', async () => {
+    expect.hasAssertions();
+    const { manager, service } = createService();
+    const slot = service.getSessionSlotRegistry().getOrCreate('client');
+    slot.attachFacade({});
+    let release!: () => void;
+    let started!: () => void;
+    const entered = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    (manager as any).waitForProcessCapacity = jest.fn(() => {
+      started();
+      return new Promise<void>((resolve) => {
+        release = resolve;
+      });
+    });
+    const creation = service.createProcess('client').catch((error: Error) => error);
+    await entered;
+    slot.markDisconnected();
+    release();
+    expect(await creation).toMatchObject({ name: 'ExtensionHostClientDisconnectedError' });
+    expect(service._createExtServer).not.toHaveBeenCalled();
+    expect(service._createExtHostProcess).not.toHaveBeenCalled();
+  });
+
   it('preserves a disconnect that arrives while retiring the previous generation for replacement', async () => {
     expect.hasAssertions();
     const { manager, service } = createService();

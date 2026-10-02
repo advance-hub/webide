@@ -30,6 +30,8 @@ export interface IExtensionHostProcessLeaseManager extends IExtensionHostManager
    * managers: callers must not signal a PID in their own namespace.
    */
   readonly processControlLocation?: 'local' | 'remote' | 'unknown';
+  /** 等待已经退役的本地进程释放名额；活跃会话不能因此被驱逐。 */
+  waitForProcessCapacity?(timeoutMs: number): MaybePromise<void>;
   forkWithLease(
     modulePath: string,
     args: string[],
