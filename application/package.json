@@ -24,22 +24,22 @@
     "tar": "7.5.22",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "ws": "^8.21.3"
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@rspack/cli": "2.2.8",
     "@rspack/core": "2.2.8",
     "@rspack/dev-server": "2.2.1",
-    "@types/koa": "^2.14.0",
+    "@types/koa": "3.0.3",
     "@types/koa-static": "^4.0.4",
     "@types/node": "^24.0.0",
     "@types/react": "18.3.28",
     "@types/react-dom": "18.3.7",
-    "@types/ws": "^8.5.10",
+    "@types/ws": "^8.18.2",
     "@typescript/native": "npm:typescript@7.0.2",
-    "css-loader": "^7.1.4",
+    "css-loader": "^7.1.5",
     "style-loader": "^4.0.0",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "engines": {

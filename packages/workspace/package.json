@@ -22,7 +22,7 @@
     "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/di": "^1.8.0",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "ajv": "^8.17.1",
     "jsonc-parser": "^2.1.0"
   },

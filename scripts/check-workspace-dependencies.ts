@@ -1,66 +1,53 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const roots = ['client', 'packages', 'server', 'tools'];
-const ignoredDirectories = new Set(['__mocks__', 'dist', 'lib', 'node_modules', 'test-results']);
+import { discoverWorkspacePackages } from './check-architecture';
+
 const dependencySections = ['dependencies', 'devDependencies', 'optionalDependencies'] as const;
 const localProtocols = /^(?:workspace|file|link|portal):/;
-const packageFiles: string[] = [];
+type PackageManifest = Partial<Record<(typeof dependencySections)[number], Record<string, string>>>;
 
-type DependencySection = (typeof dependencySections)[number];
-type PackageManifest = Partial<Record<DependencySection, Record<string, string>>>;
-
-function collectPackageFiles(directory: string): void {
-  if (!fs.existsSync(directory)) {
-    return;
-  }
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    if (ignoredDirectories.has(entry.name)) {
-      continue;
-    }
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      collectPackageFiles(entryPath);
-    } else if (entry.name === 'package.json') {
-      packageFiles.push(entryPath);
-    }
-  }
-}
-
-for (const root of roots) {
-  collectPackageFiles(root);
-}
-
-const versions = new Map<string, Map<string, string[]>>();
-for (const packageFile of packageFiles) {
-  const manifest = JSON.parse(fs.readFileSync(packageFile, 'utf8')) as PackageManifest;
-  for (const section of dependencySections) {
-    for (const [name, range] of Object.entries(manifest[section] ?? {})) {
-      if (localProtocols.test(range)) {
-        continue;
+export function dependencyConflicts(root: string): { name: string; ranges: Map<string, string[]> }[] {
+  // 仅检查包管理器声明的自维护工作区；下载扩展、构建产物和夹具有独立依赖契约。
+  const files = [
+    path.join(root, 'package.json'),
+    ...discoverWorkspacePackages(root).map((pkg) => path.join(pkg.root, 'package.json')),
+  ];
+  const versions = new Map<string, Map<string, string[]>>();
+  for (const file of files) {
+    const manifest = JSON.parse(fs.readFileSync(file, 'utf8')) as PackageManifest;
+    for (const section of dependencySections) {
+      for (const [name, range] of Object.entries(manifest[section] ?? {})) {
+        if (localProtocols.test(range)) {
+          continue;
+        }
+        const ranges = versions.get(name) || new Map<string, string[]>();
+        const users = ranges.get(range) || [];
+        users.push(path.relative(root, file));
+        ranges.set(range, users);
+        versions.set(name, ranges);
       }
-      const ranges = versions.get(name) || new Map();
-      const users = ranges.get(range) || [];
-      users.push(packageFile);
-      ranges.set(range, users);
-      versions.set(name, ranges);
     }
   }
+  return [...versions.entries()]
+    .filter(([, ranges]) => ranges.size > 1)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, ranges]) => ({ name, ranges }));
 }
 
-const conflicts = [...versions.entries()]
-  .filter(([, ranges]) => ranges.size > 1)
-  .sort(([left], [right]) => left.localeCompare(right));
-
-if (conflicts.length > 0) {
-  console.error('Workspace dependency ranges are inconsistent:');
-  for (const [name, ranges] of conflicts) {
-    console.error(`\n${name}`);
-    for (const [range, users] of ranges) {
-      console.error(`  ${range}: ${users.join(', ')}`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const conflicts = dependencyConflicts(path.resolve(import.meta.dirname, '..'));
+  if (conflicts.length) {
+    console.error('工作区依赖范围不一致：');
+    for (const { name, ranges } of conflicts) {
+      console.error(`\n${name}`);
+      for (const [range, users] of ranges) {
+        console.error(`  ${range}: ${users.join(', ')}`);
+      }
     }
+    process.exitCode = 1;
+  } else {
+    console.log('自维护工作区依赖范围一致。');
   }
-  process.exit(1);
 }
-
-console.log(`Checked ${packageFiles.length} workspace manifests: dependency ranges are consistent.`);

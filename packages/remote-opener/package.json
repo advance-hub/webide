@@ -22,7 +22,7 @@
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-core-node": "workspace:*",
     "@opensumi/ide-editor": "workspace:*",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {},

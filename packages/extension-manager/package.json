@@ -23,15 +23,15 @@
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "compressing": "^1.10.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.4.1",
     "node-fetch": "^2.6.7",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/di": "^1.8.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@opensumi/ide-overlay": "workspace:*",
-    "@types/node-fetch": "^2.6.1"
+    "@types/node-fetch": "^2.6.13"
   },
   "exports": {
     ".": {

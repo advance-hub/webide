@@ -58,19 +58,21 @@ export class ApiCommandArgument<V, O = V> {
     (v) => v,
   );
 
-  static readonly CallHierarchyItem = new ApiCommandArgument(
-    'item',
-    'A call hierarchy item',
-    (v) => v instanceof types.CallHierarchyItem,
-    typeConverters.CallHierarchyItem.to,
-  );
+  static readonly CallHierarchyItem: ApiCommandArgument<modes.ICallHierarchyItemDto, types.CallHierarchyItem> =
+    new ApiCommandArgument(
+      'item',
+      'A call hierarchy item',
+      (v) => v instanceof types.CallHierarchyItem,
+      typeConverters.CallHierarchyItem.to,
+    );
 
-  static readonly TypeHierarchyItem = new ApiCommandArgument(
-    'item',
-    'A type hierarchy item',
-    (v) => v instanceof types.TypeHierarchyItem,
-    typeConverters.TypeHierarchyItem.to,
-  );
+  static readonly TypeHierarchyItem: ApiCommandArgument<modes.ITypeHierarchyItemDto, types.TypeHierarchyItem> =
+    new ApiCommandArgument(
+      'item',
+      'A type hierarchy item',
+      (v) => v instanceof types.TypeHierarchyItem,
+      typeConverters.TypeHierarchyItem.to,
+    );
 
   constructor(
     readonly name: string,
@@ -622,8 +624,8 @@ export const newCommands: ApiCommand[] = [
           !v
             ? v
             : typeof v === 'number'
-            ? [v, undefined]
-            : [typeConverters.ViewColumn.from(v.viewColumn), typeConverters.TextEditorOpenOptions.from(v)],
+              ? [v, undefined]
+              : [typeConverters.ViewColumn.from(v.viewColumn), typeConverters.TextEditorOpenOptions.from(v)],
       ).optional(),
       ApiCommandArgument.String.with('label', '').optional(),
     ],
@@ -647,8 +649,8 @@ export const newCommands: ApiCommand[] = [
           !v
             ? v
             : typeof v === 'number'
-            ? [v, undefined]
-            : [typeConverters.ViewColumn.from(v.viewColumn), typeConverters.TextEditorOpenOptions.from(v)],
+              ? [v, undefined]
+              : [typeConverters.ViewColumn.from(v.viewColumn), typeConverters.TextEditorOpenOptions.from(v)],
       ).optional(),
     ],
     ApiCommandResult.Void,

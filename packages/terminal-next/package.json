@@ -39,15 +39,15 @@
     "@xterm/xterm": "5.5.0",
     "node-pty": "1.1.0",
     "os-locale": "^4.0.0",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "lodash": "^4.17.21",
     "@opensumi/di": "^1.8.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.4.1",
     "classnames": "2.5.1"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@types/http-proxy": "^1.17.2",
+    "@types/http-proxy": "^1.17.17",
     "http-proxy": "^1.18.0"
   },
   "exports": {

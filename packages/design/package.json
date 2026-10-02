@@ -29,7 +29,7 @@
     "@opensumi/ide-overlay": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
     "@opensumi/ide-toolbar": "workspace:*",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/di": "^1.8.0",
     "classnames": "2.5.1"
   },

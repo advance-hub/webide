@@ -64,8 +64,8 @@
     "lodash": "^4.17.21",
     "mri": "^1.2.0",
     "nanoid": "3.3.18",
-    "tslib": "^2.6.2",
-    "vscode-uri": "3.0.2"
+    "tslib": "^2.8.1",
+    "vscode-uri": "3.2.0"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*"

@@ -23,7 +23,7 @@
     "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-monaco": "workspace:*",
     "@opensumi/ide-theme": "workspace:*",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "classnames": "2.5.1",
     "@opensumi/di": "^1.8.0"
   },

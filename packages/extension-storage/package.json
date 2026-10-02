@@ -22,7 +22,7 @@
     "@opensumi/ide-file-service": "workspace:*",
     "@opensumi/ide-logs": "workspace:*",
     "@opensumi/ide-workspace": "workspace:*",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {

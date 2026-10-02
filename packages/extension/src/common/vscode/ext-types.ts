@@ -19,6 +19,7 @@ import { FileOperationOptions } from './model.api';
 import { escapeCodicons } from './models/html-content';
 import { illegalArgument } from './utils';
 
+import type { UriComponents } from './models/uri';
 import type vscode from 'vscode';
 
 export { TextEditorRevealType } from './editor';
@@ -519,7 +520,7 @@ export class RelativePattern {
     this.pattern = pattern;
   }
 
-  toJSON() {
+  toJSON(): { pattern: string; base: string; baseUri: UriComponents } {
     return {
       pattern: this.pattern,
       base: this.base,

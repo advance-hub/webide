@@ -23,8 +23,8 @@
     "@opensumi/ide-core-node": "workspace:*",
     "@vscode/spdlog": "^0.15.8",
     "compressing": "^1.10.0",
-    "tslib": "^2.6.2",
-    "fs-extra": "^11.2.0",
+    "tslib": "^2.8.1",
+    "fs-extra": "^11.4.1",
     "@opensumi/di": "^1.8.0"
   },
   "devDependencies": {

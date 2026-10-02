@@ -175,11 +175,11 @@
     "@opensumi/di": "^1.8.0",
     "@opensumi/events": "^1.0.0",
     "@opensumi/ide-utils": "workspace:*",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.4.1",
     "lodash": "^4.17.21",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/monaco-editor-core": "0.54.0-patch.2",
-    "@types/react": "^18.3.28",
+    "@types/react": "18.3.28",
     "mri": "^1.2.0"
   },
   "devDependencies": {

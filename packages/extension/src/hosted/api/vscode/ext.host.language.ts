@@ -105,6 +105,7 @@ import {
   IOutgoingCallDto,
   ISerializedSignatureHelpProviderMetadata,
   ISignatureHelpDto,
+  ITypeHierarchyItemDto,
   Location,
   Position,
   Range,
@@ -1548,7 +1549,12 @@ export class ExtHostLanguages implements IExtHostLanguages {
     return this.createDisposable(callId);
   }
 
-  $prepareTypeHierarchy(handle: number, resource: UriComponents, position: Position, token: CancellationToken) {
+  $prepareTypeHierarchy(
+    handle: number,
+    resource: UriComponents,
+    position: Position,
+    token: CancellationToken,
+  ): Promise<ITypeHierarchyItemDto[] | undefined> {
     return this.withAdapter(
       handle,
       TypeHierarchyAdapter,
@@ -1558,7 +1564,12 @@ export class ExtHostLanguages implements IExtHostLanguages {
     );
   }
 
-  $provideTypeHierarchySupertypes(handle: number, sessionId: string, itemId: string, token: CancellationToken) {
+  $provideTypeHierarchySupertypes(
+    handle: number,
+    sessionId: string,
+    itemId: string,
+    token: CancellationToken,
+  ): Promise<ITypeHierarchyItemDto[] | undefined> {
     return this.withAdapter(
       handle,
       TypeHierarchyAdapter,
@@ -1568,7 +1579,12 @@ export class ExtHostLanguages implements IExtHostLanguages {
     );
   }
 
-  $provideTypeHierarchySubtypes(handle: number, sessionId: string, itemId: string, token: CancellationToken) {
+  $provideTypeHierarchySubtypes(
+    handle: number,
+    sessionId: string,
+    itemId: string,
+    token: CancellationToken,
+  ): Promise<ITypeHierarchyItemDto[] | undefined> {
     return this.withAdapter(
       handle,
       TypeHierarchyAdapter,

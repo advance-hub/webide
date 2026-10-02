@@ -20,9 +20,9 @@
   "dependencies": {
     "@opensumi/ide-core-common": "workspace:*",
     "tree-kill": "^1.2.2",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/di": "^1.8.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.4.1",
     "vscode-oniguruma": "1.6.1"
   },
   "peerDependencies": {

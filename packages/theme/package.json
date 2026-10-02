@@ -23,7 +23,7 @@
     "@opensumi/di": "^1.8.0",
     "jsonc-parser": "^2.1.0",
     "lodash": "^4.17.21",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "vscode-textmate": "7.0.1"
   },
   "devDependencies": {

@@ -31,10 +31,10 @@
   },
   "dependencies": {
     "@opensumi/ide-utils": "workspace:*",
-    "@playwright/test": "1.62.1"
+    "@playwright/test": "1.63.0"
   },
   "devDependencies": {
-    "allure-commandline": "^2.25.0",
+    "allure-commandline": "^2.46.1",
     "allure-playwright": "^2.10.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "@typescript/native": "npm:typescript@7.0.2"

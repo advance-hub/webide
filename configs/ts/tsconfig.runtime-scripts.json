@@ -24,6 +24,7 @@
     "../../scripts/check-architecture.ts",
     "../../scripts/check-architecture.test.ts",
     "../../scripts/check-workspace-dependencies.ts",
+    "../../scripts/check-workspace-dependencies.test.ts",
     "../../scripts/dev.ts",
     "../../scripts/fn/memory.ts",
     "../../scripts/lint.ts",

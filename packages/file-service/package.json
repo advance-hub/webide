@@ -29,12 +29,12 @@
     "file-type": "21.3.2",
     "nsfw": "2.3.1",
     "trash": "^5.2.0",
-    "vscode-languageserver-types": "^3.16.0",
+    "vscode-languageserver-types": "^3.18.4",
     "write-file-atomic": "^5.0.1",
     "@opensumi/di": "^1.8.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.4.1",
     "lodash": "^4.17.21",
-    "tslib": "^2.6.2",
+    "tslib": "^2.8.1",
     "@opensumi/monaco-editor-core": "0.54.0-patch.2"
   },
   "devDependencies": {

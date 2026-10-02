@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
-    "@types/node-fetch": "^2.6.1",
+    "@types/node-fetch": "^2.6.13",
     "@rspack/core": "2.2.8",
     "@rspack/cli": "2.2.8"
   }
