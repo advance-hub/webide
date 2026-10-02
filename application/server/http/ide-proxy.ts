@@ -5,7 +5,7 @@ import Koa from 'koa';
 import WebSocket, { WebSocketServer } from 'ws';
 
 import { type Workspace } from '../domain/models';
-import { type RuntimeDriver } from '../domain/runtime';
+import { type Environment, type RuntimeDriver } from '../domain/runtime';
 import { type Config } from '../platform/config';
 import { ExpiringMap } from '../platform/expiring-map';
 import { Store, hash, newID, now } from '../platform/store';
@@ -37,6 +37,8 @@ export class IDEProxy {
   private stopping = false;
   private readonly tickets = new ExpiringMap<Ticket>(10_000);
   private readonly ideSessions = new ExpiringMap<Ticket>(10_000);
+  private readonly environments = new ExpiringMap<{ expires: number; value: Environment }>(160);
+  private readonly inspections = new Map<string, Promise<Environment>>();
   private readonly sweep: NodeJS.Timeout;
   private readonly websocketServer = new WebSocketServer({
     noServer: true,
@@ -55,6 +57,7 @@ export class IDEProxy {
     this.sweep = setInterval(() => {
       this.tickets.pruneExpired();
       this.ideSessions.pruneExpired();
+      this.environments.pruneExpired();
     }, 30_000);
     this.sweep.unref();
   }
@@ -106,6 +109,8 @@ export class IDEProxy {
     this.websocketServer.close();
     this.tickets.clear();
     this.ideSessions.clear();
+    this.environments.clear();
+    this.inspections.clear();
     this.sockets.clear();
   }
   workspaceHost(request: IncomingMessage): string | undefined {
@@ -121,6 +126,42 @@ export class IDEProxy {
     }
     this.access.sharedWorkspace(id, session.owner);
     return session;
+  }
+
+  private async inspect(workspace: Workspace): Promise<Environment> {
+    // 静态资源会并发请求同一运行实例；合并 SDK 查询，并短暂复用成功快照。
+    // 生命周期版本进入键，授权始终由实时会话和成员数据独立校验。
+    const key = JSON.stringify([
+      workspace.id,
+      workspace.envId,
+      workspace.idePort,
+      workspace.status,
+      workspace.updatedAt,
+    ]);
+    const cached = this.environments.get(key);
+    if (cached) {
+      return cached.value;
+    }
+    const pending = this.inspections.get(key);
+    if (pending) {
+      return pending;
+    }
+    if (this.inspections.size >= 160) {
+      throw new HTTPError(429, '运行环境查询繁忙，请稍后重试');
+    }
+    const inspection = Promise.resolve().then(() => this.driver.inspect(workspace));
+    this.inspections.set(key, inspection);
+    try {
+      const value = await inspection;
+      if (!this.stopping && value.ideReady) {
+        this.environments.set(key, { value, expires: Date.now() + 1000 });
+      }
+      return value;
+    } finally {
+      if (this.inspections.get(key) === inspection) {
+        this.inspections.delete(key);
+      }
+    }
   }
 
   async proxyIDE(context: Koa.Context, id: string): Promise<void> {
@@ -152,7 +193,8 @@ export class IDEProxy {
     const workspace = this.access.sharedWorkspace(id, session.owner);
     workspace.lastActivityAt = now();
     this.store.put('workspace', workspace);
-    const environment = await this.driver.inspect(workspace);
+    const environment = await this.inspect(workspace);
+    this.ideAuthorization(context.req, id);
     if (!environment.ideReady || !environment.endpoint) {
       throw new HTTPError(502, 'IDE 未就绪');
     }
@@ -211,7 +253,7 @@ export class IDEProxy {
     const workspace = this.access.sharedWorkspace(id, session.owner);
     workspace.lastActivityAt = now();
     this.store.put('workspace', workspace);
-    const environment = await this.driver.inspect(workspace);
+    const environment = await this.inspect(workspace);
     if (this.stopping || !environment.ideReady || !environment.endpoint) {
       socket.destroy();
       return;

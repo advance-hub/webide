@@ -14,7 +14,7 @@ import { loadConfig } from '../platform/config';
 import { hash, newID, now } from '../platform/store';
 import { Workbench } from '../workbench';
 
-test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作区隔离和即时撤销贯通', { timeout: 20000 }, async () => {
+test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作区隔离和即时撤销贯通', { timeout: 20000 }, async (context) => {
   const data = await mkdtemp(path.join(os.tmpdir(), 'webide-sharing-'));
   const received: http.IncomingHttpHeaders[] = [];
   const upgraded: http.IncomingHttpHeaders[] = [];
@@ -50,6 +50,8 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
       }) as unknown as RuntimeDriver,
   );
   const sockets: WebSocket[] = [];
+  const gates: Array<() => void> = [];
+  context.after(() => gates.forEach((release) => release()));
   try {
     await workbench.listen();
     workbench.config.port = (workbench.server.address() as { port: number }).port;
@@ -157,7 +159,60 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
     assert.equal((await ide('/runtime/shutdown', cookies[1])).status, 403);
     assert.equal((await ide('/assets/../runtime/shutdown', cookies[1])).status, 403);
     assert.equal((await ide('/assets/%2e%2e/runtime/shutdown', cookies[1])).status, 403);
+    const originalInspect = workbench.driver.inspect;
+    const environment = await originalInspect(workspace);
+    let inspected = 0;
+    let release!: () => void;
+    let entered!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+      gates.push(resolve);
+    });
+    const started = new Promise<void>((resolve) => (entered = resolve));
+    workbench.driver.inspect = async () => {
+      inspected++;
+      entered();
+      await gate;
+      return environment;
+    };
+    workspace.updatedAt = new Date(Date.now() + 1).toISOString();
+    workbench.store.put('workspace', workspace);
+    const burst = Array.from({ length: 20 }, (_, index) => ide(`/asset-${index}.js`, cookies[0]));
+    await started;
+    release();
+    assert((await Promise.all(burst)).every((response) => response.status === 200));
+    assert.equal(inspected, 1, '并发静态资源必须复用一次运行实例查询');
+    await ide('/cached.js', cookies[0]);
+    assert.equal(inspected, 1);
+    workspace.updatedAt = new Date(Date.now() + 2).toISOString();
+    workbench.store.put('workspace', workspace);
+    let attempts = 0;
+    workbench.driver.inspect = async () => {
+      if (++attempts === 1) {
+        throw new Error('模拟 SDK 查询失败');
+      }
+      return environment;
+    };
+    assert.equal((await ide('/retry.js', cookies[0])).status, 500);
+    assert.equal((await ide('/retry.js', cookies[0])).status, 200);
+    assert.equal(attempts, 2, '失败查询不能进入缓存');
     const pending = (await request('alice', `/workspaces/${workspace.id}/enter`, {})).value.url;
+    let admit!: () => void;
+    let inspecting!: () => void;
+    const pendingGate = new Promise<void>((resolve) => {
+      admit = resolve;
+      gates.push(resolve);
+    });
+    const pendingStarted = new Promise<void>((resolve) => (inspecting = resolve));
+    workbench.driver.inspect = async () => {
+      inspecting();
+      await pendingGate;
+      return environment;
+    };
+    workspace.updatedAt = new Date(Date.now() + 3).toISOString();
+    workbench.store.put('workspace', workspace);
+    const pendingHTTP = ide('/pending.js', cookies[1]);
+    await pendingStarted;
     const closed = once(sockets[1], 'close');
     const originalHelper = workbench.driver.helper;
     workbench.driver.helper = async () => {
@@ -168,6 +223,9 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
       200,
     );
     await closed;
+    admit();
+    assert.equal((await pendingHTTP).status, 401, '等待环境查询期间撤权的 HTTP 请求也必须拒绝');
+    workbench.driver.inspect = originalInspect;
     assert.equal((await ide('/', cookies[1])).status, 401);
     assert.equal((await ide(new URL(pending).search)).status, 401);
     assert.equal((await request('alice', '/workspaces')).value.length, 0);
@@ -181,6 +239,7 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
     assert.equal((await request('outsider', `/workspaces/${workspace.id}/enter`, {})).status, 404);
     workbench.driver.helper = originalHelper;
   } finally {
+    gates.forEach((release) => release());
     sockets.forEach((socket) => socket.terminate());
     await workbench.close();
     ws.clients.forEach((socket) => socket.terminate());
