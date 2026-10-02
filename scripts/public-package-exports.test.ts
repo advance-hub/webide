@@ -78,8 +78,8 @@ const packageDirectories = [
 packageDirectories.push('tools/dev-tool');
 const installedPackages = new Map<string, string>();
 
-// Copy the published files into an independent consumer. Link only declared
-// dependencies so resolution cannot accidentally rely on the repository root.
+// 将发布文件复制到独立调用方中，只链接声明的依赖，
+// 防止模块解析意外依赖仓库根目录。
 for (const directory of packageDirectories) {
   const original = path.join(repoRoot, directory);
   const manifest = JSON.parse(fs.readFileSync(path.join(original, 'package.json'), 'utf8'));
@@ -178,7 +178,7 @@ test('every public entry and style resolves to a published file while implementa
       privateSpecifiers.push(`${name}/${privatePath}`);
     }
   }
-  // A plain Node process has no tsx hooks or repository source aliases.
+  // 普通 Node 进程不包含 tsx 钩子或仓库源码别名。
   const result = spawnSync(
     process.execPath,
     [
@@ -1476,7 +1476,7 @@ test('a standalone browser consumer renders a component and bundles its public s
      import '@opensumi/ide-theme/styles/icon.less';
      globalThis.publicButtonMarkup = renderToStaticMarkup(React.createElement(Button, { type: 'primary' }, AI_PANEL_LAYOUT_CONTEXT));`,
   );
-  // React is supplied by this consumer, as required by the component peer contract.
+  // 组件的对等依赖契约要求调用方提供 React。
   for (const name of ['react', 'react-dom']) {
     const original = path.dirname(requireFromRepo.resolve(`${name}/package.json`));
     fs.symlinkSync(original, path.join(fixture, 'node_modules', name), 'dir');

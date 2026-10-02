@@ -25,7 +25,7 @@ const jsdom = new JSDOM('<div id="main"></div>', {
   // https://github.com/jsdom/jsdom#basic-options
   // 禁用掉 resources: usable, 采用 jsdom 默认策略不加载 subresources
   // 避免测试用例加载 external subresource, 如 iconfont 的 css 挂掉
-  // resources: 'usable',
+  // 可按需开启外部资源加载。
   runScripts: 'dangerously',
   url: 'http://localhost/?id=1',
   // 保障 `platform.ts` 中 isLinux 等平台信息判断准确性
@@ -111,8 +111,8 @@ Object.defineProperty(window, 'matchMedia', {
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
+    addListener: jest.fn(), // 兼容历史测试接口。
+    removeListener: jest.fn(), // 兼容历史测试接口。
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),

@@ -2,11 +2,9 @@ import path from 'node:path';
 
 export const EXTENSION_DIRECTORY_ENVIRONMENT = 'OPENSUMI_EXTENSION_DIR';
 
-/**
- * Production must not inherit extensions from the host user's home directory.
- * A deployment can mount a curated, persistent extension volume explicitly;
- * development keeps the framework's existing ~/.sumi/extensions default.
- */
+/* * 生产环境不继承宿主用户目录的扩展。
+ * 部署可以显式挂载受管理的持久扩展卷，
+ * 开发模式继续使用框架既有的 ~/.sumi/extensions 默认目录。 */
 export function resolveMarketplaceExtensionDirectory(
   rootDirectory: string,
   environment: NodeJS.ProcessEnv = process.env,

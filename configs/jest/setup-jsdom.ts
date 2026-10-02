@@ -15,8 +15,8 @@ testGlobal.setImmediate = timer.setImmediate;
 testGlobal.Buffer = Buffer;
 testGlobal.clearImmediate = timer.clearImmediate;
 
-// jsdom does not implement IntersectionObserver. A deterministic test double
-// is enough for unit tests and avoids carrying the retired browser polyfill.
+// jsdom 未实现 IntersectionObserver，单元测试使用确定性的替身，
+// 无须保留已经移除的浏览器兼容补丁。
 class MockIntersectionObserver {
   readonly root: Element | Document | null;
   readonly rootMargin: string;
@@ -41,8 +41,8 @@ class MockIntersectionObserver {
 
 testGlobal.IntersectionObserver = MockIntersectionObserver;
 
-// packages/extension/__tests__/browser/main.thread.env.test.ts
-// MainThreadEnvAPI Test Suites  › can read/write text via clipboard
+// 相关用例：packages/extension/__tests__/browser/main.thread.env.test.ts
+// MainThreadEnvAPI 测试需要支持剪贴板文本读写。
 let text = '';
 testGlobal.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -122,15 +122,15 @@ Object.defineProperty(window, 'matchMedia', {
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
+    addListener: jest.fn(), // 兼容历史测试接口。
+    removeListener: jest.fn(), // 兼容历史测试接口。
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
 });
 
-// Mock window.crypto
+// 模拟浏览器加密接口。
 Object.defineProperty(window, 'crypto', {
   writable: true,
   value: {
@@ -160,7 +160,7 @@ Object.defineProperty(window, 'crypto', {
   },
 });
 
-// Mock window.CSS
+// 模拟浏览器 CSS 接口。
 Object.defineProperty(window, 'CSS', {
   writable: true,
   value: {

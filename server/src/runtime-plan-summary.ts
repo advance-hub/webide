@@ -22,7 +22,7 @@ export interface RuntimePlanHealthSummary {
   readonly features?: readonly RuntimePlanFeatureHealthSummary[];
 }
 
-/** Projects a runtime plan into data that is safe to expose from health APIs. */
+/* * 将运行计划转换为可以通过健康检查接口公开的数据。 */
 export function summarizeRuntimePlan(
   plan: RuntimePlan<unknown>,
   options: { includeFeatures?: boolean } = {},

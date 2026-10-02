@@ -8,43 +8,43 @@ packages:
   - tools/cli-engine
   - tools/electron
 
-# OpenSumi historically used Yarn's node-modules linker. Start with a hoisted
-# layout to preserve compatibility, then tighten package boundaries gradually.
+# OpenSumi 历史上使用 Yarn 的 node-modules 布局，先使用提升布局
+# 保持兼容，再逐步收紧包边界。
 nodeLinker: hoisted
 sharedWorkspaceLockfile: true
 saveWorkspaceProtocol: rolling
 engineStrict: true
 
-# Resolve React and other shared peers from the versions pinned at the root.
-# This prevents isolated workspace importers from auto-installing a second
-# framework runtime just because an optional peer accepts a newer major.
+# React 和其他共用的对等依赖使用根目录固定版本。
+# 避免隔离的工作区因为可选对等依赖允许新主版本
+# 而自动安装第二份框架运行时。
 resolvePeersFromWorkspaceRoot: true
 
-# react-chat-elements pins react-dom to 18.2.0 even though it is compatible
-# with the current React 18.3 runtime. Keep the singleton runtime and document
-# that intentional compatibility exception for peer validation.
+# react-chat-elements 声明 react-dom 18.2.0，但兼容
+# 当前 React 18.3 运行时。保持单例运行时，并声明
+# 这项经过兼容检查的对等依赖例外。
 peerDependencyRules:
   allowedVersions:
     react-dom: 18.3.1
 
-# A script command must never start a surprise install on a memory-constrained
-# developer machine. Installation remains an explicit operation.
+# 开发机内存受限，脚本命令不应意外触发安装。
+# 依赖安装始终通过显式操作执行。
 verifyDepsBeforeRun: false
 
-# Native dependency builds are the only install phase that can create several
-# memory-heavy child processes. Keep those serial and bound registry fan-out;
-# dependency resolution itself remains shared through the workspace lockfile.
+# 原生依赖构建可能产生多个高内存子进程，
+# 因此串行构建，并限制包注册表的并发请求。
+# 依赖解析仍然共用工作区锁文件。
 childConcurrency: 1
 networkConcurrency: 8
 
-# mapbox-gl@0.32.1, pulled by the current notebook/Plotly stack, still has a
-# git subdependency. Keep it temporarily until that visualization stack moves
-# to a modern release.
+# 历史 notebook/Plotly 栈引入的 mapbox-gl 分发链仍包含
+# Git 子依赖；可视化栈完成迁移前暂时允许，
+# 实际版本由下面的覆盖配置固定。
 blockExoticSubdeps: false
 
-# @y/websocket-server 0.1.1 supports Yjs 13 but still declares y-leveldb 0.1
-# as an optional dependency. Pin the API-compatible 0.2 line to remove the
-# obsolete leveldown@5 native addon from the Node 24 collaboration runtime.
+# @y/websocket-server 0.1.1 支持 Yjs 13，但声明 y-leveldb 0.1
+# 为可选依赖。固定兼容的 0.2 版本，移除 Node 24 协作运行时中
+# 已经过时的 leveldown@5 原生模块。
 overrides:
   '@difizen/mana-app': 0.1.27
   '@difizen/mana-common': 0.1.27
@@ -68,8 +68,8 @@ overrides:
   markdown-it: 14.3.1
   'uuid@<11.1.1': 11.1.1
 
-# pnpm 11 blocks dependency build scripts by default. Native/runtime packages
-# are explicitly trusted; informational postinstall scripts stay disabled.
+# pnpm 默认禁用依赖构建脚本；显式允许可信的原生和运行时包，
+# 继续禁用仅用于提示信息的安装后脚本。
 allowBuilds:
   pnpm: true
   '@opensumi/ripgrep': true

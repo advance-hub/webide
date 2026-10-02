@@ -47,8 +47,8 @@ function createWorkspacePackageAliases(): Record<string, string> {
           return undefined;
         }
         const packageJson = fse.readJsonSync(packageJsonPath) as { name?: unknown; exports?: unknown };
-        // Packages with an explicit API resolve through their exports contract.
-        // Directory aliases would bypass it and break named public subpaths.
+        // 明确声明公共 API 的包按照 exports 契约解析。
+        // 目录别名会绕过契约，破坏公开的具名子路径。
         if (packageJson.exports) {
           return undefined;
         }
@@ -160,15 +160,15 @@ const config: Configuration = {
   target: ['web', 'es2018'],
   mode: isProduction ? 'production' : 'development',
   bail: process.env.RSPACK_STATS !== 'verbose',
-  // Source maps materially increase the resident set of this large IDE graph.
-  // Keep the low-memory profile as the default and make maps an explicit opt-in.
+  // IDE 模块图很大，源码映射会明显增加常驻内存。
+  // 默认使用低内存构建，源码映射需要显式开启。
   devtool: sourceMapEnabled ? (isProduction ? 'source-map' : 'cheap-module-source-map') : false,
   cache:
     process.env.RSPACK_CACHE === '0'
       ? false
       : {
           type: 'persistent',
-          // Resolver results must never cross source/compiled or product profiles.
+          // 解析缓存必须区分源码模式、编译模式和产品配置。
           name: `client-${e2eMode ? 'e2e' : 'product'}-${sourceMode ? 'source' : 'compiled'}-${isProduction ? 'production' : 'development'}`,
           version: createHash('sha256')
             .update(JSON.stringify({ clientDefinitions, sourceMapEnabled, node: process.version }))
@@ -181,8 +181,8 @@ const config: Configuration = {
           ],
         },
   node: {
-    // process.ts only probes this value to detect Node/CJS output. Keeping it
-    // undefined in the browser avoids Rspack's compatibility mock and warning.
+    // process.ts 仅用此值判断 Node 或 CommonJS 输出。
+    // 浏览器中保留未定义值，避免 Rspack 注入兼容模拟并产生警告。
     __filename: false,
     __dirname: false,
   },
@@ -199,15 +199,15 @@ const config: Configuration = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json', '.less'],
     extensionAlias: {
-      // Prefer published JavaScript when a dependency ships both .js and its
-      // TypeScript source (for example ansi_up). Source-only .js specifiers
-      // still fall back to the matching .ts/.tsx file.
+      // 依赖同时发布 JavaScript 与 TypeScript 时，优先使用发布的 JavaScript，
+      // 例如 ansi_up；仅有源码的 .js 导入
+      // 仍然回退到相应的 .ts 或 .tsx 文件。
       '.js': ['.js', '.ts', '.tsx'],
     },
-    // The default profile consumes each workspace package's precompiled lib.
-    // Mapping every @opensumi import to packages/*/src makes Rspack retain the
-    // full framework TypeScript graph. Source mode is still available when a
-    // framework package itself needs browser-side HMR.
+    // 默认配置使用工作区包预先编译的 lib 目录。
+    // 将所有 @opensumi 导入映射到 packages/*/src 会使 Rspack 保留
+    // 整个框架的 TypeScript 模块图。调试框架包时，
+    // 仍然可以开启源码模式，使用浏览器热更新。
     ...(sourceMode
       ? {
           tsConfig: {
@@ -215,9 +215,9 @@ const config: Configuration = {
           },
         }
       : {}),
-    // Keep Node's normal ancestor lookup first so pnpm can select nested
-    // transitive versions. The client workspace is the final fallback for
-    // self-references in emitted styles such as @opensumi/ide-core-browser.
+    // 先沿用 Node 的父目录查找顺序，让 pnpm 选中嵌套的
+    // 传递依赖版本；客户端工作区作为最后的回退位置，
+    // 用于处理编译后样式中对 @opensumi/ide-core-browser 的自引用。
     modules: ['node_modules', path.join(clientDirectory, 'node_modules')],
     alias: {
       ...workspacePackageAliases,
@@ -240,11 +240,11 @@ const config: Configuration = {
   },
   module: {
     rules: [
-      // Product-entry code uses Rspack's fast built-in SWC path.
+      // 产品入口使用 Rspack 内置的快速 SWC 编译。
       createSwcRule(),
-      // Framework sources need TypeScript's type analysis to emit correct
-      // decorator metadata. An all-SWC build treats erased interfaces as
-      // runtime imports and currently fails module linking.
+      // 框架源码需要 TypeScript 类型分析，才能生成正确的
+      // 装饰器元数据；全部改用 SWC 会将已擦除的接口识别为
+      // 运行时导入，导致模块链接失败。
       createTypeScriptRule(notebookModulePath, {
         module: 'esnext',
         moduleResolution: 'bundler',
@@ -269,13 +269,13 @@ const config: Configuration = {
             options: {
               importLoaders: 1,
               sourceMap: sourceMapEnabled,
-              // Framework sources are still transpiled to CommonJS, so expose
-              // the CSS module object with matching interop semantics.
+              // 框架源码仍然输出 CommonJS，CSS 模块对象需要
+              // 使用相匹配的模块互操作语义。
               esModule: false,
               modules: {
                 localIdentName: '[local]___[hash:base64:5]',
-                // css-loader 7 otherwise camel-cases keys such as
-                // `mod_selected`; existing styles access the literal name.
+                // css-loader 7 默认会将键名转换为驼峰格式，
+                // 现有样式依赖 mod_selected 这样的原始名称。
                 exportLocalsConvention: 'as-is',
               },
             },

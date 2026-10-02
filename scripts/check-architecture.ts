@@ -38,10 +38,10 @@ export const ARCHITECTURE_BASELINE_PATH = 'scripts/architecture-baseline.json';
 
 export interface CountBaseline {
   commonFacetImports: Record<string, number>;
-  /** Runtime-reaching package-root import sites, grouped by source -> target package. */
+  /* * 按来源包与目标包统计会到达运行时实现的包根导入。 */
   commonRuntimeRootImports: Record<string, number>;
   deepImportsByPackage: Record<string, number>;
-  /** Runtime value imports whose workspace dependency is declared only for development. */
+  /* * 统计仅声明为开发依赖、实际却用于运行时值的导入。 */
   runtimeImportsFromDevDependencies: Record<string, number>;
   undeclaredWorkspaceDependencies: Record<string, number>;
 }
@@ -361,14 +361,10 @@ function resolveRelativeSourceModule(file: string, specifier: string, packageRoo
   );
 }
 
-/**
- * Finds workspace package roots whose public `src/index` entrypoint can reach
- * a runtime facet. The traversal intentionally follows every static or dynamic
- * import/re-export in the package-local relative closure, not only named public
- * exports: importing the root can execute those modules or expose their types.
- * Exact workspace-root dependencies are propagated to a fixed point so a root
- * cannot hide a runtime-specific root behind another package root.
- */
+/* * 查找公开 src/index 入口可到达运行时实现的工作区包。
+ * 遍历包内全部静态、动态导入与重导出，包含未公开的模块；
+ * 导入包根可能执行这些模块或暴露它们的类型。
+ * 对工作区包根之间的依赖迭代计算，避免通过另一个包根隐藏运行时依赖。 */
 export function findRuntimeRootPackages(packages: WorkspacePackage[]): Set<string> {
   const packageNames = packages.map(({ name }) => name).sort((left, right) => right.length - left.length);
   const summaries = new Map<string, { directRuntime: boolean; rootDependencies: Set<string> }>();
@@ -486,8 +482,8 @@ export function analyzeArchitecture(repoRoot: string): ArchitectureSnapshot {
   const packages = discoverWorkspacePackages(repoRoot);
   const packageNames = packages.map(({ name }) => name).sort((left, right) => right.length - left.length);
   const runtimeRootPackages = findRuntimeRootPackages(packages);
-  // Package manifests are the declared runtime graph. Source imports are then merged in so
-  // undeclared-but-real dependencies cannot hide a cycle from the gate.
+  // 包清单声明运行时依赖图，再合并源码中的真实导入，
+  // 防止未声明的依赖隐藏循环引用。
   const graph = createWorkspaceDependencyGraph(packages);
   const imports: ImportRecord[] = [];
   const commonFacetImports = new Map<string, number>();
@@ -522,9 +518,9 @@ export function analyzeArchitecture(repoRoot: string): ArchitectureSnapshot {
           if (!workspacePackage.dependencies.has(targetPackage.name)) {
             increment(undeclaredWorkspaceDependencies, `${workspacePackage.name} -> ${targetPackage.name}`);
           } else if (!extracted.typeOnly && !workspacePackage.runtimeDependencies.has(targetPackage.name)) {
-            // A source value import ships in the package runtime. Preserve the
-            // pre-existing dev-only debt as a separate exact baseline so it
-            // can only shrink without redefining the older undeclared metric.
+            // 源码中的值导入会进入发布的运行时。既有的开发依赖引用
+            // 作为独立、精确的技术债基线保存，后续只能减少，
+            // 无须重新定义原有的未声明依赖指标。
             increment(runtimeImportsFromDevDependencies, `${workspacePackage.name} -> ${targetPackage.name}`);
           }
         }
@@ -607,7 +603,7 @@ export function evaluateBaselineHistory(branch: CountBaseline, base: CountBaseli
   return problems;
 }
 
-/** Explicit package contracts cannot be bypassed by renaming a private import. */
+/* * 不允许通过重命名私有导入绕过明确声明的包契约。 */
 export function evaluatePackageImports(
   snapshot: Pick<ArchitectureSnapshot, 'imports' | 'packages'>,
 ): ArchitectureProblem[] {
@@ -771,9 +767,9 @@ export function runCli(repoRoot: string, args: string[]): number {
   const baselineRef = optionValue(args, '--baseline-ref') || process.env.ARCHITECTURE_BASELINE_REF?.trim();
   const problems = [...evaluateArchitecture(snapshot, branchBaseline), ...evaluatePackageImports(snapshot)];
   if (baselineRef) {
-    // A field first introduced by this branch inherits the branch baseline for
-    // this one historical comparison. Once merged, later branches compare it
-    // monotonically like every older field.
+    // 分支首次引入的基线字段在这一次历史比较中采用分支基线。
+    // 合并后，后续分支与其他字段一样逐项比较，
+    // 不允许通过更新基线增加技术债。
     const baseBaseline = readBaselineFromGit(repoRoot, baselineRef, branchBaseline);
     if (baseBaseline) {
       problems.push(...evaluateBaselineHistory(branchBaseline, baseBaseline));

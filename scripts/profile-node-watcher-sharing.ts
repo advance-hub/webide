@@ -15,7 +15,7 @@ import { AppConfig } from '../packages/core-node/src/types';
 
 import type { FileSystemWatcherClient } from '@opensumi/ide-core-common/file-watch';
 
-// Internal implementations are exercised through the module's registered DI tokens.
+// 通过模块注册的依赖注入标识测试内部实现。
 const watcherToken = (
   new FileServiceModule().providers.find(
     (provider) =>
@@ -48,8 +48,8 @@ async function main() {
   assert(Number.isSafeInteger(sessions) && sessions >= 2);
   await mkdir(outputDirectory, { recursive: true });
   const probe = await mkdtemp(path.join(workspace, '.watch-sharing-'));
-  // Use an established repository file for save notifications. Native macOS
-  // backends can retain Created flags for a newly created fixture under load.
+  // 保存通知使用仓库中已有的文件；在高负载下，macOS 原生后端
+  // 可能继续保留新建测试文件的 Created 标记。
   const existingFile = path.join(workspace, 'README.md');
   const originalContents = await readFile(existingFile);
   const events = Array.from({ length: sessions }, () => [] as Array<{ uri: string; type: FileChangeType }>);
@@ -59,8 +59,8 @@ async function main() {
   const steps: Array<{ name: string; elapsedMs: number }> = [];
   const started = Date.now();
   const originalEnv = { ...process.env };
-  // The harness runs through tsx, but production watcher hosts execute emitted
-  // JavaScript. Avoid counting one inherited tsx loader per Node host.
+  // 测试脚本通过 tsx 运行，生产 watcher 宿主执行编译后的
+  // JavaScript，避免每个 Node 宿主都继承一个 tsx 加载器。
   const inheritedExecArgv = process.execArgv.splice(0);
   Object.assign(process.env, {
     OPENSUMI_RUNTIME_MODE: 'node',
@@ -131,8 +131,8 @@ async function main() {
     action: () => Promise<unknown>,
     recipients: number[],
   ) {
-    // macOS FSEvents coalesces operations across a delivery window. Keep the
-    // steady-state mutation probes separate; burst behavior is a distinct test.
+    // macOS FSEvents 会在投递窗口内合并文件操作。
+    // 稳态修改与突发修改分别测试，避免混淆事件语义。
     await delay(500);
     events.forEach((entry) => entry.splice(0));
     const uri = URI.file(file).toString();

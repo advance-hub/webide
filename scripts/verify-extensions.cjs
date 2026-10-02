@@ -26,8 +26,8 @@ function verifyExtension(directory, expected, targetPlatform, downloadedReceipt)
   assert.match(receipt.sha256, /^[a-f0-9]{64}$/i, `${id}: checksum receipt`);
   assert.ok(receipt.platform === 'universal' || receipt.platform === targetPlatform, `${id}: wrong platform`);
   const extensionRequire = createRequire(manifestPath);
-  // Match the hybrid host's selection. Some legacy Node VSIXs declare a web
-  // entry that is only included in their web distribution.
+  // 与混合宿主的选择规则一致；部分旧 Node 扩展声明的浏览器入口
+  // 只包含在浏览器分发包中。
   const preferredKind = Array.isArray(manifest.extensionKind) ? manifest.extensionKind[0] : manifest.extensionKind;
   const entry = manifest.browser && (!manifest.main || preferredKind === 'ui') ? manifest.browser : manifest.main;
   if (typeof entry === 'string') {

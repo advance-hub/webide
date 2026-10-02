@@ -1,7 +1,7 @@
 import { TextDecoder, TextEncoder } from 'node:util';
 
-// Do not log message on GitHub Actions.
-// Because these logs will affect the detection of real problems.
+// 在 GitHub Actions 中关闭常规日志。
+// 避免日志噪声干扰真实问题的识别。
 const originalConsole = globalThis.console;
 globalThis.console = process.env.CI
   ? ({
@@ -20,7 +20,7 @@ Object.assign(globalThis, { TextDecoder, TextEncoder });
 process.on('unhandledRejection', (error) => {
   originalConsole.error('unhandledRejection', error);
   if (process.env.EXIT_ON_UNHANDLED_REJECTION) {
-    process.exit(1); // To exit with a 'failure' code
+    process.exit(1); // 使用非零退出码报告失败。
   }
 });
 

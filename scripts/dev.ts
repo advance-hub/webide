@@ -53,9 +53,9 @@ function signalProcessTree(child: ChildProcess, signal: NodeJS.Signals): void {
         child.kill(signal);
       }
     } else {
-      // The process-group leader may have exited while one of its descendants is
-      // still alive. Always signal the group so watcher and extension-host
-      // processes cannot be orphaned during shutdown.
+      // 进程组组长退出后，子进程可能仍在运行。
+      // 始终向进程组发送信号，避免 watcher 和扩展宿主
+      // 在关闭过程中变成孤儿进程。
       process.kill(-child.pid, signal);
     }
   } catch (error) {
@@ -111,7 +111,7 @@ async function waitForServer(child: ChildProcess): Promise<void> {
         return;
       }
     } catch {
-      // The watcher may still be compiling or restarting the server.
+      // watcher 可能仍在编译或重启服务。
     }
     await delay(250);
   }
@@ -169,8 +169,8 @@ async function main(): Promise<void> {
   if (startClient && (await isPortOpen(clientPort))) {
     throw new Error(`Client port ${clientPort} is already in use`);
   }
-  // Source mode still launches compiled extension/worker processes. Validate
-  // those artifacts as well as the libraries used by the compiled entrypoints.
+  // 源码模式仍然启动编译后的扩展宿主与 worker 进程。
+  // 同时校验这些产物，以及编译入口使用的包文件。
   await ensureRuntimeArtifacts({ mode: startServer ? runtimeMode : 'node' });
 
   const enableAI = args.has('--ai');
@@ -194,9 +194,9 @@ async function main(): Promise<void> {
     requestedShutdown = true;
     void shutdown();
   };
-  // Package managers and the controlling terminal can both forward the same
-  // signal. Keep idempotent handlers installed until cleanup finishes so a
-  // duplicate signal cannot terminate the supervisor halfway through shutdown.
+  // 包管理器和控制终端都可能转发同一个信号。
+  // 清理完成前保留幂等处理器，避免重复信号
+  // 在关闭过程中提前终止监督进程。
   process.on('SIGINT', handleSignal);
   process.on('SIGTERM', handleSignal);
   process.on('SIGHUP', handleSignal);

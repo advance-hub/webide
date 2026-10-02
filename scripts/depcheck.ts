@@ -11,7 +11,7 @@ import { argv } from '@opensumi/ide-core-common/node/cli';
 const packagesDir = join(__dirname, '../packages');
 
 const ghostDepsWhiteLists = [
-  // common deps from `@opensumi/ide-core-browser` or `@opensumi/ide-core-node`.
+  // 来自 @opensumi/ide-core-browser 或 @opensumi/ide-core-node 的共用依赖。
   '@opensumi/di',
   'ajv',
   'fuzzy',
@@ -40,11 +40,11 @@ const moduleAllowList = {
 };
 
 const options = {
-  ignoreBinPackage: false, // ignore the packages with bin entry
-  skipMissing: false, // skip calculation of missing dependencies
+  ignoreBinPackage: false, // 忽略带有可执行入口的包。
+  skipMissing: false, // 跳过缺失依赖的计算。
   ignoreDirs: ['bower_components', 'node_modules', 'lib', '__tests__', '__test__'],
   ignoreMatches: [
-    // devtool related
+    // 开发工具相关依赖。
     '@opensumi/ide-dev-tool',
     'npm-run-all',
     'ts-node',
@@ -54,17 +54,17 @@ const options = {
   ],
   ignorePatterns: ['__tests__', '__test__', '__mocks__'],
   parsers: {
-    // the target parsers
+    // 目标文件解析器。
     '**/*.ts': depcheck.parser.typescript,
     '**/*.tsx': depcheck.parser.typescript,
   },
   detectors: [
-    // the target detectors
+    // 依赖引用检测器。
     depcheck.detector.requireCallExpression,
     depcheck.detector.importDeclaration,
   ],
   specials: [
-    // the target special parsers
+    // 特殊文件解析器。
     depcheck.special.eslint,
     depcheck.special.webpack,
   ],
@@ -91,7 +91,6 @@ function check(
             console.log('* ' + dependency);
           });
         } else {
-          // console.log(chalk.greenBright('No unused dependency'));
         }
       }
 

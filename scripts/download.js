@@ -26,8 +26,8 @@ async function downloadArchive(url, archive, checksum) {
   if (fs.existsSync(archive) && (await archiveHash(archive)) === checksum) {
     return;
   }
-  // Keep partial archives across retries and invocations. Curl's HTTP/1.1 range
-  // handling works with the official CDN and does not buffer large Java VSIXs.
+  // 跨重试和多次执行保留未完成的下载包；curl 的 HTTP/1.1 分段下载
+  // 支持官方 CDN，且不需要将大型 Java VSIX 全部缓存在内存中。
   await promisify(execFile)(
     'curl',
     [
@@ -82,8 +82,8 @@ async function installExtension(extension) {
     console.log(`Extension ready: ${id}`);
     return;
   } catch {
-    // Replace only this pinned extension after a complete download.
-    // Preserve other installs and keep the previous version on download failure.
+    // 下载成功后只替换当前固定版本的扩展。
+    // 保留其他扩展，下载失败时继续保留旧版本。
   }
   for (let attempt = 1; attempt <= 3; attempt++) {
     const staging = await fsp.mkdtemp(path.join(path.dirname(targetDir), '.opensumi-extension-'));
@@ -105,8 +105,8 @@ async function installExtension(extension) {
       await downloadArchive(metadata.files.download, archive, checksum.toLowerCase());
       await promisify(execFile)('unzip', ['-q', archive, '-d', staging], { timeout: 120_000 });
       const unpacked = path.join(staging, 'extension');
-      // Keep our receipt outside the vendor directory: extensions can validate
-      // their own file inventory during activation.
+      // 将下载凭据放在第三方目录之外，避免干扰扩展激活时
+      // 对自身文件清单的校验。
       const receipt = { platform, sha256: checksum };
       await fsp.writeFile(receiptPath(unpacked), JSON.stringify(receipt));
       verifyExtension(unpacked, extension, targetPlatform, receipt);
@@ -164,8 +164,8 @@ async function main() {
   await retireSupersededExtensions(targetDir, expectedExtensions());
 }
 
-// The scanner sees every directory. Leaving a newer but incompatible version
-// beside a pinned downgrade can silently select the wrong one at startup.
+// 扫描器读取所有目录；如果不兼容的新版本和固定的旧版本
+// 同时存在，启动时可能选择错误的版本。
 async function retireSupersededExtensions(directory, expected) {
   const wanted = new Map(expected.map((e) => [`${e.publisher}.${e.name}`.toLowerCase(), e.version]));
   let backup;
@@ -176,7 +176,7 @@ async function retireSupersededExtensions(directory, expected) {
     const location = path.join(directory, entry.name);
     if (!fs.existsSync(receiptPath(location))) {
       continue;
-    } // Leave user-managed directories alone.
+    } // 不修改用户自行管理的目录。
     let manifest;
     try {
       manifest = JSON.parse(await fsp.readFile(path.join(location, 'package.json'), 'utf8'));

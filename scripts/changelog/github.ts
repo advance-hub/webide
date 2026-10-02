@@ -59,7 +59,7 @@ export async function extractChangelog(logs: ReadonlyArray<DefaultLogFields>): P
   for (const log of githubPrLogs) {
     const ret = regex.exec(log.message);
     if (ret && ret[1]) {
-      // fetch pr desc from github service and insert it to `body` field
+      // 从 GitHub 获取 PR 描述，并写入 body 字段。
       const prIid = ret[1];
       const prDetail = await getPrDesc(prIid);
       result.push({

@@ -110,13 +110,13 @@ function changedFiles(root: string, from: string, to: string): string[] {
   return checkedGit(root, ['diff', '--name-only', '-z', from, to]).toString().split('\0').filter(Boolean);
 }
 
-/** Fetches official objects without changing HEAD, the index, or working files. */
+/* * 获取官方对象，不修改 HEAD、暂存区或工作区文件。 */
 export function checkUpstream(root: string): UpstreamSyncResult {
   const manifest = readBaseline(root);
   const ref = `refs/remotes/opensumi-sync/${manifest.branch}`;
   checkedGit(root, ['fetch', '--no-tags', manifest.repository, `+refs/heads/${manifest.branch}:${ref}`]);
   const target = revision(root, ref);
-  // An upstream rewrite needs a new baseline decision, not a blind unrelated-history merge.
+  // 上游改写历史时需要重新决定基线，不能盲目合并无关历史。
   if (git(root, ['merge-base', '--is-ancestor', manifest.baseline.commit, target.commit]).status !== 0) {
     throw new Error(
       'Upstream history no longer descends from the recorded baseline; review the baseline before syncing',
@@ -130,7 +130,7 @@ export function checkUpstream(root: string): UpstreamSyncResult {
   };
 }
 
-/** Applies only the upstream delta to a new branch/worktree based on our exact HEAD. */
+/* * 基于当前精确 HEAD 创建分支或工作树，只应用上游增量。 */
 export function prepareUpstream(root: string, worktree: string, branch?: string): UpstreamSyncResult {
   assertCleanTrackedFiles(root);
   const sourceHead = revision(root, 'HEAD').commit;
@@ -191,7 +191,7 @@ export function prepareUpstream(root: string, worktree: string, branch?: string)
   return { ...result, status: 'prepared', worktree: destination, branch: branchName };
 }
 
-/** Run after resolving and staging conflicts, before committing the prepared change. */
+/* * 冲突解决并暂存后、提交同步结果之前执行此检查。 */
 export function finishUpstream(root: string): void {
   const statePath = pendingPath(root);
   const pending: PendingSync = JSON.parse(fs.readFileSync(statePath, 'utf8'));

@@ -9,7 +9,7 @@ if (process.platform !== 'win32') {
     manifest = terminalRequire.resolve('node-pty/package.json');
   } catch (error) {
     if (error.code === 'MODULE_NOT_FOUND') {
-      // A filtered control-plane install does not include the IDE terminal.
+      // 按工作台过滤的依赖安装可能不包含 IDE 终端。
       process.exit(0);
     }
     throw error;

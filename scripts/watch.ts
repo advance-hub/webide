@@ -9,8 +9,6 @@ import { run } from './fn/shell';
 
 let handler: ParcelWatcher.AsyncSubscription;
 (async () => {
-  // await run('npm run clean');
-
   const filePattern = '*/src/**/!(*.ts|*.tsx)';
 
   console.log(`[COPY]: ${filePattern}`);
@@ -34,7 +32,7 @@ let handler: ParcelWatcher.AsyncSubscription;
     });
   });
 
-  // build webview resources
+  // 构建 webview 资源。
   await run('npx tsc --build configs/ts/tsconfig.build.json -w');
 })().catch((e) => {
   console.trace(e);

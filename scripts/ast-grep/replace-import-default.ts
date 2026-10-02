@@ -1,7 +1,7 @@
 import { tsx } from '@ast-grep/napi';
 import MagicString from 'magic-string';
 
-/** Replace the local variable name of a default import and its call sites. */
+/* * 替换默认导入的本地变量名称，并同步修改其调用位置。 */
 export const replaceImportDefault = (source: string, pkgName: string, expectedLocalName: string): string => {
   const magic = new MagicString(source);
   const root = tsx.parse(source).root();

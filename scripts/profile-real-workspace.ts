@@ -14,8 +14,8 @@ import { collectProcessTreeMemory } from '@opensumi/ide-dev-tool/diagnostics/pro
 
 import type { BrowserContext, Locator, Page } from 'playwright';
 
-// Run against an isolated working copy, never a developer's live checkout.
-// Example: pnpm exec tsx scripts/profile-real-workspace.ts <project.json> node 1 3 <output-directory>
+// 使用隔离的工作副本，不能测试开发者正在使用的仓库。
+// 示例：pnpm exec tsx scripts/profile-real-workspace.ts <project.json> node 1 3 <output-directory>
 interface Project {
   name: string;
   workspace: string;
@@ -121,7 +121,7 @@ async function main() {
   async function step(name: string, session: number, action: () => Promise<unknown>, timeoutMs = 90_000) {
     phase = name;
     const start = Date.now();
-    // Individual UI and disk waits are bounded. Do not race abandoned mutations.
+    // 为每个界面与磁盘操作设置独立时限，避免放弃的操作继续修改测试状态。
     try {
       const evidence = await action();
       const record = { name, session, ms: Date.now() - start, ok: true, evidence };
@@ -200,7 +200,7 @@ async function main() {
       : page.locator('#workbench-editor .monaco-editor:visible textarea').last();
     await input.waitFor({ state: isNativeInput ? 'attached' : 'visible', timeout: 20_000 });
     await input.focus();
-    // Native EditContext focus updates Monaco's context keys asynchronously.
+    // Monaco 的原生 EditContext 会异步更新焦点相关的上下文键。
     await page.waitForTimeout(100);
     return input;
   }
@@ -227,8 +227,8 @@ async function main() {
         }
         await input.fill(relative, { timeout: 5_000 });
         await row.waitFor({ state: 'visible', timeout: 10_000 });
-        // Results rerender while extensions activate. Confirm using the same
-        // keyboard workflow as a user instead of clicking a transient row.
+        // 扩展激活时结果列表可能重新渲染，
+        // 使用与用户相同的键盘流程确认结果，避免点击短暂出现的行。
         await input.press('Enter', { timeout: 5_000 });
         await input.waitFor({ state: 'hidden', timeout: 5_000 });
         await editor(page);
@@ -562,8 +562,8 @@ async function main() {
         throw new Error('Shared document initialization failed; dependent collaboration scenarios were not run');
       }
       await step('collaboration-concurrent-edit-and-save', -1, async () => {
-        // Create independent edits before merging; dispatch UI input sequentially
-        // because native focus is shared by tabs in the same browser process.
+        // 合并前准备独立修改，同一个浏览器进程的标签页共用焦点，
+        // 所以界面输入必须按顺序分派。
         for (const index of [0, 1]) {
           await contexts[index].setOffline(true);
           await pages[index].evaluate(() =>
@@ -664,8 +664,8 @@ async function main() {
       await delay(5_000);
       await sample('language-services-active');
       if (project.nodeModulesLinked) {
-        // Send terminal input sequentially, acknowledge it, then overlap actual builds.
-        // Concurrent focus/typing in different tabs can otherwise lose native terminal input.
+        // 按顺序发送终端输入并等待确认，然后让真实构建同时运行。
+        // 不同标签页同时切换焦点和输入，可能丢失原生终端输入。
         let frontendTask: Awaited<ReturnType<typeof startTerminal>> | undefined;
         let backendTask: Awaited<ReturnType<typeof startTerminal>> | undefined;
         await step('frontend-command-delivery', 0, async () => {

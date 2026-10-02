@@ -115,8 +115,8 @@ function readLogs(from: string, to: string) {
   return git.log({
     from,
     to,
-    // symmetric revision range cannot works
-    // symmetric: `${from}...${to}`
+    // 对称版本范围不能用于此查询。
+    // 不支持的对称范围：from...to。
   });
 }
 

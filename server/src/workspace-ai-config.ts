@@ -48,7 +48,7 @@ async function connectedProviders(home: string): Promise<string[]> {
     if (!auth || typeof auth !== 'object' || Array.isArray(auth)) {
       return [];
     }
-    // Return provider names only. The credential values must never reach the browser.
+    // 仅返回提供方名称，凭据不得发送到浏览器。
     return Object.keys(auth)
       .filter((id) => /^[a-zA-Z0-9._-]+$/.test(id))
       .sort();
@@ -77,8 +77,8 @@ export function createWorkspaceAIConfigMiddleware({ home, workspaceId }: Workspa
       return next();
     }
     context.set('Cache-Control', 'no-store');
-    // The control plane authenticates the user and supplies the workspace ID.
-    // Require that proxy header so direct requests to the IDE cannot use this API.
+    // 控制面负责用户认证，并提供工作区标识。
+    // 要求代理头，禁止直接请求 IDE 时绕过工作台使用此接口。
     if (!workspaceId || context.get('x-workspace-id') !== workspaceId) {
       context.status = 403;
       context.body = { error: '工作区身份不匹配' };

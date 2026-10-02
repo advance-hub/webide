@@ -34,25 +34,22 @@ import type { RuntimeTopologyServerHandshake } from '@opensumi/ide-startup';
 export function createClientStaticMiddleware(directory: string) {
   return serveStatic(directory, {
     setHeaders(response, filename) {
-      // HTML and legacy unversioned entrypoints must revalidate after releases.
+      // HTML 和未带版本的历史入口在发布后必须重新验证缓存。
       const versioned = /\.[a-f0-9]{8}\.(?:js|css)$/.test(path.basename(filename));
       response.setHeader('Cache-Control', versioned ? 'public, max-age=2592000, immutable' : 'no-cache');
     },
   });
 }
 
-/** Identity of the single workspace this server process serves, if any. */
+/* * 当前服务进程所服务的单一工作区标识。 */
 export interface ServedWorkspaceIdentity {
   id?: string;
   directory: string;
 }
 
-/**
- * Only WORKSPACE_DIR activates the binding. The control plane sets it for every
- * driver, while MY_WORKSPACE is a developer convention that dev-tool already
- * uses as a build-time default, so honouring it here would silently take the
- * query parameter away from a standalone checkout.
- */
+/* * 只有 WORKSPACE_DIR 启用目录绑定。控制面会为每个驱动设置它，
+ * MY_WORKSPACE 只是开发工具的构建默认值；若将其用于绑定，
+ * 独立开发环境的查询参数会被意外覆盖。 */
 export function resolveServedWorkspace(env: NodeJS.ProcessEnv = process.env): ServedWorkspaceIdentity | undefined {
   const directory = env.WORKSPACE_DIR;
   if (!directory) {
@@ -61,16 +58,12 @@ export function resolveServedWorkspace(env: NodeJS.ProcessEnv = process.env): Se
   return { id: env.WORKSPACE_ID || undefined, directory };
 }
 
-/**
- * A workbench deployment runs one IDE per workspace and the directory it serves
- * is a deployment fact, not a user input. Declaring it in the served document
- * means the client does not have to take it from the query string, where anyone
- * could point the runtime at another directory. Standalone OpenSumi keeps the
- * query parameter because no server-side workspace is configured there.
- */
+/* * 工作台为每个工作区运行独立 IDE，服务目录属于部署事实。
+ * 将目录写入服务端页面，避免客户端从可伪造的查询参数读取目录。
+ * 未配置服务端工作区的独立 OpenSumi 仍然使用查询参数。 */
 export function createWorkspaceIdentityMiddleware(directory: string, workspace: ServedWorkspaceIdentity) {
   const payload = JSON.stringify({ id: workspace.id, workspaceDir: workspace.directory })
-    // Prevent the literal from terminating the inline script element.
+    // 防止字面量提前结束内联脚本元素。
     .replace(/</g, '\\u003c');
   const inlineDeclaration = `<script>window.__OPENSUMI_WORKSPACE__=${payload};</script>`;
   let document: string | undefined;
@@ -187,8 +180,8 @@ function observeHTTPServerLifecycle(server: http.Server): HTTPServerLifecycle {
 }
 
 function closeHTTPServer(server: http.Server, lifecycle = observeHTTPServerLifecycle(server)): Promise<void> {
-  // A Node HTTP server can be listened, closed, and listened again, so a
-  // completed lifecycle cannot be reused for the next listen epoch.
+  // Node HTTP 服务可以反复监听和关闭，因此每次开始监听
+  // 都创建新的生命周期，不能复用已经结束的实例。
   if (lifecycle.closed && server.listening) {
     lifecycle = observeHTTPServerLifecycle(server);
   }
@@ -199,8 +192,8 @@ function closeHTTPServer(server: http.Server, lifecycle = observeHTTPServerLifec
     return lifecycle.closePromise;
   }
   if (!server.listening) {
-    // `server.close()` flips listening to false before active requests finish.
-    // If this owner was ever listening, the close event is the idle barrier.
+    // server.close() 会在活跃请求结束前将 listening 设为 false。
+    // 曾经开始监听的服务必须等待 close 事件，才能确认连接已排空。
     return lifecycle.sawListening ? lifecycle.whenClosed : Promise.resolve();
   }
 
@@ -232,9 +225,9 @@ export async function listenHTTPServerForRuntime(
     return;
   }
 
-  // A signal can arrive while listen() is still completing. ServerApp may
-  // already have finished a shutdown that observed no active listener, so
-  // the product must close the late listener before surfacing cancellation.
+  // 信号可能在 listen() 完成前到达。ServerApp 的关闭流程
+  // 可能已结束，而且当时未发现监听器，因此产品需要
+  // 在报告取消前关闭随后启动的监听器。
   await closeHTTPServer(server);
   throw createRuntimeStartupCancelledError(getRuntimeState());
 }
@@ -254,12 +247,9 @@ export interface RuntimeShutdownCoordinatorOptions {
   onOwnerError?: (owner: RuntimeShutdownOwner, error: unknown) => void;
 }
 
-/**
- * Coordinates product owners without installing process-global handlers.
- * Admission barriers execute synchronously on the first call; the returned
- * promise then waits for ServerApp's admitted work before final transport
- * shutdown. Later calls receive the exact same promise and report object.
- */
+/* * 协调产品所属资源，不安装进程级全局处理器。
+ * 首次调用同步阻止新请求，返回的 Promise 等待已接纳任务结束，
+ * 再关闭最终传输资源。后续调用获得同一 Promise 和报告对象。 */
 export function createRuntimeShutdownCoordinator({
   serverApp,
   httpServer,
@@ -275,7 +265,7 @@ export function createRuntimeShutdownCoordinator({
     }
     let resolve!: (report: ServerRuntimeStopReport) => void;
     let reject!: (error: unknown) => void;
-    // Publish the promise before calling owners, including synchronous callbacks.
+    // 调用资源所有者之前先保存 Promise，包含同步回调的情况。
     shutdownPromise = new Promise((done, fail) => {
       resolve = done;
       reject = fail;
@@ -288,12 +278,12 @@ export function createRuntimeShutdownCoordinator({
       drain = Promise.reject(error);
     }
     void drain.catch(() => undefined);
-    // Fence new HTTP requests immediately; upgraded sockets retire in ServerApp.
+    // 立即拒绝新 HTTP 请求，升级后的连接由 ServerApp 回收。
     const ingressClosed = closeHTTPServer(httpServer, httpLifecycle).catch((error) => {
       try {
         onOwnerError?.('http-server', error);
       } catch {
-        /* diagnostics only */
+        /* 仅用于诊断。 */
       }
       throw error;
     });
@@ -315,7 +305,7 @@ export function createRuntimeShutdownCoordinator({
 
 interface RuntimeSignalController {
   requestShutdown(reason: string): Promise<ServerRuntimeStopReport>;
-  /** Arm unexpected-listener-close ownership after startup/fallback selection. */
+  /* * 启动和回退选择完成后，启用监听器异常关闭的处理。 */
   armServerClose(): void;
 }
 
@@ -354,9 +344,9 @@ function installRuntimeSignalHandlers(
       return shutdownPromise;
     }
 
-    // The product owns process termination. ServerApp never calls process.exit;
-    // if a phase cannot settle, this hard deadline is what prevents a hung
-    // contribution or transport from keeping the process alive forever.
+    // 产品入口负责终止进程，ServerApp 不调用 process.exit；
+    // 最长关闭时限用于防止未完成的贡献或传输资源
+    // 让进程永久驻留。
     forceExitTimer = setTimeout(() => {
       // eslint-disable-next-line no-console
       console.error(`OpenSumi server shutdown exceeded ${deadlineMs}ms (${reason})`);
@@ -380,16 +370,16 @@ function installRuntimeSignalHandlers(
         process.exitCode = 1;
       })
       .finally(() => {
-        // A timed-out ServerApp phase is un-cancellable, and a failed final
-        // owner may still hold the process open. In both cases retain the hard
-        // deadline instead of clearing the only forced-termination guard.
+        // ServerApp 超时后无法取消任务，最终资源关闭失败也可能
+        // 继续持有进程。两种情况均保留强制退出时限，
+        // 不提前清除唯一的强制终止保护。
         if (forceExitTimer && shutdownReport && shouldClearRuntimeHardDeadline(shutdownReport, ownerCleanupFailed)) {
           clearTimeout(forceExitTimer);
         }
         removeSignalHandlers();
         if (exitAfterShutdown && shutdownReport && shouldClearRuntimeHardDeadline(shutdownReport, ownerCleanupFailed)) {
-          // Native PTY descriptors may survive completed owner cleanup. The
-          // executable owns its process lifetime after all phases acknowledge.
+          // 原生 PTY 描述符可能在所属资源清理结束后仍未释放。
+          // 所有阶段确认完成后，由可执行入口结束进程生命周期。
           process.stdout.write('', () => setImmediate(() => process.exit(process.exitCode || 0)));
         }
       });
@@ -404,7 +394,7 @@ function installRuntimeSignalHandlers(
   return {
     requestShutdown: shutdown,
     armServerClose: () => {
-      // An unexpected close after startup owns runtime shutdown.
+      // 启动后的意外关闭会触发运行时整体关闭。
       if (serverCloseArmed || shutdownPromise) {
         return;
       }
@@ -509,8 +499,8 @@ export async function startServer({
     context.body = { stopping: true };
     context.res.once('finish', () => void stopProduct!('control-plane'));
   });
-  // A fresh clone has no downloaded extensions yet. Keep the directory
-  // present so the extension scanner starts quietly before the first install.
+  // 新克隆的仓库尚未下载扩展，先创建目录，
+  // 让扩展扫描器在首次安装前安静启动。
   await mkdir(extensionDirectory, { recursive: true });
   if (marketplaceExtensionDirectory) {
     await mkdir(marketplaceExtensionDirectory, { recursive: true });
@@ -579,9 +569,9 @@ export async function startServer({
   const clientDirectory = mountStaticPath || path.join(rootDirectory, 'client/dist');
   const servedWorkspace = resolveServedWorkspace();
   if (servedWorkspace) {
-    // A misrouted proxy must not be served as if it addressed this workspace.
-    // The control plane forwards the workspace it resolved; only an explicit
-    // mismatch is rejected, so a plain OpenSumi client keeps working.
+    // 代理发往错误工作区时，不得按当前工作区处理。
+    // 控制面转发已经解析的工作区标识；仅拒绝明确的
+    // 标识不匹配，保持普通 OpenSumi 客户端兼容。
     app.use(async (context, next) => {
       const requested = context.get('x-workspace-id');
       if (servedWorkspace.id && requested && requested !== servedWorkspace.id) {
@@ -653,8 +643,8 @@ export async function startServer({
         : []),
       '/',
     ],
-    // Node 24 can load erasable TypeScript directly during `tsx` development;
-    // production continues to use the JavaScript emitted into server/dist.
+    // 使用 tsx 开发时，Node 24 可以直接加载可擦除类型的 TypeScript。
+    // 生产环境继续使用 server/dist 中生成的 JavaScript。
     extLogServiceClassPath: extensionLogService,
     extHost:
       process.env.EXTENSION_HOST_ENTRY || path.join(rootDirectory, 'packages/extension/lib/hosted/ext.process.js'),
@@ -690,7 +680,7 @@ export async function startServer({
     try {
       await injector.disposeAll();
     } catch (cleanupError) {
-      // Preserve the construction failure while retaining cleanup evidence.
+      // 保留构造错误，同时保存清理过程的证据。
       // eslint-disable-next-line no-console
       console.error('Failed to clean up OpenSumi after ServerApp construction failure', cleanupError);
     }
@@ -712,11 +702,11 @@ export async function startServer({
     console.log(`server listen on http://localhost:${port}`);
     return server;
   } catch (startupError) {
-    // Startup failures use the same owned teardown as process signals.
+    // 启动失败与进程信号共用同一套资源清理。
     try {
       await requestRuntimeShutdown('startup-failure');
     } catch (shutdownError) {
-      // Keep the startup error as the primary failure while retaining cleanup evidence.
+      // 启动错误作为主要失败，同时保留清理证据。
       // eslint-disable-next-line no-console
       console.error('Failed to clean up OpenSumi after startup failure', shutdownError);
     }

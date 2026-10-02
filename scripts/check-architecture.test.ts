@@ -134,7 +134,7 @@ test('an explicit package export allowlist rejects private paths even without a 
   assert.equal(problems.length, 3);
   assert.ok(problems.every(({ kind }) => kind === 'private-package-import'));
   assert.ok(problems.some(({ message }) => message.includes('@fixture/a/internal/implementation')));
-  // An exact debt baseline cannot authorize an import outside the package API.
+  // 即使已有精确的技术债基线，也不能绕过包的公开 API。
   assert.deepEqual(evaluateArchitecture(snapshot, snapshotBaseline(snapshot)), []);
   assert.notEqual(
     withMutedConsole(() => {

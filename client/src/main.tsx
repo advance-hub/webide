@@ -10,8 +10,8 @@ import { BaseSampleModule } from '@opensumi/ide-startup/examples/base';
 import type { BrowserModule, ConstructorOf, IClientAppOpts } from '@opensumi/ide-core-browser';
 import type { LoadedProductOption } from '@opensumi/ide-startup';
 
-// Keep the framework-owned renderer reusable while the product composition
-// lives in client/. The renderer can be moved later without changing servers.
+// 框架渲染器保持可复用，产品组装放在 client/ 目录。
+// 后续移动渲染器时，无须调整服务端。
 
 async function main() {
   const cloudWorkspace = (window as unknown as { __OPENSUMI_WORKSPACE__?: { id?: string } }).__OPENSUMI_WORKSPACE__;

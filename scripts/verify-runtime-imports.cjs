@@ -5,8 +5,8 @@ const fs = require('node:fs');
 const { createRequire } = require('node:module');
 const path = require('node:path');
 
-// Resolve from the deployed server so the check uses its production dependencies.
-// Import modules without starting listeners or spawning workspace processes.
+// 从已部署服务的位置解析模块，使用它实际的生产依赖。
+// 导入模块时不启动监听器，也不创建工作区子进程。
 const serverRequire = createRequire(path.resolve(__dirname, '../server/dist/main.js'));
 const { resolveProductRuntimeMode } = serverRequire('@opensumi/ide-startup/runtime-mode');
 assert.equal(resolveProductRuntimeMode({}), 'node');

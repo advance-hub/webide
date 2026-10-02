@@ -36,7 +36,7 @@ const baseConfig: Config = {
     '!packages/*/src/electron-main/**/*.ts',
   ],
   moduleNameMapper: {
-    // Resource exports also have source mappings; tests must still mock styles.
+    // 资源导出也有源码映射，测试中仍然需要模拟样式。
     '.*\\.(css|less)$': requireFromRoot.resolve('@opensumi/ide-dev-tool/jest/styles'),
     ...tsModuleNameMapper,
     '^file-type$': requireFromRoot.resolve('@opensumi/ide-dev-tool/jest/file-type'),
@@ -107,7 +107,7 @@ const config: Config = {
       setupFiles: ['<rootDir>/configs/jest/setup-node.ts'],
       testMatch: [
         // 有个 webview 的 case 应该放在 electron 下测，也会被第一条规则匹配到
-        // - packages/webview/__tests__/webview/webview.channel.test.ts
+        // 相关用例：packages/webview/__tests__/webview/webview.channel.test.ts
         '**/packages/*/__test?(s)__/!(browser)/**/?(*.)+(spec|test).[jt]s?(x)',
         '**/packages/{core-common,core-electron-main,core-node,utils,i18n}/__tests__/**/?(*.)+(spec|test).[jt]s?(x)',
         // exclude 的要放最后

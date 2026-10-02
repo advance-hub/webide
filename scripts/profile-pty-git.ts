@@ -107,8 +107,8 @@ async function runGit(workspace: string, args: string[]): Promise<string> {
 }
 
 async function prepareGitWorkspace(): Promise<{ workspacePath: string; cleanup: () => Promise<void> }> {
-  // A throwaway git repository with enough history that the SCM extension has
-  // real status/log work to do.
+  // 使用一次性 Git 仓库并创建足够历史，
+  // 让 SCM 扩展实际执行状态和日志查询。
   const workspacePath = await mkdtemp(path.join(tmpdir(), 'opensumi-pty-git-'));
   await mkdir(path.join(workspacePath, 'src'), { recursive: true });
   for (let commit = 0; commit < 12; commit++) {
@@ -130,7 +130,7 @@ async function prepareGitWorkspace(): Promise<{ workspacePath: string; cleanup: 
 }
 
 async function openTerminal(page: Page): Promise<void> {
-  // OpenSumi binds new-terminal to Ctrl+` in the browser workbench.
+  // OpenSumi 使用浏览器工作台的 Ctrl+反引号快捷键创建终端。
   await page.keyboard.press('Control+`');
   await page.waitForFunction(
     () => document.body.innerText.includes('TERMINAL') || Boolean(document.querySelector('.xterm')),
@@ -190,7 +190,7 @@ async function main(): Promise<void> {
     );
     await openTerminal(page);
 
-    // Drive real PTY + git + build-like load inside the terminal.
+    // 在终端中实际执行 PTY、Git 和模拟构建负载。
     const commands = [
       'git status',
       'git log --oneline -5',
@@ -216,8 +216,8 @@ async function main(): Promise<void> {
       await delay(options.intervalMs);
     }
 
-    // Keep git activity going during a second pass so transient git children
-    // are sampled while alive.
+    // 第二次采样期间持续执行 Git 操作，
+    // 确保短暂存在的 Git 子进程也进入采样。
     for (const command of ['git status', 'git diff --stat', 'git log -1']) {
       await page.keyboard.type(command);
       await page.keyboard.press('Enter');

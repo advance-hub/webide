@@ -51,8 +51,8 @@ function snapshot(root: string, roots: string[], exclusions: string[] = []): Fil
     }
     const stat = lstatSync(absolute);
     if (stat.isSymbolicLink()) {
-      // Hash both the link and its target, so switching a source link cannot
-      // leave a receipt valid. Directory links would make traversal cyclic.
+      // 同时计算链接和目标的摘要，切换源码链接时不能继续沿用
+      // 旧凭据；目录链接可能造成循环遍历，因此禁止作为输入。
       const target = path.resolve(path.dirname(absolute), readlinkSync(absolute));
       if (!lstatSync(target).isFile()) {
         throw new Error(`Runtime artifact inputs must not contain directory symlinks: ${relative}`);
@@ -128,7 +128,7 @@ export function inspectArtifacts(root: string, recipe: ArtifactRecipe): { fresh:
   return { fresh: true, reason: 'input and output hashes match' };
 }
 
-/** A failed build or a concurrent source edit must never publish a valid receipt. */
+/* * 构建失败或构建期间源码变化时，不得发布有效产物凭据。 */
 export async function buildArtifacts(
   root: string,
   recipe: ArtifactRecipe,

@@ -93,7 +93,7 @@ async function revealWorkbenchView(
       await target.waitFor({ state: 'visible', timeout: Math.min(1_500, Math.max(1, deadline - Date.now())) });
       return;
     } catch {
-      // Startup contributions can restore another view after the first click; retry the same visible item.
+      // 启动贡献可能恢复其他视图，首次点击后可以重试相同的可见元素。
     }
   }
   throw new Error(`Workbench view ${label} did not reveal its target within ${timeoutMs}ms`);
@@ -223,8 +223,8 @@ async function openSession(
   await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.waitForFunction(() => document.title.endsWith('— OpenSumi'), undefined, { timeout: 30_000 });
   await page.waitForTimeout(options.pageReadyMs);
-  // The default panel can be Problems, so visiting a workspace alone does not
-  // create the terminal required by the capacity suite's process checks.
+  // 默认面板可能是问题列表；仅访问工作区不会创建
+  // 容量测试中用于检查进程的终端。
   const terminalInput = page.getByRole('textbox', { name: 'Terminal input', exact: true });
   await revealWorkbenchView(page.getByText('TERMINAL', { exact: true }).first(), terminalInput, 'Terminal');
   const searchBox = page.getByRole('textbox', { name: 'Enter search content' });
@@ -389,8 +389,8 @@ async function runProfile(options: BrowserProfileOptions): Promise<void> {
       );
     }
 
-    // First search proves the expected final result. The measured second search
-    // uses an already-initialized UI and runtime on both variants.
+    // 第一次搜索校验最终结果，第二次搜索用于测量性能，
+    // 两种模式均在界面和运行时初始化完成后进行测量。
     await Promise.all(pages.map((page) => searchAndVerify(page, options)));
     await Promise.all(pages.map(clearSearch));
     const searchLatenciesMs = await Promise.all(pages.map((page) => searchAndVerify(page, options)));

@@ -344,7 +344,7 @@ function linearSlopeBytesPerMinute(samples: Array<{ atMs: number; value: number 
   if (denominator === 0) {
     return undefined;
   }
-  // slope per ms → per minute
+  // 将每毫秒斜率换算成每分钟斜率。
   return (numerator / denominator) * 60_000;
 }
 
@@ -420,8 +420,8 @@ async function runProfile(options: ProfileOptions): Promise<void> {
       `Extension host did not reach ${options.sessions} active hosts within 60 seconds`,
     );
 
-    // Let the freshly activated ext host settle (V8 warmup, extension scan)
-    // so the baseline reflects steady state instead of the fork image.
+    // 扩展激活后等待 V8 预热和扩展扫描结束，
+    // 让基线反映稳定状态，而不是刚派生进程时的状态。
     await delay(3_000);
     const baselineSnapshot = await collectProcessTreeMemory(server.pid!);
     const baselineHosts = findExtensionHosts(baselineSnapshot);
@@ -448,8 +448,8 @@ async function runProfile(options: ProfileOptions): Promise<void> {
       activationDiagnostics: baselineHealth.extensionHost?.activationDiagnostics ?? undefined,
     };
 
-    // Idle phase: the baseline session stays open; the ext host RSS slope over
-    // this window separates a stable steady state from unbounded growth.
+    // 空闲阶段保持基线会话打开，通过这段时间内扩展宿主的 RSS 斜率
+    // 区分稳定常驻内存与持续增长。
     const idleSamples: IdleEvidence['samples'] = [];
     const idleStartedAt = Date.now();
     const idleDeadline = idleStartedAt + options.idleSeconds * 1000;
@@ -483,9 +483,9 @@ async function runProfile(options: ProfileOptions): Promise<void> {
       }
     };
     await closeBaseline();
-    // The recycling cycles below require a quiet server: every active ext
-    // host from the baseline must be reclaimed before cycling starts, or the
-    // per-cycle counts would be polluted by the idle session.
+    // 后续回收测试需要安静的服务环境，开始前必须回收
+    // 基线会话中的全部扩展宿主，避免空闲会话影响
+    // 每轮的进程数量统计。
     let baselineReclaimedWithinMs = -1;
     const baselineReclaimStartedAt = Date.now();
     try {
@@ -502,15 +502,15 @@ async function runProfile(options: ProfileOptions): Promise<void> {
       console.error(String(error));
     }
 
-    // Recycling cycles: open a fresh session, sample it, close it and require
-    // the ext host to be reclaimed before continuing. The server is NOT
-    // restarted between cycles, so server-side retention shows up directly.
+    // 回收测试创建新会话、采样并关闭，确认宿主退出后
+    // 才开始下一轮。各轮之间不重启服务，
+    // 使服务端对象保留问题能够直接反映在结果中。
     const cycles: CycleEvidence[] = [];
     for (let cycle = 1; cycle <= options.cycles; cycle++) {
-      // A whole-browser close is what the product lifecycle sees when a user
-      // closes the tab; a Playwright context.close() leaves the browser
-      // process holding the WebSocket open, so the server never observes the
-      // disconnect.
+      // 用户关闭标签页时，产品观察到的是整个浏览器连接断开。
+      // Playwright 的 context.close() 可能让浏览器进程
+      // 继续持有 WebSocket，服务端因而无法观察到
+      // 客户端断开。
       const cycleBrowser = await chromium.launch({ headless: options.headless });
       const page = await openSession(cycleBrowser, port, workspacePath);
       page.on('console', (message) => {
@@ -619,7 +619,7 @@ async function runProfile(options: ProfileOptions): Promise<void> {
         console.error(`--- server log tail ---\n${logTail}`);
       }
     } catch {
-      // evidence collection must not mask the original failure
+      // 收集证据时不得掩盖原始失败。
     }
     throw error;
   } finally {

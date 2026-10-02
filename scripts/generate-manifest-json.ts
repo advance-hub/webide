@@ -7,7 +7,7 @@ import { argv } from '@opensumi/ide-core-common/node/cli';
 import { generateManifest } from './manifest';
 import Package, { readAllMainPackages } from './pkg';
 
-// pnpm run manifest -v=2.19.0
+// 示例：pnpm run manifest -v=2.19.0
 const version = argv.v as string;
 const localManifest = join(__dirname, '../packages/types/manifest.json');
 if (!version) {

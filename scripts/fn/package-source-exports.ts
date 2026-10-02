@@ -5,7 +5,7 @@ export interface SourcePackageManifest {
   name: string;
 }
 
-/** Use the published allowlist for source tooling as well as compiled consumers. */
+/* * 源码工具与编译后调用方共用发布文件允许列表。 */
 export function packageSourceExports(
   packageDirectory: string,
   manifest: SourcePackageManifest,
