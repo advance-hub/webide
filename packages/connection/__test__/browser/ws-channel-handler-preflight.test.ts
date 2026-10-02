@@ -124,6 +124,40 @@ function respondServerReady(
 }
 
 describe('WSChannelHandler preflight', () => {
+  it('ignores duplicate readiness acknowledgements while still reopening after a real transport close', async () => {
+    expect.hasAssertions();
+    const connection = new TestRuntimeConnection();
+    connection.onSend = (message) => {
+      if (message.kind === 'open') {
+        respondServerReady(connection, message);
+      }
+    };
+    const handler = createHandler(connection, {
+      channelPath: 'preflight',
+      run: async (_channel, open) => open(),
+    });
+
+    try {
+      await handler.initHandler();
+      const channel = await handler.openChannel('RPCService');
+      const reopened = jest.fn();
+      channel.onReopen(reopened);
+      const originalOpen = connection.sentMessages.find(
+        (message): message is Extract<ChannelMessage, { kind: 'open' }> =>
+          message.kind === 'open' && message.path === 'RPCService',
+      )!;
+      connection.emitMessage({ kind: 'server-ready', id: channel.id, traceId: originalOpen.traceId });
+      expect(reopened).not.toHaveBeenCalled();
+
+      connection.emitClose();
+      connection.emitOpen();
+      await waitFor(() => reopened.mock.calls.length === 1);
+      expect(handler.getChannel('RPCService')).toBe(channel);
+    } finally {
+      handler.dispose();
+    }
+  });
+
   it('runs before the first normal open and can capture data sent before server-ready', async () => {
     expect.hasAssertions();
     const connection = new TestRuntimeConnection();

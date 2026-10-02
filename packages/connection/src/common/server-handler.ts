@@ -193,6 +193,8 @@ enum ServerChannelCloseCode {
 export abstract class BaseCommonChannelHandler {
   protected channelMap: Map<string, WSServerChannel> = new Map();
 
+  private readonly admittedOpens = new WeakMap<WSServerChannel, { path: string; traceId: string }>();
+
   private acceptingLogicalChannels = true;
 
   private readonly connections = new Set<IConnectionShape<Uint8Array>>();
@@ -298,6 +300,19 @@ export abstract class BaseCommonChannelHandler {
 
             this.logger.log(`open a new connection channel ${clientId} with path ${path}`);
             let channel = this.channelMap.get(id);
+            const admittedOpen = channel && this.admittedOpens.get(channel);
+            // 客户端在确认超时后会重发同一帧。只重发确认，避免重新运行握手或分配连接资源。
+            // 不同物理连接、路径或追踪标识仍按新的打开请求处理。
+            if (
+              channel?.connection === wrappedConnection &&
+              typeof traceId === 'string' &&
+              traceId.length > 0 &&
+              admittedOpen?.traceId === traceId &&
+              admittedOpen.path === path
+            ) {
+              channel.serverReady(traceId);
+              break;
+            }
             if (channel) {
               channel.close(ServerChannelCloseCode.NewChannelOpened, 'new channel opened for the same channel id');
               channel.dispose();
@@ -319,6 +334,7 @@ export abstract class BaseCommonChannelHandler {
               });
               break;
             }
+            this.admittedOpens.set(channel, { path, traceId });
             channel.serverReady(traceId);
             break;
           }

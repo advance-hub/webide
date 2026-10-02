@@ -285,6 +285,95 @@ describe('CommonChannelPathHandler', () => {
     }
   });
 
+  it('acknowledges a repeated open frame without restarting the handshake or disposing its listener', () => {
+    expect.hasAssertions();
+    const pathHandler = new CommonChannelPathHandler();
+    const handler = new TestChannelHandler(pathHandler);
+    const connection = new TestConnection();
+    const validation = jest.fn();
+    const startHandshake = jest.fn((channel: WSChannel) => {
+      channel.send('hello');
+      channel.onMessage(validation);
+    });
+    pathHandler.register('preflight', { handler: startHandshake, dispose() {} });
+    const frame: ChannelMessage = {
+      kind: 'open',
+      id: 'client:preflight',
+      path: 'preflight',
+      clientId: 'client',
+      traceId: 'same-open-trace',
+    };
+
+    try {
+      handler.receiveConnection(connection);
+      connection.message(frame);
+      const originalChannel = handler.channels[0];
+      const dispose = jest.spyOn(originalChannel, 'dispose');
+      // 模拟首个确认延迟到达时，客户端已经发出相同的重试帧。
+      connection.message(frame);
+      connection.message({ kind: 'data', id: frame.id, content: 'validate' });
+
+      expect(startHandshake).toHaveBeenCalledTimes(1);
+      expect(dispose).not.toHaveBeenCalled();
+      expect(handler.channels).toEqual([originalChannel]);
+      expect(validation).toHaveBeenCalledWith('validate');
+      expect(connection.sentMessages).toEqual([
+        { kind: 'data', id: frame.id, content: 'hello' },
+        { kind: 'server-ready', id: frame.id, traceId: frame.traceId },
+        { kind: 'server-ready', id: frame.id, traceId: frame.traceId },
+      ]);
+
+      handler.beginDrain();
+      connection.message(frame);
+      expect(connection.sentMessages.at(-1)).toMatchObject({ kind: 'error', message: 'server is draining' });
+      expect(startHandshake).toHaveBeenCalledTimes(1);
+    } finally {
+      handler.dispose();
+    }
+  });
+
+  it.each(['path', 'traceId', 'connection'] as const)(
+    'does not merge a new open whose %s differs from the admitted frame',
+    (difference) => {
+      expect.hasAssertions();
+      const pathHandler = new CommonChannelPathHandler();
+      const handler = new TestChannelHandler(pathHandler);
+      const first = new TestConnection();
+      const replacement = difference === 'connection' ? new TestConnection() : first;
+      const opened = jest.fn();
+      pathHandler.register('first', { handler: opened, dispose() {} });
+      pathHandler.register('second', { handler: opened, dispose() {} });
+      const frame: ChannelMessage = {
+        kind: 'open',
+        id: 'client:channel',
+        path: 'first',
+        clientId: 'client',
+        traceId: 'open-trace',
+      };
+
+      try {
+        handler.receiveConnection(first);
+        first.message(frame);
+        const originalChannel = handler.channels[0];
+        const dispose = jest.spyOn(originalChannel, 'dispose');
+        if (replacement !== first) {
+          handler.receiveConnection(replacement);
+        }
+        replacement.message({
+          ...frame,
+          path: difference === 'path' ? 'second' : frame.path,
+          traceId: difference === 'traceId' ? 'new-trace' : frame.traceId,
+        });
+        expect(opened).toHaveBeenCalledTimes(2);
+        expect(dispose).toHaveBeenCalledTimes(1);
+        expect(handler.channels).toHaveLength(1);
+        expect(handler.channels[0]).not.toBe(originalChannel);
+      } finally {
+        handler.dispose();
+      }
+    },
+  );
+
   it('rejects logical opens during drain before invoking the path handler', () => {
     expect.hasAssertions();
     const pathHandler = new CommonChannelPathHandler();

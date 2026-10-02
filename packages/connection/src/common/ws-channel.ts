@@ -231,6 +231,11 @@ export class WSChannel {
           this.stateTracer.success(msg.traceId);
         }
 
+        // 重试打开请求可能带来多个确认；已就绪的通道不应再次触发 RPC 重连。
+        if (this._isServerReady) {
+          break;
+        }
+
         this.resume();
         this.emitter.emit('open', msg.id);
         break;
