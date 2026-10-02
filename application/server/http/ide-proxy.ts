@@ -44,6 +44,7 @@ export class IDEProxy {
     perMessageDeflate: false,
   });
   private readonly sockets = new Map<string, Set<WebSocket>>();
+  private readonly socketOwners = new WeakMap<WebSocket, Ticket>();
   constructor(
     readonly config: Config,
     readonly store: Store,
@@ -57,14 +58,12 @@ export class IDEProxy {
     }, 30_000);
     this.sweep.unref();
   }
-  enter(workspace: Workspace): string {
+  enter(workspace: Workspace, actor = workspace.owner): string {
     if (this.stopping) {
       throw new HTTPError(503, '服务正在关闭');
     }
     const ticket = newID() + newID();
-    if (
-      !this.tickets.set(hash(ticket), { owner: workspace.owner, workspace: workspace.id, expires: Date.now() + 60000 })
-    ) {
+    if (!this.tickets.set(hash(ticket), { owner: actor, workspace: workspace.id, expires: Date.now() + 60000 })) {
       throw new HTTPError(429, '入口票据数量已达上限，请稍后重试');
     }
     const address = new URL(this.config.publicURL);
@@ -74,6 +73,17 @@ export class IDEProxy {
   }
   connected(id: string): boolean {
     return !!this.sockets.get(id)?.size;
+  }
+  revoke(id: string, actor: string): void {
+    const matches = (value: Ticket) => value.workspace === id && value.owner === actor;
+    this.tickets.deleteWhere(matches);
+    this.ideSessions.deleteWhere(matches);
+    for (const socket of this.sockets.get(id) || []) {
+      const owner = this.socketOwners.get(socket);
+      if (owner && matches(owner)) {
+        socket.terminate();
+      }
+    }
   }
   closeConnections(): void {
     this.stopping = true;
@@ -109,11 +119,14 @@ export class IDEProxy {
     if (!session || session.workspace !== id || session.expires < Date.now()) {
       throw new HTTPError(401, 'IDE 会话已过期，请从工作台重新进入');
     }
-    this.access.workspace(id, session.owner);
+    this.access.sharedWorkspace(id, session.owner);
     return session;
   }
 
   async proxyIDE(context: Koa.Context, id: string): Promise<void> {
+    if (new URL(context.originalUrl, 'http://ide.invalid').pathname.startsWith('/runtime/')) {
+      throw new HTTPError(403, '运行时管理接口只供控制面使用');
+    }
     const ticketValue = context.query.ticket;
     if (typeof ticketValue === 'string') {
       const key = hash(ticketValue);
@@ -121,7 +134,7 @@ export class IDEProxy {
       if (!ticket || ticket.workspace !== id || ticket.expires < Date.now()) {
         throw new HTTPError(401, '入口票据无效或已过期');
       }
-      this.access.workspace(id, ticket.owner);
+      this.access.sharedWorkspace(id, ticket.owner);
       const token = newID() + newID();
       if (!this.ideSessions.set(hash(token), { ...ticket, expires: Date.now() + 8 * 60 * 60 * 1000 })) {
         throw new HTTPError(429, 'IDE 会话数量已达上限，请稍后重试');
@@ -136,7 +149,7 @@ export class IDEProxy {
       return;
     }
     const session = this.ideAuthorization(context.req, id);
-    const workspace = this.access.workspace(id, session.owner);
+    const workspace = this.access.sharedWorkspace(id, session.owner);
     workspace.lastActivityAt = now();
     this.store.put('workspace', workspace);
     const environment = await this.driver.inspect(workspace);
@@ -151,6 +164,7 @@ export class IDEProxy {
       headers[key.toLowerCase()] = value;
     }
     headers['x-workspace-id'] = id;
+    headers['x-opensumi-user'] = this.userHeader(session);
     context.respond = false;
     try {
       await new Promise<void>((resolve, reject) => {
@@ -194,7 +208,7 @@ export class IDEProxy {
       return;
     }
     const session = this.ideAuthorization(request, id);
-    const workspace = this.access.workspace(id, session.owner);
+    const workspace = this.access.sharedWorkspace(id, session.owner);
     workspace.lastActivityAt = now();
     this.store.put('workspace', workspace);
     const environment = await this.driver.inspect(workspace);
@@ -203,19 +217,20 @@ export class IDEProxy {
       return;
     }
     const connections = this.sockets.get(id) || new Set<WebSocket>();
-    if (connections.size >= 8 || [...this.sockets.values()].reduce((n, s) => n + s.size, 0) >= 80) {
+    if (connections.size >= 16 || [...this.sockets.values()].reduce((n, s) => n + s.size, 0) >= 160) {
       socket.destroy();
       return;
     }
     const target = proxyTarget(String(environment.endpoint), request.url || '/');
     target.protocol = target.protocol === 'https:' ? 'wss:' : 'ws:';
     const upstream = new WebSocket(target, {
-      headers: { ...environment.headers, 'X-Workspace-Id': id },
+      headers: { ...environment.headers, 'X-Workspace-Id': id, 'X-Opensumi-User': this.userHeader(session) },
       handshakeTimeout: 10000,
       maxPayload: IDE_MESSAGE_LIMIT,
       perMessageDeflate: false,
     });
     connections.add(upstream);
+    this.socketOwners.set(upstream, session);
     this.sockets.set(id, connections);
     const forget = (connection: WebSocket) => {
       connections.delete(connection);
@@ -239,9 +254,12 @@ export class IDEProxy {
         return;
       }
       try {
+        // 异步握手期间成员可能已被移除，升级前重新读取授权。
+        this.ideAuthorization(request, id);
         this.websocketServer.handleUpgrade(request, socket, head, (client) => {
           connections.delete(upstream);
           connections.add(client);
+          this.socketOwners.set(client, session);
           this.sockets.set(id, connections);
           client.once('close', () => forget(client));
           bridgeWebSockets(client, upstream);
@@ -251,5 +269,14 @@ export class IDEProxy {
         socket.destroy();
       }
     });
+  }
+
+  private userHeader(session: Ticket): string {
+    return Buffer.from(
+      JSON.stringify({
+        id: hash(session.owner),
+        nickname: String(this.store.get('user', session.owner)?.name || '本地开发者').slice(0, 256),
+      }),
+    ).toString('base64url');
   }
 }

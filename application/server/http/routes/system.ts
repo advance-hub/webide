@@ -23,13 +23,15 @@ export function mountSystemRoutes(
   router.post('/api/login', async (context) => {
     let owner = 'local-developer';
     let name = '本地开发者';
+    let username: string | undefined;
     if (!services.config.localDemo) {
       const token = requireString(context.state.body.token, '令牌', 4000);
       const user = await services.access.verifyConnection({ url: services.config.gitlabURL, token });
       owner = `${services.config.gitlabURL}:${user.id}`;
       name = user.name;
-      services.store.put('user', { id: owner, owner, name });
+      username = user.username;
     }
+    services.store.put('user', { id: owner, owner, name, username });
     context.cookies.set('workbench_session', services.store.createSession(owner), {
       httpOnly: true,
       sameSite: 'strict',

@@ -52,4 +52,12 @@ export class ExpiringMap<T extends { expires: number }> {
   clear(): void {
     this.entries.clear();
   }
+
+  deleteWhere(predicate: (value: T) => boolean): void {
+    for (const [key, value] of this.entries) {
+      if (predicate(value)) {
+        this.entries.delete(key);
+      }
+    }
+  }
 }

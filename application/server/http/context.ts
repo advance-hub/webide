@@ -7,6 +7,7 @@ import type { Machines } from '../modules/machines/service';
 import type { Repositories } from '../modules/projects/repositories';
 import type { DevelopmentResources } from '../modules/resources/service';
 import type { WorkspaceOperations } from '../modules/workspaces/operations';
+import type { WorkspaceSharing } from '../modules/workspaces/sharing';
 import type { Config } from '../platform/config';
 import type { Jobs } from '../platform/jobs';
 import type { Store } from '../platform/store';
@@ -26,5 +27,6 @@ export interface RouteServices {
   sandbox?: SandboxService;
   access: AccessControl;
   workspaces: WorkspaceOperations;
+  sharing: WorkspaceSharing;
   ide: IDEProxy;
 }

@@ -95,10 +95,14 @@ export function Workspaces({
                     <div className='table-identity'>
                       <ProjectMark name={name} small />
                       <div>
-                        <a href={`#${projectHref(w.projectId, 'workspace')}`}>{name}</a>
+                        {w.accessRole === 'member' ? (
+                          <span>{name}</span>
+                        ) : (
+                          <a href={`#${projectHref(w.projectId, 'workspace')}`}>{name}</a>
+                        )}
                         <span className='subtle workspace-row-branch'>
                           <Branch value={w.branch || '—'} />
-                          {w.ownerName ? ` · ${w.ownerName} 共享` : ''}
+                          {w.accessRole === 'member' ? ` · ${w.ownerName} 共享` : ''}
                         </span>
                       </div>
                     </div>
@@ -168,7 +172,11 @@ export function Workspaces({
                   <div className='mobile-resource-heading'>
                     <ProjectMark name={name} small />
                     <div>
-                      <a href={`#${projectHref(w.projectId, 'workspace')}`}>{name}</a>
+                      {w.accessRole === 'member' ? (
+                        <span>{name}</span>
+                      ) : (
+                        <a href={`#${projectHref(w.projectId, 'workspace')}`}>{name}</a>
+                      )}
                       <span className='subtle'>
                         <Branch value={w.branch || '—'} />
                       </span>
@@ -193,9 +201,11 @@ export function Workspaces({
                       </Button>
                     )}
                     <EnvironmentPanel workspace={w} wb={wb} compact />
-                    <Button type='text' size='small' href={`#${projectHref(w.projectId, 'workspace')}`}>
-                      详情
-                    </Button>
+                    {projectById.get(w.projectId) && (
+                      <Button type='text' size='small' href={`#${projectHref(w.projectId, 'workspace')}`}>
+                        详情
+                      </Button>
+                    )}
                   </div>
                 </article>
               );

@@ -74,6 +74,7 @@ export class WorkspaceOperations {
         if (action === 'delete') {
           await this.services.driver.remove(workspace, project, this.services.repositories);
           this.services.store.delete('workspace', workspace.id);
+          this.services.store.db.prepare('DELETE FROM credentials WHERE owner=?').run(`runtime:${workspace.id}`);
           return;
         }
         if (action === 'stop') {

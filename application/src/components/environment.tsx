@@ -38,7 +38,7 @@ export function EnvironmentPanel({
   const [mrTitle, setMrTitle] = useState('');
   const [targetBranch, setTargetBranch] = useState('');
   const active = busyStates.has(w.status);
-  const own = !w.ownerName;
+  const own = w.accessRole === 'owner';
   const members = w.memberNames || [];
   const project = wb.projects.find((item) => item.id === w.projectId);
   const defaultTarget = w.baseBranch && w.baseBranch !== w.branch ? w.baseBranch : project?.branch || '';
@@ -150,7 +150,7 @@ export function EnvironmentPanel({
               进入 IDE
             </Button>
           )}
-          {w.status === 'ready' && w.startup?.development.ready && (
+          {own && w.status === 'ready' && w.startup?.development.ready && (
             <Button size='small' disabled={!!wb.pending} onClick={() => void wb.enter(w, 'preview')}>
               打开预览
             </Button>
@@ -265,12 +265,12 @@ export function EnvironmentPanel({
           </div>
         )}
 
-      {(w.startup?.maven?.detected || w.startup?.maven?.error) && <MavenPanel workspace={w} wb={wb} />}
+      {own && (w.startup?.maven?.detected || w.startup?.maven?.error) && <MavenPanel workspace={w} wb={wb} />}
 
       {own && (
         <div className='env-ops'>
           <span className='env-ops-spacer' />
-          {!w.machineId && (
+          {
             <Button
               type='text'
               size='small'
@@ -283,7 +283,7 @@ export function EnvironmentPanel({
             >
               <PeopleIcon /> 成员{members.length ? ` ${members.length}` : ''}
             </Button>
-          )}
+          }
           <Dropdown
             trigger='click'
             position='br'
@@ -339,17 +339,17 @@ export function EnvironmentPanel({
         </div>
       )}
 
-      {own && !w.machineId && (adding || members.length > 0) && (
+      {own && (adding || members.length > 0) && (
         <div className='env-members'>
-          {members.map((name) => (
-            <span className='member-chip' key={name}>
+          {members.map((name, index) => (
+            <span className='member-chip' key={w.members?.[index] || name}>
               {name}
               <Button
                 type='text'
                 size='mini'
                 aria-label={`移除成员 ${name}`}
                 disabled={!!wb.pending}
-                onClick={() => invite(name, true)}
+                onClick={() => invite(w.members?.[index] || name, true)}
               >
                 ×
               </Button>
@@ -365,6 +365,9 @@ export function EnvironmentPanel({
                 onChange={(e) => setMemberName(e)}
                 onPressEnter={() => invite(memberName, false)}
               />
+              <span className='env-members-hint'>
+                仅邀请可信成员；成员可共同编辑并使用当前开发机的终端，最多五人（含你）。
+              </span>
               <Button
                 size='small'
                 disabled={!!wb.pending || !memberName.trim()}
@@ -533,7 +536,7 @@ export function EnvironmentPanel({
             void inspect();
           }}
         >
-          管理
+          {own ? '管理' : '查看'}
         </Button>
         <Modal
           visible={open}

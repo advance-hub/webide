@@ -13,6 +13,7 @@ import { Machines } from './modules/machines/service';
 import { Repositories } from './modules/projects/repositories';
 import { DevelopmentResources } from './modules/resources/service';
 import { WorkspaceOperations } from './modules/workspaces/operations';
+import { WorkspaceSharing } from './modules/workspaces/sharing';
 import { type Config } from './platform/config';
 import { Jobs } from './platform/jobs';
 import { Store } from './platform/store';
@@ -34,6 +35,7 @@ export class Workbench {
   readonly access: AccessControl;
   readonly ide: IDEProxy;
   readonly workspaces: WorkspaceOperations;
+  readonly sharing: WorkspaceSharing;
   private closing = false;
   private shutdown?: Promise<void>;
   constructor(
@@ -63,6 +65,7 @@ export class Workbench {
       (id) => this.ide.connected(id),
     );
     this.access = new AccessControl(config, this.store);
+    this.sharing = new WorkspaceSharing(this.store, this.access);
     this.ide = new IDEProxy(config, this.store, this.driver, this.access);
     this.workspaces = new WorkspaceOperations(this);
     this.workspaces.recoverInterrupted();

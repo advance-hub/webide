@@ -62,6 +62,7 @@ export interface Workspace {
   projectId: string;
   projectName?: string;
   ownerName?: string;
+  accessRole?: 'owner' | 'member';
   branch: string;
   baseBranch?: string;
   sha?: string;

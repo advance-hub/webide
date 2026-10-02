@@ -37,6 +37,15 @@ export class AccessControl {
     return workspace;
   }
 
+  /** 显式邀请只授予协作入口，不改变开发机与管理操作的账户归属。 */
+  sharedWorkspace(id: string, actor: string): Workspace {
+    const workspace = this.store.get<Workspace>('workspace', id);
+    if (!workspace || workspace.archived || (workspace.owner !== actor && !workspace.members?.includes(actor))) {
+      throw new HTTPError(404, '工作区不存在');
+    }
+    return workspace;
+  }
+
   isAdmin(owner: string): boolean {
     return this.config.localDemo || this.config.adminUsers.includes(owner);
   }
@@ -47,7 +56,7 @@ export class AccessControl {
     }
   }
 
-  async verifyConnection(connection: Connection): Promise<{ id: string; name: string }> {
+  async verifyConnection(connection: Connection): Promise<{ id: string; name: string; username?: string }> {
     const url = new URL(requireString(connection.url, '代码源地址', 2000));
     if (url.username || url.password || url.search || url.hash || !['https:', 'http:'].includes(url.protocol)) {
       throw new HTTPError(400, '代码源地址无效');
@@ -75,6 +84,10 @@ export class AccessControl {
       throw new HTTPError(400, `代码源验证失败 (${response.status})`);
     }
     const user = (await response.json()) as { id: string; name?: string; username?: string; login?: string };
-    return { id: String(user.id), name: user.name || user.username || user.login || String(user.id) };
+    return {
+      id: String(user.id),
+      name: user.name || user.username || user.login || String(user.id),
+      username: user.username || user.login,
+    };
   }
 }

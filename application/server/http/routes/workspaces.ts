@@ -1,4 +1,4 @@
-import { type Project, type Workspace } from '../../domain/models';
+import { type Workspace } from '../../domain/models';
 import { type Machine, startupRecord } from '../../domain/runtime';
 import { newID, now, publicEntity } from '../../platform/store';
 import { HTTPError } from '../../platform/validation';
@@ -19,18 +19,14 @@ export function mountWorkspacesRoutes(
     | 'repositories'
     | 'resources'
     | 'store'
+    | 'sharing'
     | 'workspaces'
   >,
 ): void {
   router.get('/api/workspaces', (context) => {
-    context.body = services.store
-      .list<Workspace>('workspace', context.state.owner)
-      .filter((w) => !w.archived)
-      .map((w) => ({
-        ...publicEntity(w),
-        projectName: services.store.get<Project>('project', w.projectId)?.name,
-        ownerName: services.store.get('user', w.owner)?.name || '本地开发者',
-      }));
+    context.body = services.sharing
+      .visible(context.state.owner)
+      .map((w) => services.sharing.describe(w, context.state.owner));
   });
   router.post('/api/workspaces', async (context) => {
     const body = context.state.body;
@@ -92,16 +88,46 @@ export function mountWorkspacesRoutes(
     context.body = publicEntity(workspace);
   });
   router.get('/api/workspaces/:id/environment', async (context) => {
-    const workspace = services.access.workspace(String(context.params.id), context.state.owner);
+    const workspace = services.access.sharedWorkspace(String(context.params.id), context.state.owner);
     const { headers: _headers, ...environment } = await services.driver.inspect(workspace);
-    context.body = { ...environment, workspace: publicEntity(workspace) };
+    context.body = { ...environment, workspace: services.sharing.describe(workspace, context.state.owner) };
   });
   router.post('/api/workspaces/:id/enter', async (context) => {
-    const workspace = services.access.workspace(String(context.params.id), context.state.owner);
+    const workspace = services.access.sharedWorkspace(String(context.params.id), context.state.owner);
     if (workspace.status !== 'ready' || !(await services.driver.inspect(workspace)).ideReady) {
       throw new HTTPError(409, 'IDE 未就绪，请启动或重启工作区');
     }
-    context.body = { url: services.ide.enter(workspace) };
+    context.body = { url: services.ide.enter(workspace, context.state.owner) };
+  });
+  router.post('/api/workspaces/:id/members', async (context) => {
+    const id = String(context.params.id);
+    const existing = services.access.workspace(id, context.state.owner);
+    context.body = await services.jobs.run([`workspace:${id}`, `machine:${existing.machineId}`], async () => {
+      const change = services.sharing.change(id, context.state.owner, context.state.body);
+      // 首次共享前清除自动预置的账户数据连接；辅助命令失败时不授予访问权。
+      if (change.removed) {
+        services.store.put('workspace', change.workspace);
+        services.ide.revoke(id, change.member);
+      }
+      if (change.workspace.status === 'ready') {
+        try {
+          await services.resources.sync(change.workspace, services.driver);
+        } catch (error) {
+          if (!change.removed) {
+            throw error;
+          }
+          // 撤权已经完成，不能因恢复私人配置失败而把移除报告成失败。
+          startupRecord(change.workspace).editorConnections = {
+            mysql: false,
+            redis: false,
+            additionalDatabases: 0,
+            error: '成员已移除，编辑器数据连接恢复失败，请重试同步配置',
+          };
+        }
+      }
+      services.store.put('workspace', change.workspace);
+      return services.sharing.describe(change.workspace, context.state.owner);
+    });
   });
   for (const action of ['start', 'stop', 'restart', 'reset', 'delete', 'update-runtime']) {
     router.post(`/api/workspaces/:id/${action}`, (context) => {
