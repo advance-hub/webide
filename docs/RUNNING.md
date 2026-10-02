@@ -87,7 +87,7 @@ WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:dev bash scripts/run-local-san
 
 验收脚本固定官方 Server `0.2.3`、execd `1.1.0`、SDK `1.1.0` 和私有 Docker `29.3.0`，仅向回环随机端口暴露测试服务。它要求 Docker 允许启动 privileged DinD，创建专属 context、网络和数据卷，不切换默认 context，退出时清理专属资源。镜像使用 `linux/amd64`，ARM 主机由 Docker 模拟运行。脚本运行两账户的 IDE，验证真实 IDE HTTP/WS 代理、指标、加密备份与脏文件恢复、容器替换保留 PVC、实际容器和卷删除。升级夹具只改变镜像指纹，证明驱动执行了替换与识别，尚未验证跨两个发布版本的业务迁移。
 
-镜像构建可通过 `NODE_IMAGE`、`HTTP_PROXY`、`HTTPS_PROXY` 参数适配镜像源与网络；不要将代理或密钥写入 Dockerfile。真实验收 JSON 与日志保存于忽略的 `output/runtime-profiles/node-control-plane-20261002/`。若使用已有远程服务，可按 `application/server/remote.acceptance.ts` 的 `WEBIDE_ACCEPTANCE_*` 环境变量单独执行；该脚本会创建并释放测试开发机，必须指向隔离环境。
+镜像构建可通过 `NODE_IMAGE`、`HTTP_PROXY`、`HTTPS_PROXY` 参数适配镜像源与网络；不要将代理或密钥写入 Dockerfile。真实验收 JSON 与日志默认保存于忽略的 `output/runtime-profiles/node-control-plane-20261002/`，可通过 `WEBIDE_ACCEPTANCE_OUTPUT` 指定独立 JSON 输出，保留已有验收记录。入口会复用本机已缓存且架构匹配的固定版本官方镜像，缺失时再拉取。若使用已有远程服务，可按 `application/acceptance/opensandbox.ts` 的 `WEBIDE_ACCEPTANCE_*` 环境变量单独执行；该脚本会创建并释放测试开发机，必须指向隔离环境。
 
 ## TypeScript 与构建
 

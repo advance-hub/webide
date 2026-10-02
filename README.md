@@ -51,6 +51,12 @@ node scripts/verify-extensions.cjs
 
 完整安装、端口、配置、沙箱与 Git 远程设置见 [运行说明](docs/RUNNING.md)。前后端入口分别位于 [client](client/README.md)、[server](server/README.md)，工作台代码位于 `application/`。
 
+## 项目结构
+
+`application/` 是工作台产品，`client/` 和 `server/` 是独立 IDE 的产品入口，`packages/` 保留 OpenSumi 框架与扩展 API，`configs/` 与 `scripts/` 提供统一工具配置和执行入口，`tools/`、`test/` 提供开发与验收支持。
+
+工作台内部按共享契约、浏览器界面、业务模块、运行驱动和 HTTP 传输组织。详细文件树见 [产品目录](application/README.md)，依赖方向、删除依据及验证边界见 [架构说明](docs/architecture/product-structure.md)。`pnpm check:product` 会检查跨层导入、循环依赖、缺失文件和产品源码的中文注释；它已接入测试入口和 CI。
+
 ## Docker 与沙箱验收
 
 ```sh

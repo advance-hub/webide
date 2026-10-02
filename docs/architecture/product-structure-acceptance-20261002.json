@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b9e109cd7afac99456656fafec65899374637d87",
+  "date": "2026-10-02",
+  "scope": "工作台模块重构、工程入口与中文说明性注释",
+  "platform": {
+    "host": "macOS ARM64",
+    "node": "24.16.0",
+    "sandbox": "本机隔离 Docker/OpenSandbox",
+    "workspace": "Linux x64"
+  },
+  "structure": {
+    "sourceFiles": 112,
+    "problems": 0,
+    "originalCompositionLines": 996,
+    "currentCompositionLines": 136,
+    "commentOnlySourceFiles": 34,
+    "commentOnlyASTChanges": 0
+  },
+  "tests": {
+    "workbench": {
+      "passed": 25,
+      "failed": 0
+    },
+    "runtimeHelpers": {
+      "passed": 29,
+      "failed": 0
+    },
+    "runtimeScripts": {
+      "passed": 67,
+      "failed": 0
+    },
+    "serverDiagnostics": {
+      "passed": 26,
+      "failed": 0
+    },
+    "frameworkNode": {
+      "passed": 1481,
+      "skipped": 29,
+      "failed": 0
+    },
+    "frameworkJSDOM": {
+      "passed": 3264,
+      "skipped": 28,
+      "failed": 0
+    }
+  },
+  "checks": {
+    "applicationTypes": true,
+    "scriptTypes": true,
+    "publicAPICompatibility": true,
+    "productESLint": true,
+    "technicalDesignLint": true,
+    "fullBuild": true,
+    "artifactHashesMatch": true,
+    "productionBundleFromDifferentCwd": true,
+    "dockerProductionHTTPAndShutdown": true
+  },
+  "docker": {
+    "images": [
+      {
+        "tag": "opensumi-webide-node:structure-20261002",
+        "id": "sha256:3c15e4ddb9fb85498125eecd2eda3e2e7979ebd5302d28ba939d19bf5ac05647"
+      },
+      {
+        "tag": "opensumi-webide-workspace:structure-20261002",
+        "id": "sha256:378b96695af9277ee13f58492c6f8467d12c0f55cd69e3a683fbc30229e1d59b"
+      }
+    ],
+    "opensandbox": {
+      "passed": true,
+      "steps": [
+        {
+          "name": "real-sdk-provision-and-start-two-accounts",
+          "elapsedMs": 62684
+        },
+        {
+          "name": "node24-os-and-api-account-isolation",
+          "elapsedMs": 4903
+        },
+        {
+          "name": "actual-ide-http-and-websocket-proxy",
+          "elapsedMs": 207
+        },
+        {
+          "name": "real-encrypted-backup-and-dirty-file-restore",
+          "elapsedMs": 36307
+        },
+        {
+          "name": "actual-container-runtime-upgrade-retains-pvc",
+          "elapsedMs": 14204
+        },
+        {
+          "name": "actual-container-and-docker-pvc-release",
+          "elapsedMs": 9886
+        }
+      ],
+      "elapsedMs": 129857,
+      "resourcesReclaimed": true,
+      "defaultContextPreserved": true
+    }
+  },
+  "limits": [
+    "未将上游框架既有英文 API 注释全仓改写",
+    "本次不增加 Windows 原生、真实 Kubernetes 或外部云资源验收",
+    "运行时升级使用可区分指纹的测试镜像，不代表两个正式发布版本间的迁移验收",
+    "构建保留框架已有警告，未承诺整棵 IDE 的性能改善"
+  ],
+  "rawEvidence": {
+    "directory": "output/refactor/",
+    "gitIgnored": true
+  }
+}

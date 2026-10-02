@@ -1,3 +1,3 @@
-## 如何贡献
+# 开发约定
 
-请参见：[如何贡献代码](https://opensumi.com/zh/docs/develop/how-to-contribute)
+本仓库统一使用中文开发说明，见 [CONTRIBUTING.md](CONTRIBUTING.md)。

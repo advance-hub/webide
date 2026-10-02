@@ -117,11 +117,11 @@ Docker 删除只接受受管 32 位机器卷名，拒绝任何仍挂载的容器
 
 | 模块/入口 | 职责 | 验收证据 |
 | --- | --- | --- |
-| application/server/resources.ts | 资源、协议与 COS、同步 | resources.test.ts 的 5 项夹具/账户/输出边界测试 |
-| application/server/git-control.ts、git.ts | 凭据、Git bridge、发布 | git-control.test.ts 的 2 项真实 Git HTTP/代码源 API 测试 |
-| application/server/machines.ts、runtime 辅助工具 | 备份、恢复、策略与锁 | machines.test.ts 的 4 项磁盘/故障测试；辅助工具 29 项 |
-| application/server/runtime.ts、Server 身份接口 | 本机身份/升级 | orphan.integration.test.ts：认领/伪造拒绝/WS 退出/脏文件 |
-| application/server/sandbox-runtime.ts、volumes.ts | 镜像与 PVC | SDK 夹具；volumes.test.ts 的分页/UID/等待；实际 Docker 6 阶段 |
+| application/server/modules/resources/service.ts | 资源、协议与 COS、同步 | resources.test.ts 的 5 项夹具/账户/输出边界测试 |
+| application/server/modules/git/control.ts、modules/projects/repositories.ts | 凭据、Git bridge、发布 | git-control.test.ts 的 2 项真实 Git HTTP/代码源 API 测试 |
+| application/server/modules/machines/service.ts、runtime 辅助工具 | 备份、恢复、策略与锁 | machines.test.ts 的 4 项磁盘/故障测试；辅助工具 29 项 |
+| application/server/runtime/local.ts、Server 身份接口 | 本机身份/升级 | orphan.integration.test.ts：认领/伪造拒绝/WS 退出/脏文件 |
+| application/server/runtime/sandbox.ts、infrastructure/kubernetes-volumes.ts | 镜像与 PVC | SDK 夹具；volumes.test.ts 的分页/UID/等待；实际 Docker 6 阶段 |
 | file-service shared-node-watcher 与 process-manager | 崩溃恢复 | 23 项定向 Jest；3 轮 5 连接 native crash 探针 |
 | server/src/start-server.ts、main.ts | 关闭协调器与 CLI 退出 | Server 关闭回归；真实浏览器 6 个采样进程退出 |
 | Dockerfile、application/runtime/Dockerfile、工作流 | Node 镜像和回归入口 | 实际 x64 构建/70 插件；本机 OpenSandbox HTTP/WS 与维护 E2E |
