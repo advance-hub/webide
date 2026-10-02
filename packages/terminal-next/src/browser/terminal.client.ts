@@ -75,7 +75,6 @@ export class TerminalClient extends Disposable implements ITerminalClient {
   private _ready = false;
   private _attached: Deferred<void>;
   private _firstStdout: Deferred<void>;
-  private _error: Deferred<void>;
   private _show: Deferred<void> | null;
   private _hasOutput = false;
   private _areLinksReady = false;
@@ -231,7 +230,12 @@ export class TerminalClient extends Disposable implements ITerminalClient {
           this._show = new Deferred();
         }
         if (this._show) {
-          await this._show.promise;
+          try {
+            await this._show.promise;
+          } catch {
+            // 重建终端会取消旧视图的等待，不再把偏好写到退役实例。
+            return;
+          }
         }
         this._setOption(name, value);
         this.xterm.updatePreferences({
@@ -263,7 +267,6 @@ export class TerminalClient extends Disposable implements ITerminalClient {
           // 但是实际上是设置为 display none 了，所以手动 resize 一下
           // this._term.resize(1, 1);
         } else {
-          this._error?.resolve();
           this._layout();
         }
       }),
@@ -483,13 +486,13 @@ export class TerminalClient extends Disposable implements ITerminalClient {
   _prepare() {
     this._attached?.reject('TerminalClient is Re-initialization');
     this._firstStdout?.reject('TerminalClient is Re-initialization');
-    this._error?.reject('TerminalClient is Re-initialization');
     this._show?.reject('TerminalClient is Re-initialization');
     this._ready = false;
+    // 输入框渲染可能早于远端连接，忙碌状态持续到连接就绪并收到首份输出。
+    this.container.setAttribute('aria-busy', 'true');
     this._hasOutput = false;
     this._attached = new Deferred<void>();
     this._show = new Deferred<void>();
-    this._error = new Deferred<void>();
     this._firstStdout = new Deferred<void>();
     this._attachAddon?.setConnection(undefined);
     this.internalService.getOS().then((os) => {
@@ -499,6 +502,9 @@ export class TerminalClient extends Disposable implements ITerminalClient {
       dispose();
       this._hasOutput = true;
       this._firstStdout.resolve();
+      if (this._ready) {
+        this.container.setAttribute('aria-busy', 'false');
+      }
     });
   }
 
@@ -510,9 +516,12 @@ export class TerminalClient extends Disposable implements ITerminalClient {
       this.attach();
       this.focus();
       if (!this.widget.show) {
-        this._show?.promise.then(async () => {
-          this._show = new Deferred<void>();
-        });
+        this._show?.promise.then(
+          () => {
+            this._show = new Deferred<void>();
+          },
+          () => {},
+        );
       }
     });
   }
@@ -650,14 +659,20 @@ export class TerminalClient extends Disposable implements ITerminalClient {
       this._onTitleChange.fire({ id: this.id, name });
     }
     this._ready = true;
+    if (this._hasOutput) {
+      this.container.setAttribute('aria-busy', 'false');
+    }
     this._attached.resolve();
     this._widget.rename(this.name);
 
     this.eventBus.fire(new TerminalClientAttachEvent({ clientId: this.id }));
 
-    this._firstStdout.promise.then(() => {
-      this._doResize();
-    });
+    this._firstStdout.promise.then(
+      () => {
+        this._doResize();
+      },
+      () => {},
+    );
   }
 
   private _setOption(name: string, value: string | number | boolean | Array<string | number | boolean>) {

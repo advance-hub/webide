@@ -70,6 +70,8 @@ export async function openTerminal(page: Page, marker: string): Promise<string> 
     await input.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {});
   }
   await input.waitFor({ state: 'visible', timeout: 1000 });
+  // 等待实际终端连接和首份输出，不能把 textarea 可见当成远端 Shell 已就绪。
+  await page.locator('[aria-busy="false"]').filter({ has: input }).last().waitFor({ state: 'visible', timeout: 60000 });
   await input.focus();
   // xterm 焦点更新异步完成，先清空输入，再通过实际剪贴板粘贴完整命令。
   await page.waitForTimeout(100);

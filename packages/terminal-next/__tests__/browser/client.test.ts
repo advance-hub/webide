@@ -266,7 +266,9 @@ describe('Terminal Client', () => {
   });
 
   it('should use isExtensionOwnedTerminal to determine the terminal process', async () => {
+    expect.hasAssertions();
     let launchConfig1: IShellLaunchConfig | undefined;
+    let emitOutput: ((data: string | ArrayBuffer) => void) | undefined;
     injector.mock(
       ITerminalInternalService,
       'attachByLaunchConfig',
@@ -275,7 +277,10 @@ describe('Terminal Client', () => {
         return {
           name: 'extension-terminal-test',
           readonly: false,
-          onData: () => Disposable.NULL,
+          onData: (listener: (data: string | ArrayBuffer) => void) => {
+            emitOutput = listener;
+            return Disposable.NULL;
+          },
           sendData: () => {},
         };
       },
@@ -289,6 +294,15 @@ describe('Terminal Client', () => {
     await extensionClient.attached.promise;
     expect(launchConfig1).toBeDefined();
     expect(launchConfig1?.customPtyImplementation).toBeDefined();
+    expect(extensionClient.container.getAttribute('aria-busy')).toBe('true');
+    emitOutput!('ready');
+    expect(extensionClient.container.getAttribute('aria-busy')).toBe('false');
+    // 用独立扩展终端验证重建，不修改其他测试共用的真实 PTY。
+    extensionClient.reset();
+    expect(extensionClient.container.getAttribute('aria-busy')).toBe('true');
+    await extensionClient.attached.promise;
+    emitOutput!('reconnected');
+    expect(extensionClient.container.getAttribute('aria-busy')).toBe('false');
     await extensionClient.dispose();
   });
 });
