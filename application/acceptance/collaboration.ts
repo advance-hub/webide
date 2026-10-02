@@ -18,6 +18,21 @@ import { appendDocument, openDocument, openTerminal, readDocument, saveDocument,
 
 import type { BrowserContext, Page } from 'playwright';
 
+async function harnessHashes() {
+  return Object.fromEntries(
+    await Promise.all(
+      [import.meta.filename, path.join(import.meta.dirname, 'browser-editor.ts')].map(async (file) => [
+        path.basename(file),
+        createHash('sha256')
+          .update(await readFile(file))
+          .digest('hex'),
+      ]),
+    ),
+  );
+}
+
+// 记录启动时源码，结束时再次核对，避免运行中的修改使证据对应到另一版本。
+const loadedHarnessHashes = await harnessHashes();
 const output = path.resolve(
   process.env.WEBIDE_ACCEPTANCE_OUTPUT || 'output/runtime-profiles/collaboration-20261002/result.json',
 );
@@ -68,6 +83,7 @@ const result: Record<string, unknown> = {
   runtimePlatform: config.sandboxPlatform,
   watcherMode: mode,
   rounds,
+  harnessSha256: loadedHarnessHashes,
   scope:
     '实际 IDE Server 与其扩展宿主、语言服务、watcher、终端进程的 RSS 合计；不含浏览器、控制面验收入口与 OpenSandbox 守护进程。',
   fixture: '同一个小型 TypeScript 仓库，镜像内置扩展，五个独立认证账户与 Chromium 上下文。',
@@ -575,7 +591,7 @@ try {
   for (const machine of workbench.store.list<Machine>('machine')) {
     await workbench.driver.release(machine).catch((error: Error) => cleanupErrors.push(error.message));
   }
-  await workbench.close();
+  await workbench.close().catch((error: Error) => cleanupErrors.push(error.message));
   result.cleanupErrors = cleanupErrors;
   if (cleanupErrors.length) {
     result.pass = false;
@@ -583,16 +599,12 @@ try {
   }
   result.finishedAt = now();
   result.unexpectedBrowserErrors = errors.filter((error) => !error.expected).length;
-  result.harnessSha256 = Object.fromEntries(
-    await Promise.all(
-      [import.meta.filename, path.join(import.meta.dirname, 'browser-editor.ts')].map(async (file) => [
-        path.basename(file),
-        createHash('sha256')
-          .update(await readFile(file))
-          .digest('hex'),
-      ]),
-    ),
-  );
+  result.harnessSha256AtFinish = await harnessHashes();
+  result.harnessChanged = JSON.stringify(loadedHarnessHashes) !== JSON.stringify(result.harnessSha256AtFinish);
+  if (result.harnessChanged) {
+    result.pass = false;
+    process.exitCode = 1;
+  }
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, JSON.stringify(result, null, 2) + '\n');
   await rm(root, { recursive: true, force: true });
