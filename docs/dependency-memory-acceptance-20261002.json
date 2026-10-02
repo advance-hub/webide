@@ -1,0 +1,532 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-02",
+  "baseline": "7f8cc66eb8fba6c102e331de9476dcfc8cf8c40d",
+  "implementationRevision": "a5450826554d5d0bbda34aed5ab4ff829d5973a5",
+  "sourceScope": "依赖、控制面内存边界及 SumiConnection 出站取消订阅；Go 后端保持删除",
+  "toolchain": {
+    "node": "24.16.0",
+    "pnpm": "12.8.1",
+    "nativeTypeScript": "7.0.2",
+    "typescriptAPIPackage": "@typescript/typescript6@6.0.2",
+    "typescriptAPIReportedVersion": "6.0.3",
+    "rspack": "2.2.8"
+  },
+  "dependencies": {
+    "registry": "https://registry.npmjs.org",
+    "uniqueUpdated": 41,
+    "versions": [
+      {
+        "name": "@commitlint/cli",
+        "fromInstalled": "21.2.2",
+        "to": "21.2.3"
+      },
+      {
+        "name": "@commitlint/config-conventional",
+        "fromInstalled": "21.2.2",
+        "to": "21.2.3"
+      },
+      {
+        "name": "@commitlint/types",
+        "fromInstalled": "21.2.0",
+        "to": "21.2.3"
+      },
+      {
+        "name": "@modelcontextprotocol/sdk",
+        "fromInstalled": "1.30.0",
+        "to": "1.31.0"
+      },
+      {
+        "name": "@opensumi/textmate-languages",
+        "fromInstalled": "2.7.2",
+        "to": "2.8.1"
+      },
+      {
+        "name": "@opensumi/vscode-jsonrpc",
+        "fromInstalled": "8.0.0-next.9",
+        "to": "8.2.1"
+      },
+      {
+        "name": "@playwright/test",
+        "fromInstalled": "1.62.1",
+        "to": "1.63.0"
+      },
+      {
+        "name": "@types/http-proxy",
+        "fromInstalled": "1.17.14",
+        "to": "1.17.17"
+      },
+      {
+        "name": "@types/koa",
+        "fromInstalled": "2.14.0",
+        "to": "3.0.3"
+      },
+      {
+        "name": "@types/koa-bodyparser",
+        "fromInstalled": "4.3.12",
+        "to": "4.3.13"
+      },
+      {
+        "name": "@types/node-fetch",
+        "fromInstalled": "2.6.11",
+        "to": "2.6.13"
+      },
+      {
+        "name": "@types/ws",
+        "fromInstalled": "8.5.10",
+        "to": "8.18.2"
+      },
+      {
+        "name": "allure-commandline",
+        "fromInstalled": "2.43.0",
+        "to": "2.46.1"
+      },
+      {
+        "name": "css-loader",
+        "fromInstalled": "7.1.4",
+        "to": "7.1.5"
+      },
+      {
+        "name": "debug",
+        "fromInstalled": "4.4.1",
+        "to": "4.4.3"
+      },
+      {
+        "name": "eslint",
+        "fromInstalled": "10.8.1",
+        "to": "10.11.0"
+      },
+      {
+        "name": "eslint-plugin-jest",
+        "fromInstalled": "29.16.1",
+        "to": "29.16.6"
+      },
+      {
+        "name": "fs-extra",
+        "fromInstalled": "11.4.0",
+        "to": "11.4.1"
+      },
+      {
+        "name": "globals",
+        "fromInstalled": "17.11.0",
+        "to": "17.13.0"
+      },
+      {
+        "name": "jest",
+        "fromInstalled": "30.4.2",
+        "to": "30.5.2"
+      },
+      {
+        "name": "jest-environment-jsdom",
+        "fromInstalled": "30.4.1",
+        "to": "30.5.2"
+      },
+      {
+        "name": "koa",
+        "fromInstalled": "2.16.4 / 工作台 3.2.1",
+        "to": "3.2.1"
+      },
+      {
+        "name": "koa-mount",
+        "fromInstalled": "4.0.0",
+        "to": "4.2.0"
+      },
+      {
+        "name": "less",
+        "fromInstalled": "4.9.0",
+        "to": "4.9.1"
+      },
+      {
+        "name": "lib0",
+        "fromInstalled": "0.2.117",
+        "to": "0.2.119"
+      },
+      {
+        "name": "prettier",
+        "fromInstalled": "3.9.6",
+        "to": "3.9.9"
+      },
+      {
+        "name": "rc-image",
+        "fromInstalled": "7.11.0",
+        "to": "7.12.0"
+      },
+      {
+        "name": "rc-input-number",
+        "fromInstalled": "9.4.0",
+        "to": "9.5.0"
+      },
+      {
+        "name": "rc-menu",
+        "fromInstalled": "9.16.0",
+        "to": "9.16.1"
+      },
+      {
+        "name": "rc-tooltip",
+        "fromInstalled": "6.3.2",
+        "to": "6.4.0"
+      },
+      {
+        "name": "rc-util",
+        "fromInstalled": "5.44.3",
+        "to": "5.44.4"
+      },
+      {
+        "name": "react-chat-elements",
+        "fromInstalled": "12.0.14",
+        "to": "12.0.18"
+      },
+      {
+        "name": "tiktoken",
+        "fromInstalled": "1.0.12",
+        "to": "1.0.22"
+      },
+      {
+        "name": "ts-jest",
+        "fromInstalled": "29.4.12",
+        "to": "29.4.14"
+      },
+      {
+        "name": "tslib",
+        "fromInstalled": "2.6.2",
+        "to": "2.8.1"
+      },
+      {
+        "name": "tsx",
+        "fromInstalled": "4.23.12",
+        "to": "4.23.15"
+      },
+      {
+        "name": "typescript-eslint",
+        "fromInstalled": "8.67.0",
+        "to": "8.71.0"
+      },
+      {
+        "name": "vscode-languageserver-types",
+        "fromInstalled": "3.18.0",
+        "to": "3.18.4"
+      },
+      {
+        "name": "vscode-uri",
+        "fromInstalled": "3.0.2",
+        "to": "3.2.0"
+      },
+      {
+        "name": "ws",
+        "fromInstalled": "8.21.3",
+        "to": "8.22.0"
+      },
+      {
+        "name": "yjs",
+        "fromInstalled": "13.6.32",
+        "to": "13.6.33"
+      }
+    ],
+    "alignment": "React 18 运行/类型固定为精确版本，Koa 3 与 JavaScript TypeScript API 在自维护工作区统一"
+  },
+  "tests": {
+    "frameworkNode": {
+      "suitesPassed": 140,
+      "passed": 1485,
+      "skipped": 29,
+      "log": "framework-node-retry.log"
+    },
+    "frameworkJsdom": {
+      "suitesPassed": 350,
+      "passed": 3268,
+      "skipped": 28,
+      "log": "framework.log"
+    },
+    "frameworkPassedTotal": 4753,
+    "frameworkSkippedTotal": 57,
+    "workbench": {
+      "commandLog": "workbench-final.log",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    "runtimeScripts": {
+      "commandLog": "runtime-scripts-final.log",
+      "tests": 69,
+      "pass": 69,
+      "fail": 0,
+      "skipped": 0
+    },
+    "helpers": {
+      "commandLog": "helpers.log",
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "diagnostics": {
+      "commandLog": "diagnostics.log",
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "targetedRPC": {
+      "passed": 46,
+      "projects": ["node", "jsdom"],
+      "log": "rpc-memory.log"
+    },
+    "productStructure": {
+      "files": 116,
+      "violations": 0
+    },
+    "types": "产品、工程脚本及公开 API 兼容检查通过",
+    "build": "完整框架、宿主、客户端、IDE Server 及工作台构建通过；产物输入输出摘要匹配"
+  },
+  "controlledMemory": {
+    "scope": "隔离子进程内过期票据与大日志尾部的受控对照；显式 GC，时钟推进；不代表整棵 IDE 性能",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "rounds": 3,
+    "dependencyScope": "前后使用本轮锁文件，只比较指定函数实现",
+    "loadAtEnd": [15.9443359375, 33.79541015625, 32.912109375],
+    "baselineProxySHA256": "314da23007df8991284416763172637c149aadf6d8000533861fef8b887e835e",
+    "medians": [
+      {
+        "scenario": "tickets",
+        "unit": "MiB",
+        "before": {
+          "heapDeltaMiB": 13.002922058105469,
+          "rssDeltaMiB": 55.6875,
+          "entries": 50001
+        },
+        "after": {
+          "heapDeltaMiB": 0.21425628662109375,
+          "rssDeltaMiB": 53.703125,
+          "entries": 1
+        }
+      },
+      {
+        "scenario": "log-tail",
+        "unit": "MiB",
+        "before": {
+          "heapDeltaMiB": 64.01467895507812,
+          "rssDeltaMiB": 75.25
+        },
+        "after": {
+          "heapDeltaMiB": 0.01773834228515625,
+          "rssDeltaMiB": 0.25
+        }
+      }
+    ],
+    "measurements": [
+      {
+        "round": 1,
+        "version": "before",
+        "result": {
+          "scenario": "tickets",
+          "entries": 50001,
+          "heapDeltaBytes": 13634552,
+          "rssDeltaBytes": 57901056
+        }
+      },
+      {
+        "round": 1,
+        "version": "before",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 67124256,
+          "rssDeltaBytes": 78807040
+        }
+      },
+      {
+        "round": 1,
+        "version": "after",
+        "result": {
+          "scenario": "tickets",
+          "entries": 1,
+          "heapDeltaBytes": 224664,
+          "rssDeltaBytes": 58081280
+        }
+      },
+      {
+        "round": 1,
+        "version": "after",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 17480,
+          "rssDeltaBytes": 262144
+        }
+      },
+      {
+        "round": 2,
+        "version": "after",
+        "result": {
+          "scenario": "tickets",
+          "entries": 1,
+          "heapDeltaBytes": 224664,
+          "rssDeltaBytes": 56016896
+        }
+      },
+      {
+        "round": 2,
+        "version": "after",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 18600,
+          "rssDeltaBytes": 278528
+        }
+      },
+      {
+        "round": 2,
+        "version": "before",
+        "result": {
+          "scenario": "tickets",
+          "entries": 50001,
+          "heapDeltaBytes": 13634552,
+          "rssDeltaBytes": 59916288
+        }
+      },
+      {
+        "round": 2,
+        "version": "before",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 67124256,
+          "rssDeltaBytes": 78987264
+        }
+      },
+      {
+        "round": 3,
+        "version": "before",
+        "result": {
+          "scenario": "tickets",
+          "entries": 50001,
+          "heapDeltaBytes": 13634552,
+          "rssDeltaBytes": 58392576
+        }
+      },
+      {
+        "round": 3,
+        "version": "before",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 67124256,
+          "rssDeltaBytes": 78905344
+        }
+      },
+      {
+        "round": 3,
+        "version": "after",
+        "result": {
+          "scenario": "tickets",
+          "entries": 1,
+          "heapDeltaBytes": 224664,
+          "rssDeltaBytes": 56311808
+        }
+      },
+      {
+        "round": 3,
+        "version": "after",
+        "result": {
+          "scenario": "log-tail",
+          "fileBytes": 67108864,
+          "resultCharacters": 4000,
+          "heapDeltaBytes": 18768,
+          "rssDeltaBytes": 229376
+        }
+      }
+    ],
+    "rpcProbe": "长期令牌下 100 次请求逐次完成后取消监听回到 0；流首块后仍可取消"
+  },
+  "docker": {
+    "platform": "linux/amd64",
+    "images": [
+      {
+        "tags": ["opensumi-webide-node:dependencies-final-20261002"],
+        "id": "sha256:988cbc64e9636ca4d962863f16be276a5c06acac5a6a04419e13a288ce257204",
+        "architecture": "amd64"
+      },
+      {
+        "tags": ["opensumi-webide-workspace:dependencies-final-20261002"],
+        "id": "sha256:f815e54f4ecef733cdbd65dcebfd5b43a4149bcb4916c5f212716e78f267e9ea",
+        "architecture": "amd64"
+      }
+    ],
+    "productionSmoke": {
+      "image": "opensumi-webide-node:dependencies-final-20261002",
+      "imageID": "sha256:988cbc64e9636ca4d962863f16be276a5c06acac5a6a04419e13a288ce257204",
+      "platform": "linux/amd64",
+      "health": {
+        "status": "ok",
+        "runtime": "node",
+        "node": "v24.16.0",
+        "driver": "sandbox"
+      },
+      "implementationSourceFilesChecked": 11,
+      "compiledRPCOwnershipPresent": true,
+      "dashboardStatus": 200,
+      "assetStatus": 200,
+      "assetBytes": 690033,
+      "unauthenticatedProjectsStatus": 401,
+      "shutdownSeconds": 0.4309357909951359,
+      "exitCode": 0,
+      "scope": "生产编译入口 HTTP、页面资源、未登录隔离及 SIGTERM；沙箱行为由独立六阶段验收覆盖"
+    },
+    "opensandbox": {
+      "pass": true,
+      "image": "opensumi-webide-workspace:dependencies-final-20261002",
+      "steps": [
+        {
+          "name": "real-sdk-provision-and-start-two-accounts",
+          "elapsedMs": 129682
+        },
+        {
+          "name": "node24-os-and-api-account-isolation",
+          "elapsedMs": 5076
+        },
+        {
+          "name": "actual-ide-http-and-websocket-proxy",
+          "elapsedMs": 280
+        },
+        {
+          "name": "real-encrypted-backup-and-dirty-file-restore",
+          "elapsedMs": 94347
+        },
+        {
+          "name": "actual-container-runtime-upgrade-retains-pvc",
+          "elapsedMs": 18231
+        },
+        {
+          "name": "actual-container-and-docker-pvc-release",
+          "elapsedMs": 10150
+        }
+      ]
+    },
+    "cleanup": "本轮测试容器、DinD、context、网络和卷已清理，默认 Docker context 未更改"
+  },
+  "retainedFailures": [
+    "初次构建出现新版 vscode-uri 非公开类型泄露，显式公开 DTO 后完整重建通过",
+    "旧依赖检查扫描下载扩展并漏掉根包/产品，限定实际工作区且完成版本对齐后通过",
+    "Docker 并行构建时 Node 全量中一次原生空文件新建事件缺失；独立 17 项及最终 1485 项重跑通过，原因未确定",
+    "用户中断时的 Node 回归和最终镜像构建日志保留，未列为完成"
+  ],
+  "limits": [
+    "局部显式 GC 与模拟时间的保留堆对照不能证明整棵 IDE、语言服务的 RSS 或延迟改善",
+    "Windows、真实 Kubernetes、外部 Git 服务与云资源没有在本轮环境运行验收",
+    "React 19、Ant Design 6、Electron 44、DI/events 2、AI SDK 7 等跨主版本迁移未完成",
+    "WebSocket 超限会终止连接，32 MiB 限制为单端缓冲/单消息，非整体 Server 内存上限",
+    "沙箱升级使用本轮镜像修改指纹的验收夹具，非两个正式发布版本间升级"
+  ],
+  "evidence": {
+    "localDirectory": "output/runtime-profiles/dependency-memory-20261002/",
+    "index": "evidence-index.json",
+    "indexSHA256": "0b374ed7ddc30d1f08d557109bd0b55598a65563f6458887c6da17eb27c4ce55"
+  }
+}

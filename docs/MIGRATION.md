@@ -2,6 +2,8 @@
 
 当前保留 OpenSumi 上游 `9a7057aec548b11598b8ec5f39a5538546b218e2` 的历史、MIT 许可证与扩展 API。2026-10-02 在迁移基线 `0789312e1` 上补齐下列 Node 控制面能力；原本地项目 `32dff6c` 只作为只读语义参考，未复制 Go 后端。
 
+下表保存首次控制面补齐的执行结果。后续产品结构调整见 [结构验收摘要](architecture/product-structure-acceptance-20261002.json)，41 种依赖更新与内存修复见 [维护记录](DEPENDENCIES-AND-MEMORY.md)和 [本轮验收摘要](dependency-memory-acceptance-20261002.json)；不同批次的测试计数和性能边界分别保留。
+
 ## 已实现
 
 | 范围 | 当前行为 |

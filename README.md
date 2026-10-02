@@ -57,6 +57,8 @@ node scripts/verify-extensions.cjs
 
 工作台内部按共享契约、浏览器界面、业务模块、运行驱动和 HTTP 传输组织。详细文件树见 [产品目录](application/README.md)，依赖方向、删除依据及验证边界见 [架构说明](docs/architecture/product-structure.md)。`pnpm check:product` 会检查跨层导入、循环依赖、缺失文件和产品源码的中文注释；它已接入测试入口和 CI。
 
+自维护工作区通过 `pnpm check:versions` 检查依赖范围一致性。本轮更新 41 种依赖，并修复 RPC 取消监听、过期认证状态、代理发送缓冲和大日志读取的内存问题；版本选择、局部内存对照与实际验证边界见 [依赖与内存维护记录](docs/DEPENDENCIES-AND-MEMORY.md)。
+
 ## Docker 与沙箱验收
 
 ```sh
