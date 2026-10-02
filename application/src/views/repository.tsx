@@ -1,13 +1,15 @@
 import { Button, Input, Table, Tag } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
+import { type Project } from '../../shared/contracts';
 import { BaselineActions } from '../components/baseline';
 import { Branch, Callout, Empty } from '../components/common';
+import { ArrowIcon, BackIcon, CopyIcon, FileIcon, ProjectsIcon } from '../components/icons';
 import { VirtualTable } from '../components/virtual-collection';
-import { type Project, busyStates, date, projectHref } from '../domain';
-import { ArrowIcon, BackIcon, CopyIcon, FileIcon, ProjectsIcon } from '../icons';
+import { busyStates, date, projectHref } from '../domain/presentation';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 interface Entry {
   name: string;

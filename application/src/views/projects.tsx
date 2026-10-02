@@ -1,11 +1,13 @@
 import { Button, Input } from '@arco-design/web-react';
 
+import { type Project, type Workspace } from '../../shared/contracts';
 import { Branch, Empty, PageHeader, ProjectMark, Status } from '../components/common';
+import { AddIcon, CodeIcon, RefreshIcon } from '../components/icons';
 import { VirtualTable } from '../components/virtual-collection';
-import { type Project, type Workspace, date, projectHref, repository } from '../domain';
-import { AddIcon, CodeIcon, RefreshIcon } from '../icons';
+import { date, projectHref, repository } from '../domain/presentation';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 export function Projects({
   wb,

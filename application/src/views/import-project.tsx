@@ -1,11 +1,14 @@
 import { Button, Form, Input, Select } from '@arco-design/web-react';
 import { useState } from 'react';
 
+import { type Project } from '../../shared/contracts';
+import { request } from '../api/client';
 import { PageHeader } from '../components/common';
-import { type Project, projectHref, repository, request } from '../domain';
-import { BackIcon, BranchIcon } from '../icons';
+import { BackIcon, BranchIcon } from '../components/icons';
+import { projectHref, repository } from '../domain/presentation';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 interface Draft {
   name: string;
@@ -43,11 +46,11 @@ export function ImportProject({ wb, navigate }: { wb: Workbench; navigate: Navig
           savedURL = '';
         }
       } catch {
-        /* incomplete address */
+        /* 地址尚未输入完整。 */
       }
       sessionStorage.setItem(draftKey, JSON.stringify({ ...next, url: savedURL }));
     } catch {
-      /* The form still works when storage is unavailable. */
+      /* 浏览器存储不可用时，表单仍然可以使用。 */
     }
   };
   const submit = async () => {
@@ -83,7 +86,7 @@ export function ImportProject({ wb, navigate }: { wb: Workbench; navigate: Navig
       try {
         sessionStorage.removeItem(draftKey);
       } catch {
-        /* optional storage */
+        /* 可选的浏览器存储不可用。 */
       }
       navigate(projectHref(p.id));
       wb.setNotice('项目已加入导入队列，完成后即可准备工作区。');

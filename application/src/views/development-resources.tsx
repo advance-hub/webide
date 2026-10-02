@@ -1,10 +1,11 @@
 import { Button, Form, Input, Menu, Tag } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
+import { type Workspace } from '../../shared/contracts';
+import { request } from '../api/client';
 import { Callout, PageHeader } from '../components/common';
-import { type Workspace, request } from '../domain';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 type ResourceId = 'nacos' | 'redis' | 'mysql' | 'rocketmq' | 'elasticsearch' | 'middleware' | 'cos';
 interface Profile {
@@ -22,7 +23,11 @@ interface Profile {
   hasSecretKey: boolean;
 }
 type ProfileDetail = Profile & { password: string; secretId: string; secretKey: string };
-interface Probe { status: 'ready' | 'failed'; detail: string; latencyMs?: number }
+interface Probe {
+  status: 'ready' | 'failed';
+  detail: string;
+  latencyMs?: number;
+}
 interface COSList {
   prefixes: string[];
   objects: { key: string; size: number; lastModified: string }[];
@@ -30,7 +35,11 @@ interface COSList {
   truncated: boolean;
   root: string;
 }
-interface COSText { key: string; content: string; contentType: string }
+interface COSText {
+  key: string;
+  content: string;
+  contentType: string;
+}
 
 const definitions: { id: ResourceId; name: string; group: string; description: string }[] = [
   { id: 'nacos', name: 'Nacos', group: '配置与发现', description: '命名空间和控制台' },

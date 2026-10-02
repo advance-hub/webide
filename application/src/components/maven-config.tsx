@@ -1,11 +1,22 @@
 import { Button, Input, Select } from '@arco-design/web-react';
 import { useState } from 'react';
 
-import { type MavenOptions, request } from '../domain';
+import { type MavenOptions } from '../../shared/contracts';
+import { request } from '../api/client';
 
 import { Callout } from './common';
-interface Preset { name: string; action: string; options: MavenOptions }
-interface Configuration { xml: string; revision: string; jdk: string; jdks: string[]; presets: Preset[] }
+interface Preset {
+  name: string;
+  action: string;
+  options: MavenOptions;
+}
+interface Configuration {
+  xml: string;
+  revision: string;
+  jdk: string;
+  jdks: string[];
+  presets: Preset[];
+}
 export function MavenConfiguration({
   id,
   disabled,
@@ -20,14 +31,16 @@ export function MavenConfiguration({
   onPreset: (value: Preset) => void;
 }) {
   const [config, setConfig] = useState<Configuration>();
-    const [xml, setXML] = useState('');
-    const [jdk, setJDK] = useState('21');
-    const [name, setName] = useState('');
-    const [pending, setPending] = useState(false);
-    const [error, setError] = useState('');
-    const [message, setMessage] = useState('');
+  const [xml, setXML] = useState('');
+  const [jdk, setJDK] = useState('21');
+  const [name, setName] = useState('');
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const run = async (action: string, extra: object = {}) => {
-    if (pending) {return;}
+    if (pending) {
+      return;
+    }
     setPending(true);
     setError('');
     setMessage('');
@@ -36,7 +49,9 @@ export function MavenConfiguration({
       setConfig(r);
       setXML(r.xml);
       setJDK(r.jdk);
-      if (action !== 'read') {setMessage('配置已保存。');}
+      if (action !== 'read') {
+        setMessage('配置已保存。');
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {

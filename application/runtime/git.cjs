@@ -4,11 +4,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { randomBytes } = require('node:crypto');
 const root = path.resolve(process.argv[2]);
-const input = JSON.parse(
-  process.argv[3]?.startsWith('@')
-    ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
-    : Buffer.from(process.argv[3] || 'e30=', 'base64').toString(),
-);
+const input = require('./command-input.cjs').readCommandInput(process.argv[3] || 'e30=');
 const project = path.join(root, 'project');
 const git = (args) =>
   spawnSync('git', ['-C', project, ...args], {

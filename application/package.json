@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "tsx watch server/main.ts",
     "dev:client": "rspack dev --config rspack.config.ts",
-    "build": "tsc --noEmit && rspack build --config rspack.config.ts",
-    "start": "tsx server/main.ts",
-    "test": "tsx --test server/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "build": "pnpm run typecheck && pnpm run build:client && pnpm run build:server",
+    "start": "node server/main.mjs",
+    "test": "tsx --test server/__tests__/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build:client": "rspack build --config rspack.config.ts",
+    "build:server": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../scripts/build-application-server.ts"
   },
   "dependencies": {
     "@alibaba-group/opensandbox": "1.1.0",

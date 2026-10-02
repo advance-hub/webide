@@ -1,7 +1,7 @@
 'use strict';
 
-// Runs inside the workspace, never in the control-plane process. Repository
-// commands use the same trust boundary as typing them into its terminal.
+// 在工作区内运行，不占用控制面进程。仓库命令
+// 与用户在工作区终端中输入命令使用相同的信任边界。
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -225,7 +225,7 @@ async function run(root, phase, service) {
     } finally {
       fs.closeSync(log);
     }
-    // A command may update a lockfile. Record the actual successful output state.
+    // 命令可能修改锁文件，成功后记录实际输出状态。
     write(marker, { fingerprint: fingerprint(config), at: new Date().toISOString() });
     return { configured: true, cached: false };
   }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Only the private DinD daemon is available to the acceptance control plane.
+# 验收控制面只能访问本轮隔离的 DinD 服务。
 set -euo pipefail
 cd "$(dirname "$0")/.."
 workspace_image=${WEBIDE_ACCEPTANCE_IMAGE:-opensumi-webide-workspace:dev}
@@ -32,8 +32,8 @@ server_image=sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/server:
 execd_image=sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/execd:v1.1.0
 docker pull --platform linux/amd64 "$server_image"
 docker pull --platform linux/amd64 "$execd_image"
-# A distinguishable fixture fingerprint verifies replacement and retained data.
-# It is not a claim that two released application versions were tested.
+# 使用不同的测试指纹验证运行时替换与数据保留。
+# 该测试不代表已完成两个正式发布版本之间的升级验收。
 docker build --platform linux/amd64 --build-arg "BASE=$workspace_image" -t "$upgrade_image" -f - . <<'DOCKERFILE'
 ARG BASE
 FROM ${BASE}
@@ -77,4 +77,4 @@ export WEBIDE_ACCEPTANCE_URL="http://$sandbox_endpoint"
 export WEBIDE_ACCEPTANCE_IMAGE="$workspace_image"
 export WEBIDE_ACCEPTANCE_UPGRADE_IMAGE="$upgrade_image"
 export WEBIDE_ACCEPTANCE_DOCKER_CONTEXT="$run_name"
-node node_modules/tsx/dist/cli.mjs application/server/remote.acceptance.ts
+node node_modules/tsx/dist/cli.mjs application/acceptance/opensandbox.ts

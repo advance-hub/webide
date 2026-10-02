@@ -41,6 +41,9 @@
     "../../scripts/runtime-artifacts.ts",
     "../../scripts/runtime-artifacts.test.ts",
     "../../scripts/public-package-exports.test.ts",
-    "../../scripts/fn/package-source-exports.ts"
+    "../../scripts/fn/package-source-exports.ts",
+    "../../scripts/check-product-structure.ts",
+    "../../scripts/check-product-structure.test.ts",
+    "../../scripts/build-application-server.ts"
   ]
 }

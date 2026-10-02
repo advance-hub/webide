@@ -1,7 +1,8 @@
 import { Avatar, Breadcrumb, Button, Input, Layout, Menu, Tag, Tooltip } from '@arco-design/web-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
-import { projectHref } from '../domain';
+import { projectHref } from '../domain/presentation';
+
 import {
   AppsIcon,
   CloudIcon,
@@ -15,11 +16,11 @@ import {
   SettingsIcon,
   StorageIcon,
   WorkspaceIcon,
-} from '../icons';
-
+} from './icons';
 import { Drawer, Modal } from './overlays';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 import type { RefInputType } from '@arco-design/web-react/es/Input';
 
 const groups = [
@@ -88,7 +89,7 @@ export function Shell({
       try {
         localStorage.setItem('workbench-sidebar-collapsed', value ? '0' : '1');
       } catch {
-        /* Session preference still works. */
+        /* 存储不可用时，当前会话内的偏好仍然生效。 */
       }
       return !value;
     });
@@ -129,7 +130,9 @@ export function Shell({
               collapse={compact}
               selectedKeys={[current]}
               onClickMenuItem={(key, event) => {
-                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {return;}
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                  return;
+                }
                 event.preventDefault();
                 open(key);
               }}
@@ -255,7 +258,9 @@ export function Shell({
           allowClear
           onChange={setQuery}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && results[0]) {open(results[0].href);}
+            if (event.key === 'Enter' && results[0]) {
+              open(results[0].href);
+            }
             if (event.key === 'ArrowDown') {
               event.preventDefault();
               document.querySelector<HTMLElement>('.search-results [role="menuitem"]')?.focus();

@@ -1,7 +1,7 @@
 import { Empty as ArcoEmpty, Button, Card, Progress, Statistic, Table, Tag } from '@arco-design/web-react';
 
+import { type Project, type Workspace } from '../../shared/contracts';
 import { Branch, PageHeader, ProjectMark, Status } from '../components/common';
-import { type Project, type Workspace, date, projectHref, repository } from '../domain';
 import {
   AddIcon,
   ArrowIcon,
@@ -11,9 +11,11 @@ import {
   SettingsIcon,
   StorageIcon,
   WorkspaceIcon,
-} from '../icons';
+} from '../components/icons';
+import { date, projectHref, repository } from '../domain/presentation';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 export function Dashboard({
   wb,

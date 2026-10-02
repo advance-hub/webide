@@ -1,16 +1,19 @@
 import { Button, Tabs } from '@arco-design/web-react';
 import { useEffect, useRef } from 'react';
 
+import { type Project } from '../../shared/contracts';
+import { request } from '../api/client';
 import { BaselineActions } from '../components/baseline';
 import { Branch, Callout, Definition, Empty, ProjectMark, Status } from '../components/common';
 import { EnvironmentPanel } from '../components/environment';
-import { type Project, date, projectHref, repository, request } from '../domain';
-import { ArrowIcon, BackIcon, CopyIcon } from '../icons';
+import { ArrowIcon, BackIcon, CopyIcon } from '../components/icons';
+import { date, projectHref, repository } from '../domain/presentation';
 
 import { GitConnectionForm } from './connection';
 import { Repository } from './repository';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 export function ProjectDetail({
   project,

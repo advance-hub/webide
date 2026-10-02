@@ -1,5 +1,5 @@
-import { Workbench } from './app';
-import { loadConfig } from './config';
+import { loadConfig } from './platform/config';
+import { Workbench } from './workbench';
 
 const workbench = new Workbench(loadConfig());
 await workbench.listen();

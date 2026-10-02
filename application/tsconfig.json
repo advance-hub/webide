@@ -11,5 +11,5 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node", "react", "react-dom"]
   },
-  "include": ["src", "server", "rspack.config.ts"]
+  "include": ["src", "server", "shared", "acceptance", "rspack.config.ts"]
 }

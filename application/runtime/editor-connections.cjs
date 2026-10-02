@@ -1,8 +1,8 @@
 'use strict';
 
-// Installs editable defaults into the IDE user settings. The input file is
-// uploaded by the control plane and removed after this command; no credential
-// is printed or stored in the platform workspace record.
+// 将可编辑的默认连接写入 IDE 用户设置。输入文件
+// 由控制面上传，命令结束后删除；凭据不会
+// 打印到日志，也不会保存到工作区元数据。
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -13,8 +13,12 @@ const mysqlKey = 'sqltools.connections';
 const autoKey = 'sqltools.autoConnectTo';
 
 function readJSON(filename, fallback) {
-  try { return JSON.parse(fs.readFileSync(filename, 'utf8')); }
-  catch (error) { if (error.code === 'ENOENT') return fallback; throw error; }
+  try {
+    return JSON.parse(fs.readFileSync(filename, 'utf8'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return fallback;
+    throw error;
+  }
 }
 
 function object(value) {
@@ -40,7 +44,10 @@ function writeJSON(filename, value) {
 
 function paths(root) {
   const directory = path.join(root, 'home', '.sumi');
-  return { settings: path.join(directory, 'settings.json'), marker: path.join(directory, '.opensumi-editor-connections.json') };
+  return {
+    settings: path.join(directory, 'settings.json'),
+    marker: path.join(directory, '.opensumi-editor-connections.json'),
+  };
 }
 
 function redisURL(profile) {
@@ -57,18 +64,28 @@ function mysqlConnection(profile) {
   const server = profile.endpoint.slice(0, index).replace(/^\[|\]$/g, '');
   const port = Number(profile.endpoint.slice(index + 1));
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('MySQL 端口无效');
-  return { name, group: 'CloudDev', driver: 'MySQL', server, port,
-    database: profile.database || '', username: profile.username || '', password: profile.password || '' };
+  return {
+    name,
+    group: 'CloudDev',
+    driver: 'MySQL',
+    server,
+    port,
+    database: profile.database || '',
+    username: profile.username || '',
+    password: profile.password || '',
+  };
 }
 
 function revokeMySQL(settings, marker) {
   if (!marker.mysqlHash || !Array.isArray(settings[mysqlKey])) return;
-  settings[mysqlKey] = settings[mysqlKey].filter((item) => item?.name !== name).map((item) => {
-    if (marker.mysqlPasswordHash && item?.password && hash(item.password) === marker.mysqlPasswordHash) {
-      return { ...item, password: '' };
-    }
-    return item;
-  });
+  settings[mysqlKey] = settings[mysqlKey]
+    .filter((item) => item?.name !== name)
+    .map((item) => {
+      if (marker.mysqlPasswordHash && item?.password && hash(item.password) === marker.mysqlPasswordHash) {
+        return { ...item, password: '' };
+      }
+      return item;
+    });
   if (Array.isArray(settings[autoKey])) settings[autoKey] = settings[autoKey].filter((item) => item !== name);
   delete marker.mysqlHash;
   delete marker.mysqlPasswordHash;
@@ -80,13 +97,15 @@ function revokeRedis(settings, marker) {
   if (hash(settings[redisKey]) === marker.redisHash) {
     delete settings[redisKey];
   } else {
-    // Keep a manually edited host/database without retaining inherited auth.
+    // 保留用户手动修改的主机和数据库，并移除继承的认证信息。
     try {
       const url = new URL(settings[redisKey]);
       url.username = '';
       url.password = '';
       settings[redisKey] = url.href;
-    } catch { delete settings[redisKey]; }
+    } catch {
+      delete settings[redisKey];
+    }
   }
   delete marker.redisHash;
 }
@@ -133,9 +152,13 @@ function install(root, input) {
   } else revokeRedis(settings, marker);
   writeJSON(file.settings, settings);
   writeJSON(file.marker, marker);
-  return { mysql: !!marker.mysqlHash && settings[mysqlKey]?.some((item) => item?.name === name),
+  return {
+    mysql: !!marker.mysqlHash && settings[mysqlKey]?.some((item) => item?.name === name),
     redis: !!marker.redisHash && settings[redisKey] !== undefined,
-    additionalDatabases: Array.isArray(settings[mysqlKey]) ? settings[mysqlKey].filter((item) => item?.name !== name).length : 0 };
+    additionalDatabases: Array.isArray(settings[mysqlKey])
+      ? settings[mysqlKey].filter((item) => item?.name !== name).length
+      : 0,
+  };
 }
 
 function remove(root) {
@@ -146,8 +169,11 @@ function remove(root) {
   revokeRedis(settings, marker);
   writeJSON(file.settings, settings);
   if (fs.existsSync(file.marker)) fs.unlinkSync(file.marker);
-  return { mysql: false, redis: false,
-    additionalDatabases: Array.isArray(settings[mysqlKey]) ? settings[mysqlKey].length : 0 };
+  return {
+    mysql: false,
+    redis: false,
+    additionalDatabases: Array.isArray(settings[mysqlKey]) ? settings[mysqlKey].length : 0,
+  };
 }
 
 function main() {

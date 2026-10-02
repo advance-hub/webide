@@ -116,6 +116,8 @@ export function runtimeRecipes(root: string, mode: ProductRuntimeMode): Artifact
       'client/rspack.config.ts',
       'client/tsconfig.rspack.json',
       'application/src',
+      'application/shared',
+      'application/runtime',
       'application/server',
       'application/package.json',
       'application/rspack.config.ts',
@@ -125,8 +127,9 @@ export function runtimeRecipes(root: string, mode: ProductRuntimeMode): Artifact
       'package.json',
       'pnpm-lock.yaml',
     ],
-    outputs: ['client/dist', 'application/dist'],
-    requiredOutputs: ['client/dist/index.html', 'application/dist/index.html'],
+    outputs: ['client/dist', 'application/dist', 'application/server/main.mjs'],
+    excludeInputs: ['application/server/main.mjs'],
+    requiredOutputs: ['client/dist/index.html', 'application/dist/index.html', 'application/server/main.mjs'],
     toolchain: {
       node: process.version,
       typescript: version('@typescript/native'),
@@ -154,7 +157,7 @@ async function runCommands(root: string, commands: string[][]): Promise<void> {
       minimumFreeMemoryPercent: 20,
     });
     await new Promise<void>((resolve, reject) => {
-      // Invoke the existing package manager installation; never trigger an install.
+      // 使用已经安装的包管理器，执行命令时不触发依赖安装。
       const child = spawn(path.join(root, 'node_modules/pnpm/pnpm'), args, {
         cwd: root,
         env: environment,
@@ -257,8 +260,8 @@ export async function ensureRuntimeArtifacts(
         `[artifacts] rebuilding ${recipe.id}: ${options.force ? 'requested clean build' : status.reason}\n`,
       );
       await buildArtifacts(root, recipe, async (commands) => {
-        // Remove retired source outputs too. A compiler's incremental cache alone
-        // cannot prove that a deleted source no longer exists in lib/.
+        // 同时删除退役源码的产物；仅依赖编译器增量缓存
+        // 无法证明 lib/ 中已经不存在被删除源码的旧输出。
         for (const output of recipe.outputs) {
           if (output !== generatedPreload) {
             rmSync(path.join(root, output), { recursive: true, force: true });

@@ -8,17 +8,21 @@ const closeControl = (
   </button>
 );
 
-// Arco locks focus within the overlay. Restore the opener after its exit
-// animation, including when one confirmation is stacked over another drawer.
+// Arco 在浮层内部约束焦点；退出动画完成后恢复触发元素，
+// 多个确认框叠在抽屉上时也保持相同的恢复顺序。
 function useReturnFocus(visible?: boolean) {
   const opener = useRef<HTMLElement | null>(null);
   const previous = useRef(false);
   useLayoutEffect(() => {
-    if (visible && !previous.current) {opener.current = document.activeElement as HTMLElement;}
+    if (visible && !previous.current) {
+      opener.current = document.activeElement as HTMLElement;
+    }
     previous.current = !!visible;
   }, [visible]);
   return () => {
-    if (opener.current?.isConnected) {opener.current.focus({ preventScroll: true });}
+    if (opener.current?.isConnected) {
+      opener.current.focus({ preventScroll: true });
+    }
   };
 }
 

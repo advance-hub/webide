@@ -1,12 +1,13 @@
 import { Button, Input } from '@arco-design/web-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { request } from '../api/client';
 import { Callout, Empty, PageHeader } from '../components/common';
+import { RefreshIcon } from '../components/icons';
 import { Modal } from '../components/overlays';
-import { date, request } from '../domain';
-import { RefreshIcon } from '../icons';
+import { date } from '../domain/presentation';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 interface ImageInfo {
   id: string;
@@ -16,8 +17,8 @@ interface ImageInfo {
   inUse: number;
 }
 
-// The runtime image is shared across workspaces. Each workspace fetches its
-// selected Git branch at creation time, after the runtime image is chosen.
+// 运行时镜像在工作区之间共用，选择镜像后，
+// 创建每个工作区时分别获取它指定的 Git 分支。
 export function Images({ wb }: { wb: Workbench }) {
   const [images, setImages] = useState<ImageInfo[]>();
   const [query, setQuery] = useState('');

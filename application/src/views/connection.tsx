@@ -1,11 +1,13 @@
 import { Button, Form, Input, Select, Tag } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
+import { type Project } from '../../shared/contracts';
+import { request } from '../api/client';
 import { Callout, PageHeader } from '../components/common';
-import { type Project, request } from '../domain';
-import { LockIcon } from '../icons';
+import { LockIcon } from '../components/icons';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 interface ConnectionInfo {
   url: string;
@@ -98,7 +100,7 @@ export function GitConnectionForm({ wb, project }: { wb: Workbench; project?: Pr
                   try {
                     setURL(new URL(project.url).origin);
                   } catch {
-                    /* invalid legacy URL */
+                    /* 忽略无效的历史地址。 */
                   }
                 }
               }}

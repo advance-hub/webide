@@ -3,15 +3,10 @@ const fs = require('node:fs'),
   path = require('node:path'),
   os = require('node:os'),
   { spawnSync } = require('node:child_process');
-const root = path.resolve(process.argv[2]);
 const machineHome = path.resolve(process.env.WORKBENCH_MACHINE_HOME || '/workspace/home');
 const machineRoot = path.dirname(machineHome);
 const cache = path.join(machineHome, '.m2/repository');
-const input = JSON.parse(
-  process.argv[3].startsWith('@')
-    ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
-    : Buffer.from(process.argv[3], 'base64').toString(),
-);
+const input = require('./command-input.cjs').readCommandInput(process.argv[3]);
 const bytes = (file) => {
   try {
     const n = Number(fs.readFileSync(file, 'utf8').trim());
@@ -27,7 +22,7 @@ const size = (dir) => {
 };
 try {
   if (input.action === 'clean-cache') {
-    // Protect Maven started manually in a terminal as well as platform jobs.
+    // 同时保护用户在终端手动启动的 Maven 和平台任务。
     let argumentsText;
     if (process.platform === 'linux') {
       argumentsText = fs

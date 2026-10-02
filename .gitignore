@@ -94,6 +94,7 @@ tools/workspace
 .env.*
 !.env.example
 /application/.data/
+/application/server/main.mjs
 /tools/.opensumi-retired-*/
 
 # Claude Code
@@ -105,11 +106,10 @@ tools/workspace
 
 .understand-anything/
 
-# Local Go Workspace Agent build output
-
 # Local browser and runtime profiling evidence
 .playwright-cli/
 output/playwright/
 output/runtime-profiles/
+output/refactor/
 output/extension-host/
 output/pty-git/

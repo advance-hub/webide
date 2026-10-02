@@ -1,8 +1,9 @@
 import { Alert, Empty as ArcoEmpty, Tag } from '@arco-design/web-react';
 import { type ReactNode, useEffect, useRef } from 'react';
 
-import { busyStates, labels } from '../domain';
-import { BranchIcon, ProjectsIcon } from '../icons';
+import { busyStates, labels } from '../domain/presentation';
+
+import { BranchIcon, ProjectsIcon } from './icons';
 
 export function Status({ state = 'none', children }: { state?: string; children?: ReactNode }) {
   const color =

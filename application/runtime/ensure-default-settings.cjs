@@ -15,7 +15,7 @@ function ensureDefaultSettings(settingsPath, defaultsPath) {
       throw new Error('settings.json must contain an object');
     }
   } catch (error) {
-    // A malformed user file must not prevent the IDE from starting.
+    // 用户配置格式错误时仍允许 IDE 启动。
     process.stderr.write(`Cannot extend existing IDE settings: ${error.message}\n`);
     return;
   }

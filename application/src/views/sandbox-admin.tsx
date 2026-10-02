@@ -1,16 +1,18 @@
 import { Button, Input } from '@arco-design/web-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { type SandboxRecord } from '../../shared/contracts';
+import { request } from '../api/client';
 import { Callout, Empty, PageHeader } from '../components/common';
+import { RefreshIcon } from '../components/icons';
 import { Modal } from '../components/overlays';
-import { type SandboxRecord, date, request } from '../domain';
-import { RefreshIcon } from '../icons';
+import { date } from '../domain/presentation';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
-// Sandbox management redesigned: every sandbox shows its workspace context
-// (owner, project, branch), its lifecycle state, and inline actions. The
-// platform chain is visible at a glance: image → sandbox → workspace.
+// 沙箱管理展示每个沙箱关联的工作区信息，
+// 包括账户、项目、分支、生命周期状态与就地操作。
+// 页面同时呈现镜像、沙箱和工作区的关联关系。
 const stateLabels: Record<string, string> = {
   Running: '运行中',
   Paused: '已暂停',

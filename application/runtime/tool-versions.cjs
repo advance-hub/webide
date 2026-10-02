@@ -2,8 +2,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-// Standard JDK/Maven distributions already contain version metadata. Reading
-// it avoids spawning two JVMs for every inspection, especially under emulation.
+// 标准 JDK 和 Maven 分发包已有版本元数据，直接读取这些文件
+// 可避免每次检查启动两个 JVM，在模拟架构运行时尤其重要。
 function installedVersion(binary, environment) {
   const executable = (environment.PATH || '')
     .split(path.delimiter)

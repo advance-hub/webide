@@ -2,11 +2,12 @@ import { Button, Tag } from '@arco-design/web-react';
 import { useState } from 'react';
 
 import { Callout, Definition, PageHeader } from '../components/common';
+import { CloudIcon } from '../components/icons';
 import { Drawer } from '../components/overlays';
-import { date } from '../domain';
-import { CloudIcon } from '../icons';
+import { date } from '../domain/presentation';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
 export function Environment({ wb, navigate }: { wb: Workbench; navigate: Navigation }) {
   const [guide, setGuide] = useState(false);

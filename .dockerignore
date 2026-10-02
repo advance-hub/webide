@@ -8,6 +8,7 @@ node_modules
 .cache
 output
 application/.data
+application/server/main.mjs
 **/.env
 **/.env.*
 !**/.env.example

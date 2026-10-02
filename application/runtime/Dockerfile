@@ -1,4 +1,4 @@
-# Build the repository Dockerfile as opensumi-webide-node:dev first.
+# 先使用仓库根 Dockerfile 构建 opensumi-webide-node:dev。
 ARG OPENSUMI_BASE=opensumi-webide-node:dev
 FROM maven:3.9.16-eclipse-temurin-21 AS java-tools
 FROM eclipse-temurin:8-jdk-jammy AS java8
@@ -35,7 +35,7 @@ RUN git init -q /opt/oh-my-zsh \
   && command -v flock && command -v curl && /bin/zsh --version \
   && test -f /app/builtin-extensions.manifest.json \
   && test -d /app/builtin-extensions.manifest.json.d
-# Keep frequently edited entrypoints after the expensive tool installation layers.
+# 频繁修改的入口放在工具安装层之后，减少镜像重新构建成本。
 COPY --from=java8 /opt/java/openjdk /opt/java/8
 COPY --from=java11 /opt/java/openjdk /opt/java/11
 COPY --from=java17 /opt/java/openjdk /opt/java/17
@@ -50,6 +50,7 @@ COPY application/runtime/development.cjs /opt/opensumi/bin/development.cjs
 COPY application/runtime/maven.cjs /opt/opensumi/bin/maven.cjs
 COPY application/runtime/maven-metadata.py /opt/opensumi/bin/maven-metadata.py
 COPY application/runtime/editor-connections.cjs /opt/opensumi/bin/editor-connections.cjs
+COPY application/runtime/command-input.cjs /opt/opensumi/bin/command-input.cjs
 COPY application/runtime/git.cjs application/runtime/git-credential.cjs /opt/opensumi/bin/
 COPY application/runtime/toolchain.cjs application/runtime/tool-versions.cjs application/runtime/maven-config.cjs /opt/opensumi/bin/
 COPY application/runtime/services.cjs application/runtime/restore-machine.cjs application/runtime/machine-archive.cjs /opt/opensumi/bin/
@@ -65,6 +66,6 @@ ENV HOME=/workspace/home \
     ENABLE_COLLABORATION=0 \
     ENABLE_AI=1
 WORKDIR /app
-# OpenSandbox injects execd and overrides the entrypoint. The control plane
-# starts OpenSumi after mounting the volume and preparing the repository.
+# OpenSandbox 注入 execd 并覆盖入口；控制面
+# 完成卷挂载和仓库准备后再启动 OpenSumi。
 CMD ["sleep", "infinity"]

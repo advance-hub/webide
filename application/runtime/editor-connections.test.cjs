@@ -19,8 +19,10 @@ function fixture(t) {
 
 test('defaults auto connect and later edits or added databases survive resync', (t) => {
   const f = fixture(t);
-  f.write({ mysql: { endpoint: 'db.internal:3306', database: 'agent', username: 'app', password: 'initial' },
-    redis: { endpoint: 'redis.internal:6379', database: '2', password: 'initial' } });
+  f.write({
+    mysql: { endpoint: 'db.internal:3306', database: 'agent', username: 'app', password: 'initial' },
+    redis: { endpoint: 'redis.internal:6379', database: '2', password: 'initial' },
+  });
   const first = install(f.root, f.input);
   assert.equal(first.mysql, true);
   assert.equal(first.redis, true);
@@ -34,25 +36,34 @@ test('defaults auto connect and later edits or added databases survive resync', 
   changed['sqltools.connections'].push({ name: 'another db', driver: 'MySQL', server: 'other', port: 3306 });
   changed['redis-state-explorer.redisUrl'] = 'redis://other:6379/4';
   fs.writeFileSync(f.settings, JSON.stringify(changed));
-  f.write({ mysql: { endpoint: 'new.internal:3306', database: 'new', username: 'next', password: 'updated' },
-    redis: { endpoint: 'new-redis:6379', database: '0', password: 'updated' } });
+  f.write({
+    mysql: { endpoint: 'new.internal:3306', database: 'new', username: 'next', password: 'updated' },
+    redis: { endpoint: 'new-redis:6379', database: '0', password: 'updated' },
+  });
   install(f.root, f.input);
   assert.equal(f.read()['sqltools.connections'][0].database, 'edited');
   assert.equal(f.read()['sqltools.connections'][1].name, 'another db');
   assert.equal(f.read()['redis-state-explorer.redisUrl'], 'redis://other:6379/4');
   const result = remove(f.root);
   assert.equal(result.additionalDatabases, 1);
-  assert.deepEqual(f.read()['sqltools.connections'].map((v) => v.name), ['another db']);
+  assert.deepEqual(
+    f.read()['sqltools.connections'].map((v) => v.name),
+    ['another db'],
+  );
   assert.equal(f.read()['redis-state-explorer.redisUrl'], 'redis://other:6379/4');
 });
 
 test('untouched defaults update with resource changes and are removed on sharing', (t) => {
   const f = fixture(t);
-  f.write({ mysql: { endpoint: 'first:3306', database: 'one', username: 'app', password: 'old' },
-    redis: { endpoint: 'first:6379', password: 'old' } });
+  f.write({
+    mysql: { endpoint: 'first:3306', database: 'one', username: 'app', password: 'old' },
+    redis: { endpoint: 'first:6379', password: 'old' },
+  });
   install(f.root, f.input);
-  f.write({ mysql: { endpoint: 'second:3307', database: 'two', username: 'app', password: 'new' },
-    redis: { endpoint: 'second:6380', password: 'new' } });
+  f.write({
+    mysql: { endpoint: 'second:3307', database: 'two', username: 'app', password: 'new' },
+    redis: { endpoint: 'second:6380', password: 'new' },
+  });
   install(f.root, f.input);
   assert.equal(f.read()['sqltools.connections'][0].server, 'second');
   assert.equal(f.read()['sqltools.connections'][0].password, 'new');
@@ -66,7 +77,10 @@ test('untouched defaults update with resource changes and are removed on sharing
 test('existing user connections are left in place', (t) => {
   const f = fixture(t);
   fs.mkdirSync(path.dirname(f.settings), { recursive: true });
-  fs.writeFileSync(f.settings, JSON.stringify({ 'sqltools.connections': [{ name: 'CloudDev MySQL', password: 'mine' }] }));
+  fs.writeFileSync(
+    f.settings,
+    JSON.stringify({ 'sqltools.connections': [{ name: 'CloudDev MySQL', password: 'mine' }] }),
+  );
   f.write({ mysql: { endpoint: 'db:3306', password: 'platform' } });
   install(f.root, f.input);
   assert.equal(f.read()['sqltools.connections'][0].password, 'mine');
@@ -87,8 +101,10 @@ test('sharing strips an inherited password after the default was renamed', (t) =
 
 test('removing a saved resource also removes its inherited editor default', (t) => {
   const f = fixture(t);
-  f.write({ mysql: { endpoint: 'db:3306', password: 'private' },
-    redis: { endpoint: 'cache:6379', password: 'private' } });
+  f.write({
+    mysql: { endpoint: 'db:3306', password: 'private' },
+    redis: { endpoint: 'cache:6379', password: 'private' },
+  });
   install(f.root, f.input);
   f.write({});
   const result = install(f.root, f.input);

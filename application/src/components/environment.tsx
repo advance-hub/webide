@@ -1,20 +1,22 @@
 import { Button, Dropdown, Input, Menu } from '@arco-design/web-react';
 import { useState } from 'react';
 
-import { type Workspace, busyStates, date, driverLabels, request } from '../domain';
-import { CodeIcon, MoreIcon, PeopleIcon } from '../icons';
+import { type Workspace } from '../../shared/contracts';
+import { request } from '../api/client';
+import { busyStates, date, driverLabels } from '../domain/presentation';
 
 import { Callout, Status } from './common';
+import { CodeIcon, MoreIcon, PeopleIcon } from './icons';
 import { MavenPanel } from './maven';
 import { Modal } from './overlays';
 import { WorkspaceTools } from './workspace-tools';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
-// One workspace owns exactly one runtime environment. The card shows a single
-// line of identity (branch, baseline, driver), one primary action, quiet
-// secondary actions, and danger actions visually separated on the right.
-// Members render as compact chips — sharing is a footnote, not a section.
+// 每个工作区只有一个运行环境，卡片用单行展示
+// 分支、基线和驱动信息，并区分主操作、
+// 次要操作以及右侧的危险操作。
+// 成员以紧凑标签展示，避免共享信息占据独立区域。
 export function EnvironmentPanel({
   workspace: w,
   wb,
@@ -288,17 +290,26 @@ export function EnvironmentPanel({
             droplist={
               <Menu
                 onClickMenuItem={(key) => {
-                  if (key === 'stop') {act('stop', '停止已提交。');}
-                  if (key === 'restart') {act('restart', '重启已提交。');}
-                  if (key === 'reset') {ask('reset');}
-                  if (key === 'update-runtime')
-                    {act(
+                  if (key === 'stop') {
+                    act('stop', '停止已提交。');
+                  }
+                  if (key === 'restart') {
+                    act('restart', '重启已提交。');
+                  }
+                  if (key === 'reset') {
+                    ask('reset');
+                  }
+                  if (key === 'update-runtime') {
+                    act(
                       'update-runtime',
                       w.machineId
                         ? '开发机运行时更新中，同一开发机的 IDE 将依次恢复，已保存文件会保留。'
                         : 'IDE 运行时更新中，已保存文件会保留。',
-                    );}
-                  if (key === 'delete') {ask('delete');}
+                    );
+                  }
+                  if (key === 'delete') {
+                    ask('delete');
+                  }
                 }}
               >
                 {w.status === 'ready' && <Menu.Item key='stop'>停止 IDE</Menu.Item>}

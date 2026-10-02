@@ -21,14 +21,46 @@ function fixture(t, config) {
   return { root, save, project: path.join(root, 'project') };
 }
 
-test('multiple services have independent processes, health, logs and stop controls',async t=>{
- const ports=[];for(let i=0;i<2;i++){const listener=net.createServer();await new Promise(r=>listener.listen(0,'127.0.0.1',r));ports.push(listener.address().port);await new Promise(r=>listener.close(r));}
- const {root,project}=fixture(t,{version:1,init:["node -e \"require('fs').writeFileSync('initialized','yes')\""],services:ports.map((port,i)=>({name:'service'+i,cwd:'app'+i,command:'node server.cjs',port,portMode:'fixed'}))});
- for(let i=0;i<2;i++){fs.mkdirSync(path.join(project,'app'+i));fs.writeFileSync(path.join(project,'app'+i,'server.cjs'),`console.log('service${i}');require('http').createServer((q,s)=>s.end('service${i}')).listen(Number(process.env.PORT),'0.0.0.0')`);}
- await run(root,'initialize');assert.equal(fs.readFileSync(path.join(project,'initialized'),'utf8'),'yes');
- const report=await startAll(root);assert.equal(report.services.length,2);assert(report.services.every(s=>s.ready),JSON.stringify(report));
- await stop(root,'service0');const partial=await services(root);assert.equal(partial.services[0].running,false);assert.equal(partial.services[1].ready,true);assert.equal(await(await fetch(`http://127.0.0.1:${ports[1]}`)).text(),'service1');
- assert.match(fs.readFileSync(path.join(root,'.platform/services/service1/development.log'),'utf8'),/service1/);
+test('multiple services have independent processes, health, logs and stop controls', async (t) => {
+  const ports = [];
+  for (let i = 0; i < 2; i++) {
+    const listener = net.createServer();
+    await new Promise((r) => listener.listen(0, '127.0.0.1', r));
+    ports.push(listener.address().port);
+    await new Promise((r) => listener.close(r));
+  }
+  const { root, project } = fixture(t, {
+    version: 1,
+    init: ["node -e \"require('fs').writeFileSync('initialized','yes')\""],
+    services: ports.map((port, i) => ({
+      name: 'service' + i,
+      cwd: 'app' + i,
+      command: 'node server.cjs',
+      port,
+      portMode: 'fixed',
+    })),
+  });
+  for (let i = 0; i < 2; i++) {
+    fs.mkdirSync(path.join(project, 'app' + i));
+    fs.writeFileSync(
+      path.join(project, 'app' + i, 'server.cjs'),
+      `console.log('service${i}');require('http').createServer((q,s)=>s.end('service${i}')).listen(Number(process.env.PORT),'0.0.0.0')`,
+    );
+  }
+  await run(root, 'initialize');
+  assert.equal(fs.readFileSync(path.join(project, 'initialized'), 'utf8'), 'yes');
+  const report = await startAll(root);
+  assert.equal(report.services.length, 2);
+  assert(
+    report.services.every((s) => s.ready),
+    JSON.stringify(report),
+  );
+  await stop(root, 'service0');
+  const partial = await services(root);
+  assert.equal(partial.services[0].running, false);
+  assert.equal(partial.services[1].ready, true);
+  assert.equal(await (await fetch(`http://127.0.0.1:${ports[1]}`)).text(), 'service1');
+  assert.match(fs.readFileSync(path.join(root, '.platform/services/service1/development.log'), 'utf8'), /service1/);
 });
 
 test('successful init is reused, lockfile changes invalidate it, failed init remains retryable', async (t) => {
@@ -60,7 +92,10 @@ test('personal workspaces receive distinct application ports with an explicit fi
   const config = { version: 1, run: { command: 'node server.cjs', port: 3000 } };
   const { root, save } = fixture(t, config);
   const old = process.env.CLOUDDEV_PREVIEW_PORT;
-  t.after(() => { if (old === undefined) delete process.env.CLOUDDEV_PREVIEW_PORT; else process.env.CLOUDDEV_PREVIEW_PORT = old; });
+  t.after(() => {
+    if (old === undefined) delete process.env.CLOUDDEV_PREVIEW_PORT;
+    else process.env.CLOUDDEV_PREVIEW_PORT = old;
+  });
   process.env.CLOUDDEV_PREVIEW_PORT = '22003';
   assert.equal(loadConfig(root).run.port, 22003);
   process.env.CLOUDDEV_PREVIEW_PORT = '22004';

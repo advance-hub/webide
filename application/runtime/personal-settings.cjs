@@ -27,7 +27,7 @@ function inherit(root, sharedHome = home) {
     if (shared === target) continue;
     fs.mkdirSync(path.dirname(target), { recursive: true });
     if (fs.existsSync(target) && !fs.lstatSync(target).isSymbolicLink()) {
-      // Merge missing auth providers and settings before retaining the old home.
+      // 保留旧用户目录前，合并缺失的认证提供方与设置。
       for (const name of ['auth.json', 'opencode.json']) {
         const source = path.join(target, name),
           destination = path.join(shared, name);

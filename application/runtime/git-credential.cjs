@@ -1,6 +1,6 @@
 'use strict';
 const fs = require('node:fs');
-// This helper only returns the repository-scoped bridge lease, never a PAT.
+// 只返回仓库范围内的凭据桥租约，不返回代码源访问令牌。
 if (process.argv[3] === 'get') {
   const input = Object.fromEntries(
     fs

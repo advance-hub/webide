@@ -37,6 +37,7 @@ jobs:
       - run: pnpm typecheck:scripts
       - run: pnpm --filter @opensumi/server test:diagnostics
       - run: pnpm test:runtime-scripts
+      - run: pnpm check:product
       - run: pnpm test:workbench
-      - run: node --test application/runtime/*.test.cjs
+      - run: pnpm test:application-runtime
       - run: pnpm test:extension-bundle

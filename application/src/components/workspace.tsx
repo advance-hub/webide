@@ -1,17 +1,20 @@
 import { Button, Input, Select, Tabs } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
-import { type Project, driverLabels, request } from '../domain';
-import { CloudIcon, CodeIcon, LockIcon } from '../icons';
+import { type Project } from '../../shared/contracts';
+import { request } from '../api/client';
+import { driverLabels } from '../domain/presentation';
 
-import { Branch, Callout, Definition, ProjectMark, Status } from './common';
+import { Branch, Callout, ProjectMark, Status } from './common';
+import { CloudIcon, CodeIcon, LockIcon } from './icons';
 import { Drawer } from './overlays';
 
-import type { Navigation, Workbench } from '../use-workbench';
+import type { Navigation } from '../routing/use-route';
+import type { Workbench } from '../state/use-workbench';
 
-// Each branch gets a separate directory and IDE on the personal development
-// machine. Existing workspaces of the project are listed so a
-// second visit opens another branch instead of overwriting the first.
+// 每个分支在个人开发机上拥有独立目录与 IDE。
+// 展示项目已经创建的工作区，再次访问时
+// 打开另一个分支，而不是覆盖原有工作区。
 export function WorkspaceDrawer({
   project,
   wb,
@@ -239,7 +242,9 @@ export function WorkspaceDrawer({
                   type='text'
                   size='small'
                   onClick={() => {
-                    if (manualBranch) {setBranch('');}
+                    if (manualBranch) {
+                      setBranch('');
+                    }
                     setManualBranch((value) => !value);
                   }}
                 >

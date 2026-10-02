@@ -11,15 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends libsecret-1-dev
 COPY . .
 RUN --mount=type=cache,id=webide-pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --store-dir=/pnpm/store
-RUN pnpm build:all \
-    && pnpm exec esbuild application/server/main.ts --bundle --platform=node --format=esm --packages=external \
-       --banner:js="import { createRequire } from 'node:module'; var require = createRequire(import.meta.url);" \
-       --outfile=application/server/main.mjs
+RUN pnpm build:all
 RUN --mount=type=cache,id=webide-extensions,target=/app/.cache/extension-downloads \
     pnpm download-extension \
     && node scripts/build-extension-manifest.cjs tools/extensions builtin-extensions.manifest.json \
     && node scripts/verify-extensions.cjs
-RUN pnpm exec tsx --eval "import { runtimeFingerprint } from './application/server/runtime.ts'; import { writeFile } from 'node:fs/promises'; runtimeFingerprint(process.cwd()).then(value => writeFile('.runtime-fingerprint', value));"
+RUN pnpm exec tsx --eval "import { runtimeFingerprint } from './application/server/runtime/fingerprint.ts'; import { writeFile } from 'node:fs/promises'; runtimeFingerprint(process.cwd()).then(value => writeFile('.runtime-fingerprint', value));"
 
 FROM ${NODE_IMAGE} AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends libsecret-1-0 zsh curl ca-certificates git unzip util-linux python3 \

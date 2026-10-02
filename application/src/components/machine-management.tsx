@@ -1,14 +1,21 @@
 import { Button, Input, Select, Tabs } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
-import { date, request } from '../domain';
+import { request } from '../api/client';
+import { date } from '../domain/presentation';
 
 import { Callout } from './common';
 import { Drawer, Modal } from './overlays';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
-interface Backup { id: string; name: string; bytes: number; createdAt: string; automatic: boolean }
+interface Backup {
+  id: string;
+  name: string;
+  bytes: number;
+  createdAt: string;
+  automatic: boolean;
+}
 interface Metrics {
   diskTotal: number;
   diskFree: number;
@@ -24,20 +31,22 @@ interface BackupState {
 const bytes = (n?: number) => (n == null ? '—' : `${(n / 1024 / 1024 / 1024).toFixed(2)} GiB`);
 export function MachineManagement({ wb }: { wb: Workbench }) {
   const [open, setOpen] = useState(false);
-    const [tab, setTab] = useState('resources');
-    const [pending, setPending] = useState('');
-    const [error, setError] = useState('');
+  const [tab, setTab] = useState('resources');
+  const [pending, setPending] = useState('');
+  const [error, setError] = useState('');
   const [metrics, setMetrics] = useState<Metrics>();
-    const [backups, setBackups] = useState<BackupState>({ backups: [] });
-    const [name, setName] = useState('');
+  const [backups, setBackups] = useState<BackupState>({ backups: [] });
+  const [name, setName] = useState('');
   const [idle, setIdle] = useState(60);
-    const [interval, setInterval] = useState(24);
-    const [settings, setSettings] = useState('{}');
-    const [workspace, setWorkspace] = useState('');
+  const [interval, setInterval] = useState(24);
+  const [settings, setSettings] = useState('{}');
+  const [workspace, setWorkspace] = useState('');
   const [confirm, setConfirm] = useState<{ action: string; id?: string; label: string }>();
   const busy = !!pending || wb.machine?.job?.status === 'running';
   const run = async (key: string, fn: () => Promise<void>) => {
-    if (pending) {return;}
+    if (pending) {
+      return;
+    }
     setPending(key);
     setError('');
     try {
@@ -51,26 +60,36 @@ export function MachineManagement({ wb }: { wb: Workbench }) {
   const loadBackups = async () => setBackups(await request<BackupState>('/machine/backups'));
   const load = (value: string) =>
     run('load', async () => {
-      if (value !== 'backups' && wb.machine?.job?.status === 'running') {return;}
-      if (value === 'resources') {setMetrics(await request<Metrics>('/machine/tools', { action: 'inspect' }));}
-      else if (value === 'backups') {await loadBackups();}
-      else {
+      if (value !== 'backups' && wb.machine?.job?.status === 'running') {
+        return;
+      }
+      if (value === 'resources') {
+        setMetrics(await request<Metrics>('/machine/tools', { action: 'inspect' }));
+      } else if (value === 'backups') {
+        await loadBackups();
+      } else {
         const r = await request<{ settings: object }>('/machine/tools', { action: 'preferences-read' });
         setSettings(JSON.stringify(r.settings, null, 2));
       }
     });
   useEffect(() => {
-    if (!open) {return;}
+    if (!open) {
+      return;
+    }
     setIdle(wb.machine?.policy?.idleMinutes ?? 60);
     setInterval(wb.machine?.policy?.autoBackupHours ?? 24);
   }, [open, wb.machine?.policy?.idleMinutes, wb.machine?.policy?.autoBackupHours]);
   useEffect(() => {
-    if (!open || tab !== 'backups' || wb.machine?.job?.status !== 'running') {return;}
+    if (!open || tab !== 'backups' || wb.machine?.job?.status !== 'running') {
+      return;
+    }
     const timer = window.setInterval(() => void loadBackups().catch((e) => setError(e.message)), 3000);
     return () => clearInterval(timer);
   }, [open, tab, wb.machine?.job?.status]);
   useEffect(() => {
-    if (open) {void load(tab);}
+    if (open) {
+      void load(tab);
+    }
   }, [wb.machine?.job?.status]);
   const backupAction = (action: string, id?: string) =>
     run(action, async () => {
@@ -348,13 +367,17 @@ export function MachineManagement({ wb }: { wb: Workbench }) {
               disabled={busy}
               loading={!!pending}
               onClick={() => {
-                if (!confirm) {return;}
-                if (confirm.action === 'clean-cache')
-                  {void run('clean-cache', async () => {
+                if (!confirm) {
+                  return;
+                }
+                if (confirm.action === 'clean-cache') {
+                  void run('clean-cache', async () => {
                     setMetrics(await request<Metrics>('/machine/tools', { action: 'clean-cache' }));
                     setConfirm(undefined);
-                  });}
-                else {void backupAction(confirm.action, confirm.id);}
+                  });
+                } else {
+                  void backupAction(confirm.action, confirm.id);
+                }
               }}
             >
               确认

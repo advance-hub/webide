@@ -1,20 +1,22 @@
 import { Button } from '@arco-design/web-react';
 import { useState } from 'react';
 
-import { request } from '../domain';
-import { CloudIcon } from '../icons';
+import { request } from '../api/client';
 
 import { Callout } from './common';
+import { CloudIcon } from './icons';
 import { MachineManagement } from './machine-management';
 import { Modal } from './overlays';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 export function PersonalMachine({ wb }: { wb: Workbench }) {
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState('');
   const overview = wb.machine;
-  if (wb.config?.driver !== 'sandbox' || !overview) {return null;}
+  if (wb.config?.driver !== 'sandbox' || !overview) {
+    return null;
+  }
   const release = () =>
     void wb.act('release-machine', async () => {
       setError('');

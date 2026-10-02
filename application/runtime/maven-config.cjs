@@ -5,11 +5,7 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const toolchain = require('./toolchain.cjs');
 const root = path.resolve(process.argv[2]);
-const input = JSON.parse(
-  process.argv[3]?.startsWith('@')
-    ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
-    : Buffer.from(process.argv[3], 'base64').toString(),
-);
+const input = require('./command-input.cjs').readCommandInput(process.argv[3]);
 const settings = path.join(root, 'home/.m2/settings.xml');
 const dir = path.join(root, 'home/.clouddev');
 const presets = path.join(dir, 'maven-presets.json');
@@ -44,13 +40,11 @@ try {
     write(path.join(dir, 'toolchain.json'), JSON.stringify({ jdk: input.jdk }));
     const ideSettings = path.join(root, 'home/.sumi/settings.json');
     const ide = JSON.parse(read(ideSettings, '{}'));
-    ide['java.configuration.runtimes'] = toolchain
-      .available()
-      .map((jdk) => ({
-        name: `JavaSE-${jdk === '8' ? '1.8' : jdk}`,
-        path: toolchain.selected(root, jdk).home,
-        default: jdk === input.jdk,
-      }));
+    ide['java.configuration.runtimes'] = toolchain.available().map((jdk) => ({
+      name: `JavaSE-${jdk === '8' ? '1.8' : jdk}`,
+      path: toolchain.selected(root, jdk).home,
+      default: jdk === input.jdk,
+    }));
     ide['java.jdt.ls.java.home'] = '/opt/java/openjdk';
     write(ideSettings, JSON.stringify(ide, null, 2));
   } else if (input.action === 'save-presets') {

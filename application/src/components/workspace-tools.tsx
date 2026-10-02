@@ -1,12 +1,13 @@
 import { Button, Input, Select, Tabs } from '@arco-design/web-react';
 import { useState } from 'react';
 
-import { type Workspace, request } from '../domain';
+import { type Workspace } from '../../shared/contracts';
+import { request } from '../api/client';
 
 import { Callout } from './common';
 import { Drawer } from './overlays';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 interface GitState {
   branch: string;
@@ -19,21 +20,33 @@ interface GitState {
   success?: boolean;
   message?: string;
 }
-interface Service { name: string; ready: boolean; running: boolean; port: number; error?: string }
-interface Services { services: Service[]; text: string; revision: string }
+interface Service {
+  name: string;
+  ready: boolean;
+  running: boolean;
+  port: number;
+  error?: string;
+}
+interface Services {
+  services: Service[];
+  text: string;
+  revision: string;
+}
 export function WorkspaceTools({ workspace: ws, wb }: { workspace: Workspace; wb: Workbench }) {
   const [open, setOpen] = useState(false);
-    const [tab, setTab] = useState('git');
-    const [error, setError] = useState('');
-    const [pending, setPending] = useState('');
+  const [tab, setTab] = useState('git');
+  const [error, setError] = useState('');
+  const [pending, setPending] = useState('');
   const [git, setGit] = useState<GitState>();
-    const [branch, setBranch] = useState(ws.baseBranch || ws.branch);
+  const [branch, setBranch] = useState(ws.baseBranch || ws.branch);
   const [services, setServices] = useState<Services>();
-    const [config, setConfig] = useState('');
-    const [log, setLog] = useState('');
-    const [logName, setLogName] = useState('');
+  const [config, setConfig] = useState('');
+  const [log, setLog] = useState('');
+  const [logName, setLogName] = useState('');
   const run = async (key: string, fn: () => Promise<void>) => {
-    if (pending) {return;}
+    if (pending) {
+      return;
+    }
     setPending(key);
     setError('');
     try {
@@ -64,7 +77,9 @@ export function WorkspaceTools({ workspace: ws, wb }: { workspace: Workspace; wb
         revision: services?.revision,
       });
       setServices(result);
-      if (action === 'status' || action === 'save') {setConfig(result.text);}
+      if (action === 'status' || action === 'save') {
+        setConfig(result.text);
+      }
       await wb.refresh();
     });
   const selectTab = (value: string) => {

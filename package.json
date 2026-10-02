@@ -3,7 +3,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git@github.com:opensumi/core.git"
+    "url": "https://github.com/advance-hub/webide.git"
   },
   "license": "MIT",
   "workspaces": [
@@ -37,7 +37,6 @@
     "bundle:lite": "cross-env NODE_OPTIONS=--max-old-space-size=1024 tsx ./scripts/start --script=bundle:lite",
     "bundle:preview": "cross-env NODE_OPTIONS=--max-old-space-size=1024 tsx ./scripts/start --script=bundle:preview",
     "changelog": "tsx -P scripts/tsconfig.scripts.json scripts/changelog/index.ts",
-    "changelog-old": "node scripts/changelog/index.js",
     "check:architecture": "tsx ./scripts/check-architecture.ts",
     "check:architecture:graph": "tsx ./scripts/check-architecture.ts --json",
     "check:dep": "tsx ./scripts/depcheck",
@@ -88,7 +87,7 @@
     "test:extension-bundle": "node --test scripts/extension-bundle.test.cjs",
     "test:architecture": "tsx --test scripts/check-architecture.test.ts",
     "test:package-exports": "tsx --test scripts/public-package-exports.test.ts",
-    "test:runtime-scripts": "pnpm run check:architecture && tsx --test scripts/check-architecture.test.ts scripts/sync-upstream.test.ts scripts/runtime-artifacts.test.ts scripts/file-type-runtime.test.ts scripts/package-resource-path.test.ts scripts/public-package-exports.test.ts && pnpm run typecheck:public-api-compatibility",
+    "test:runtime-scripts": "pnpm run check:architecture && pnpm run check:product && tsx --test scripts/check-architecture.test.ts scripts/check-product-structure.test.ts scripts/sync-upstream.test.ts scripts/runtime-artifacts.test.ts scripts/file-type-runtime.test.ts scripts/package-resource-path.test.ts scripts/public-package-exports.test.ts && pnpm run typecheck:public-api-compatibility",
     "test:module": "cross-env NODE_OPTIONS=--max-old-space-size=1024 tsx ./scripts/module-jest --runInBand",
     "test:ui": "tsx ./scripts/run-ui-tests",
     "test:ui-ci": "tsx ./scripts/run-ui-tests --ci=true",
@@ -112,7 +111,10 @@
     "build:application": "pnpm --filter @opensumi/application build",
     "dev:workbench": "pnpm --filter @opensumi/application dev",
     "start:workbench": "pnpm --filter @opensumi/application start",
-    "test:workbench": "pnpm --filter @opensumi/application test"
+    "test:workbench": "pnpm --filter @opensumi/application test",
+    "test:application-runtime": "node --test application/runtime/*.test.cjs",
+    "check:product": "tsx scripts/check-product-structure.ts",
+    "test:product-structure": "tsx --test scripts/check-product-structure.test.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,md,html,css,less,json,yml}": "prettier --write",

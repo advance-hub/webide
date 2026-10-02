@@ -1,13 +1,8 @@
 'use strict';
-const fs = require('node:fs'),
-  path = require('node:path');
+const path = require('node:path');
 const personal = require('./personal-settings.cjs');
 const root = path.resolve(process.argv[2]);
-const input = JSON.parse(
-  process.argv[3].startsWith('@')
-    ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
-    : Buffer.from(process.argv[3], 'base64').toString(),
-);
+const input = require('./command-input.cjs').readCommandInput(process.argv[3]);
 try {
   const file = path.join(personal.home, '.clouddev/editor-defaults.json');
   if (input.action === 'save') {

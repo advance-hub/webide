@@ -1,7 +1,7 @@
 import { Table, type TableProps } from '@arco-design/web-react';
 
-// Arco owns row virtualization, column alignment and scroll synchronization.
-// A changed filter resets scrolling without clearing the URL's filter state.
+// Arco 负责行虚拟化、列对齐和滚动同步。
+// 筛选改变时重置滚动位置，保留 URL 中的筛选状态。
 export function VirtualTable<T extends object>({
   data = [],
   resetKey = '',

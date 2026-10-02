@@ -28,8 +28,8 @@ export default defineConfig([
     '**/tools/electron/app/dist/**',
     '**/tools/playwright/src/tests/workspaces/**',
     'tools/cli-engine/src/browser/worker-host.js',
-    // Upstream sources copied in verbatim. Our style rules would rewrite them
-    // and make the next update a manual merge; the .vendor. infix marks them.
+    // 原样复制的上游文件不参与项目风格重写，避免下次同步产生
+    // 手工合并；文件名中的 .vendor. 标识这类来源文件。
     '**/*.vendor.{js,jsx,ts,tsx,cts,mts}',
     'packages/monaco/worker/**',
     '**/typings/**',
@@ -283,6 +283,18 @@ export default defineConfig([
     files: ['**/*.{cjs,js}'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    name: 'webide/product',
+    files: ['application/**/*.{ts,tsx}'],
+    rules: {
+      'unused-imports/no-unused-imports': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
+      'prefer-const': 'error',
     },
   },
 ]);

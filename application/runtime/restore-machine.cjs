@@ -1,6 +1,6 @@
 'use strict';
-// Each rename is recoverable from the journal, including interruption between
-// moving two top-level entries. The control plane commits metadata separately.
+// 每次重命名都写入恢复日志，两个顶层目录的移动之间
+// 即使发生中断也可以恢复；控制面单独提交元数据。
 const fs = require('node:fs'),
   path = require('node:path');
 const root = process.argv[2],

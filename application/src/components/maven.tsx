@@ -1,13 +1,15 @@
 import { Button, Checkbox, Input, Select } from '@arco-design/web-react';
 import { useEffect, useState } from 'react';
 
-import { type MavenOptions, type MavenReport, type Workspace, date, request } from '../domain';
+import { type MavenOptions, type MavenReport, type Workspace } from '../../shared/contracts';
+import { request } from '../api/client';
+import { date } from '../domain/presentation';
 
 import { Callout } from './common';
 import { MavenConfiguration } from './maven-config';
 import { Drawer } from './overlays';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 const actions: Record<string, string> = {
   prepare: '准备依赖',
@@ -25,7 +27,10 @@ const states: Record<string, string> = {
   cancelling: '取消中',
   cancelled: '已取消',
 };
-interface TaskLog { text: string; truncated: boolean }
+interface TaskLog {
+  text: string;
+  truncated: boolean;
+}
 
 export function MavenPanel({ workspace: ws, wb }: { workspace: Workspace; wb: Workbench }) {
   const [open, setOpen] = useState(false);
@@ -221,7 +226,9 @@ export function MavenPanel({ workspace: ws, wb }: { workspace: Workspace; wb: Wo
               options={Object.entries(actions).map(([value, label]) => ({ value, label }))}
               onChange={(value) => {
                 setAction(String(value));
-                if (['test', 'verify'].includes(String(value))) {setOptions({ ...options, skipTests: false });}
+                if (['test', 'verify'].includes(String(value))) {
+                  setOptions({ ...options, skipTests: false });
+                }
               }}
             />
             <label className='field-label' htmlFor={`maven-profiles-${ws.id}`}>

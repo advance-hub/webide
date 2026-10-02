@@ -1,12 +1,14 @@
 import { Button, Form, Input, Select, Tabs } from '@arco-design/web-react';
 import { useState } from 'react';
 
-import { type Project, busyStates, date, request } from '../domain';
+import { type Project } from '../../shared/contracts';
+import { request } from '../api/client';
+import { busyStates, date } from '../domain/presentation';
 
 import { Callout, Definition } from './common';
 import { Modal } from './overlays';
 
-import type { Workbench } from '../use-workbench';
+import type { Workbench } from '../state/use-workbench';
 
 export function BaselineActions({ project: p, wb, commit }: { project: Project; wb: Workbench; commit?: string }) {
   const [mode, setMode] = useState<'update' | 'reset'>('update');

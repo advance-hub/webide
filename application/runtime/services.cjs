@@ -5,11 +5,7 @@ const crypto = require('node:crypto');
 const development = require('./development.cjs');
 const toolchain = require('./toolchain.cjs');
 const root = path.resolve(process.argv[2]);
-const input = JSON.parse(
-  process.argv[3].startsWith('@')
-    ? fs.readFileSync(process.argv[3].slice(1), 'utf8')
-    : Buffer.from(process.argv[3], 'base64').toString(),
-);
+const input = require('./command-input.cjs').readCommandInput(process.argv[3]);
 const filename = path.join(root, 'project/.opensumi/development.json');
 const read = () => (fs.existsSync(filename) ? fs.readFileSync(filename, 'utf8') : '{"version":1}');
 const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');
