@@ -114,7 +114,8 @@
     "test:workbench": "pnpm --filter @opensumi/application test",
     "test:application-runtime": "node --test application/runtime/*.test.cjs",
     "check:product": "tsx scripts/check-product-structure.ts",
-    "test:product-structure": "tsx --test scripts/check-product-structure.test.ts"
+    "test:product-structure": "tsx --test scripts/check-product-structure.test.ts",
+    "profile:control-plane-memory": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/profile-control-plane-memory.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,md,html,css,less,json,yml}": "prettier --write",

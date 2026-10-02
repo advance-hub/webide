@@ -10,6 +10,7 @@ import { type Environment, type Machine, type RuntimeDriver, startupRecord } fro
 import { type Config } from '../platform/config';
 import { command } from '../platform/process';
 import { Store, newID, now } from '../platform/store';
+import { readTextTail } from '../platform/text-tail';
 import { HTTPError } from '../platform/validation';
 
 import { runtimeFingerprint } from './fingerprint';
@@ -256,7 +257,7 @@ export class LocalRuntime implements RuntimeDriver {
       await delay(500);
     }
     await this.stop(workspace);
-    throw new Error(`IDE 启动失败：${(await readFile(log, 'utf8')).slice(-4000)}`);
+    throw new Error(`IDE 启动失败：${await readTextTail(log)}`);
   }
 
   async stop(workspace: Workspace): Promise<void> {

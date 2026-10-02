@@ -7,10 +7,12 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { type Workspace } from '../domain/models';
 import { type RuntimeDriver } from '../domain/runtime';
 import { type Config } from '../platform/config';
+import { ExpiringMap } from '../platform/expiring-map';
 import { Store, hash, newID, now } from '../platform/store';
 import { HTTPError } from '../platform/validation';
 
 import { proxyTarget } from './proxy-target';
+import { IDE_MESSAGE_LIMIT, bridgeWebSockets } from './websocket-bridge';
 
 import type { AccessControl } from '../modules/accounts/access';
 
@@ -33,19 +35,38 @@ function cookie(request: IncomingMessage, name: string): string {
 /** 入口票据只消费一次，代理连接不转发工作台 Cookie 和用户认证头。 */
 export class IDEProxy {
   private stopping = false;
-  private readonly tickets = new Map<string, Ticket>();
-  private readonly ideSessions = new Map<string, Ticket>();
-  private readonly websocketServer = new WebSocketServer({ noServer: true });
+  private readonly tickets = new ExpiringMap<Ticket>(10_000);
+  private readonly ideSessions = new ExpiringMap<Ticket>(10_000);
+  private readonly sweep: NodeJS.Timeout;
+  private readonly websocketServer = new WebSocketServer({
+    noServer: true,
+    maxPayload: IDE_MESSAGE_LIMIT,
+    perMessageDeflate: false,
+  });
   private readonly sockets = new Map<string, Set<WebSocket>>();
   constructor(
     readonly config: Config,
     readonly store: Store,
     readonly driver: RuntimeDriver,
     readonly access: AccessControl,
-  ) {}
+  ) {
+    // 无新请求时也回收过期认证状态；定时器由代理拥有，不阻止进程退出。
+    this.sweep = setInterval(() => {
+      this.tickets.pruneExpired();
+      this.ideSessions.pruneExpired();
+    }, 30_000);
+    this.sweep.unref();
+  }
   enter(workspace: Workspace): string {
+    if (this.stopping) {
+      throw new HTTPError(503, '服务正在关闭');
+    }
     const ticket = newID() + newID();
-    this.tickets.set(hash(ticket), { owner: workspace.owner, workspace: workspace.id, expires: Date.now() + 60000 });
+    if (
+      !this.tickets.set(hash(ticket), { owner: workspace.owner, workspace: workspace.id, expires: Date.now() + 60000 })
+    ) {
+      throw new HTTPError(429, '入口票据数量已达上限，请稍后重试');
+    }
     const address = new URL(this.config.publicURL);
     address.hostname = `${workspace.id}.${this.config.ideHost}`;
     address.searchParams.set('ticket', ticket);
@@ -70,6 +91,8 @@ export class IDEProxy {
     }
   }
   dispose(): void {
+    this.stopping = true;
+    clearInterval(this.sweep);
     this.websocketServer.close();
     this.tickets.clear();
     this.ideSessions.clear();
@@ -94,14 +117,15 @@ export class IDEProxy {
     const ticketValue = context.query.ticket;
     if (typeof ticketValue === 'string') {
       const key = hash(ticketValue);
-      const ticket = this.tickets.get(key);
-      this.tickets.delete(key);
+      const ticket = this.tickets.take(key);
       if (!ticket || ticket.workspace !== id || ticket.expires < Date.now()) {
         throw new HTTPError(401, '入口票据无效或已过期');
       }
       this.access.workspace(id, ticket.owner);
       const token = newID() + newID();
-      this.ideSessions.set(hash(token), { ...ticket, expires: Date.now() + 8 * 60 * 60 * 1000 });
+      if (!this.ideSessions.set(hash(token), { ...ticket, expires: Date.now() + 8 * 60 * 60 * 1000 })) {
+        throw new HTTPError(429, 'IDE 会话数量已达上限，请稍后重试');
+      }
       context.cookies.set('ide_session', token, {
         httpOnly: true,
         sameSite: 'lax',
@@ -188,12 +212,20 @@ export class IDEProxy {
     const upstream = new WebSocket(target, {
       headers: { ...environment.headers, 'X-Workspace-Id': id },
       handshakeTimeout: 10000,
+      maxPayload: IDE_MESSAGE_LIMIT,
+      perMessageDeflate: false,
     });
     connections.add(upstream);
     this.sockets.set(id, connections);
-    upstream.once('close', () => connections.delete(upstream));
+    const forget = (connection: WebSocket) => {
+      connections.delete(connection);
+      if (!connections.size && this.sockets.get(id) === connections) {
+        this.sockets.delete(id);
+      }
+    };
+    upstream.once('close', () => forget(upstream));
     upstream.once('error', () => {
-      connections.delete(upstream);
+      forget(upstream);
       socket.destroy();
     });
     socket.once('close', () => {
@@ -202,28 +234,22 @@ export class IDEProxy {
       }
     });
     upstream.once('open', () => {
-      this.websocketServer.handleUpgrade(request, socket, head, (client) => {
-        connections.delete(upstream);
-        connections.add(client);
-        this.sockets.set(id, connections);
-        client.on('message', (data, binary) => {
-          if (upstream.readyState === WebSocket.OPEN) {
-            upstream.send(data, { binary });
-          }
+      if (this.stopping || socket.destroyed) {
+        upstream.terminate();
+        return;
+      }
+      try {
+        this.websocketServer.handleUpgrade(request, socket, head, (client) => {
+          connections.delete(upstream);
+          connections.add(client);
+          this.sockets.set(id, connections);
+          client.once('close', () => forget(client));
+          bridgeWebSockets(client, upstream);
         });
-        upstream.on('message', (data, binary) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(data, { binary });
-          }
-        });
-        client.once('close', () => {
-          connections.delete(client);
-          upstream.close();
-        });
-        upstream.once('close', () => client.close());
-        upstream.on('error', () => client.close(1011));
-        client.on('error', () => upstream.close());
-      });
+      } catch {
+        upstream.terminate();
+        socket.destroy();
+      }
     });
   }
 }

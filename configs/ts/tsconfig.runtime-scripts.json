@@ -25,6 +25,7 @@
     "../../scripts/check-architecture.test.ts",
     "../../scripts/check-workspace-dependencies.ts",
     "../../scripts/check-workspace-dependencies.test.ts",
+    "../../scripts/profile-control-plane-memory.ts",
     "../../scripts/dev.ts",
     "../../scripts/fn/memory.ts",
     "../../scripts/lint.ts",
