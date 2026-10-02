@@ -34,3 +34,5 @@ application/
 业务定位：接口从 `server/http/routes/` 进入，状态变更由 `server/modules/` 执行，外部环境通过 `server/domain/runtime.ts` 的驱动接口访问。共享类型只包含传输契约，不能导入 React、Koa 或运行实现。
 
 工程边界和失败语义见 [架构说明](../docs/architecture/product-structure.md)，环境变量、安装和沙箱验收见 [运行说明](../docs/RUNNING.md)，接口契约见 [控制面说明](../docs/NODE-CONTROL-PLANE.md)。
+
+工作区邀请与访问角色位于 `server/modules/workspaces/sharing.ts`，鉴权由 `server/modules/accounts/access.ts` 统一校验，票据、代理与在线撤销由 `server/http/ide-proxy.ts` 拥有。共享协同传输仍由 OpenSumi 的 `packages/collaboration/` 实现，工作台通过托管运行声明与认证头接入；五人真实浏览器与进程树验收位于 `acceptance/collaboration.ts`，边界见 [协同说明](../docs/COLLABORATION.md)。

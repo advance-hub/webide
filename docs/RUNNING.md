@@ -28,6 +28,8 @@ pnpm start
 
 工作台健康检查为 `GET /healthz`。工作区的 IDE 使用一次性入场凭据换取会话，通过独立工作区域名转发 HTTP 和 WebSocket；本机开发需要浏览器能解析 `*.localhost`。
 
+托管工作区默认启用 Node/Yjs 协同。所有者可在卡片中邀请四名已登录成员，协同 WebSocket 复用工作区入口；权限、终端访问边界和五人验收说明见 [协同文档](COLLABORATION.md)。旧的运行实例不会在控制面升级时自动加载新协同模块：本机实例需重启，沙箱需配置本版镜像并更新运行时后重启。未更新的实例不能算本版五人验收结果。
+
 默认数据目录 `application/.data/` 包含 SQLite 元数据、加密凭据密钥、仓库和开发机文件。保留这些文件才能保留工作区状态；停止服务并不删除工作区。工作区重置会重新检出固定基线，属于显式文件操作。
 
 ## 工作台配置
@@ -52,7 +54,7 @@ pnpm start
 | `WORKBENCH_STORAGE_MODE` | `pvc` 或 `retained` |
 | `WORKBENCH_STORAGE_CLASS` | PVC 存储类别，空值由服务端决定 |
 | `WORKBENCH_VOLUME_BACKEND` | `external` / `docker` / `kubernetes` |
-| `OPEN_SANDBOX_PLATFORM` | 空值由服务决定；本次 x64 镜像在 ARM 主机上显式设置 `linux/amd64` |
+| `OPEN_SANDBOX_PLATFORM` | 空值由服务决定，可显式设置 `linux/amd64` 或 `linux/arm64`；镜像和官方组件架构需一致 |
 | `OPEN_SANDBOX_REQUEST_TIMEOUT_SECONDS` | 初始创建/连接默认 `300` 秒，允许 `10..1200`，覆盖冷镜像解包 |
 | `WORKBENCH_GIT_BRIDGE_URL` | 沙箱可访问的 Git 代理入口；非演示模式必须使用 HTTPS |
 | `WORKBENCH_KUBERNETES_URL` | Kubernetes HTTPS API，空值使用集群内配置 |
@@ -81,11 +83,12 @@ pnpm start
 docker build -t opensumi-webide-node:dev .
 docker build -f application/runtime/Dockerfile --build-arg OPENSUMI_BASE=opensumi-webide-node:dev -t opensumi-webide-workspace:dev .
 WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:dev bash scripts/run-local-sandbox-acceptance.sh
+WEBIDE_ACCEPTANCE_SUITE=collaboration WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:dev bash scripts/run-local-sandbox-acceptance.sh
 ```
 
 基础镜像编译框架、IDE 和工作台，安装 70 个配置插件；沙箱镜像增加 Java 8/11/17/21、Maven 和运行辅助工具。OpenSandbox 注入 execd，控制面在准备仓库后执行 `/opt/opensumi/bin/start-workspace`。运行配置需提供已部署服务与镜像，单独启动基础镜像不会自动部署 OpenSandbox。
 
-验收脚本固定官方 Server `0.2.3`、execd `1.1.0`、SDK `1.1.0` 和私有 Docker `29.3.0`，仅向回环随机端口暴露测试服务。它要求 Docker 允许启动 privileged DinD，创建专属 context、网络和数据卷，不切换默认 context，退出时清理专属资源。镜像使用 `linux/amd64`，ARM 主机由 Docker 模拟运行。脚本运行两账户的 IDE，验证真实 IDE HTTP/WS 代理、指标、加密备份与脏文件恢复、容器替换保留 PVC、实际容器和卷删除。升级夹具只改变镜像指纹，证明驱动执行了替换与识别，尚未验证跨两个发布版本的业务迁移。
+验收脚本固定官方 Server `0.2.3`、execd `1.1.0`、SDK `1.1.0` 和私有 Docker `29.3.0`，仅向回环随机端口暴露测试服务。它要求 Docker 允许启动 privileged DinD，创建专属 context、网络和数据卷，不切换默认 context，退出时清理专属资源。脚本默认读取工作区镜像架构，可用 `WEBIDE_ACCEPTANCE_PLATFORM=linux/amd64|linux/arm64` 显式指定；Server、execd 和 SDK 使用相同架构。脚本运行两账户的 IDE，验证真实 IDE HTTP/WS 代理、指标、加密备份与脏文件恢复、容器替换保留 PVC、实际容器和卷删除。升级夹具只改变镜像指纹，证明驱动执行了替换与识别，尚未验证跨两个发布版本的业务迁移。
 
 镜像构建可通过 `NODE_IMAGE`、`HTTP_PROXY`、`HTTPS_PROXY` 参数适配镜像源与网络；不要将代理或密钥写入 Dockerfile。真实验收 JSON 与日志默认保存于忽略的 `output/runtime-profiles/node-control-plane-20261002/`，可通过 `WEBIDE_ACCEPTANCE_OUTPUT` 指定独立 JSON 输出，保留已有验收记录。入口会复用本机已缓存且架构匹配的固定版本官方镜像，缺失时再拉取。若使用已有远程服务，可按 `application/acceptance/opensandbox.ts` 的 `WEBIDE_ACCEPTANCE_*` 环境变量单独执行；该脚本会创建并释放测试开发机，必须指向隔离环境。
 

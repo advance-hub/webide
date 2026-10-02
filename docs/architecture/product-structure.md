@@ -44,6 +44,8 @@
 
 示例调用链为 `POST /api/workspaces/:id/start → AccessControl.workspace → WorkspaceOperations.lifecycle → Jobs → RuntimeDriver`。备份链为 `HTTP backups → Machines.backupAction → 资源锁与持久任务 → 驱动归档/恢复`。IDE 入口票据和代理连接由 `IDEProxy` 持有，维护任务通过注入的连接查询判断开发机是否空闲。
 
+协作访问由 `modules/workspaces/sharing.ts` 描述成员和公开角色；`AccessControl.sharedWorkspace` 仅用于协作查看与入场，管理操作继续使用所有者校验。HTTP 成员路由在资源锁内提交授权、同步私人编辑器配置，并让 `IDEProxy` 撤销目标成员的票据、会话和连接。传输凭据留在驱动与代理之间，共享 DTO 不包含运行时认证头。详见 [五人协同边界](../COLLABORATION.md)。
+
 ## 4. 失败、兼容与运行入口
 
 控制面重启时，将中断的工作区任务置为可见失败；开发机恢复事务继续使用原有日志与显式恢复接口。任务锁和持久化提交仍由业务模块维护，HTTP 只负责身份、输入和响应转换。恢复编辑器连接失败时，工作区保存可见的同步失败状态。

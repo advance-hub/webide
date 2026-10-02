@@ -43,7 +43,7 @@
 
 ## 未执行或保留限制
 
-- Windows 原生产品尚未运行；已配置 Windows/macOS/Linux CI 矩阵，未推送，所以远端工作流未执行。Linux 已在本机 Docker 的 x64 模拟环境执行真实 IDE/OpenSandbox HTTP/WS 与 watcher 验收，完整 Linux 浏览器交互矩阵、其他发行版与 ARM 原生平台尚未覆盖。
+- Windows 原生产品尚未运行；已配置 Windows/macOS/Linux CI 矩阵，未推送，所以远端工作流未执行。Linux 已在本机 Docker 的 x64 模拟环境与 ARM64 原生环境执行真实 IDE/OpenSandbox HTTP/WS、备份恢复、升级保留卷和卷删除；watcher 崩溃验收包含 Linux Parcel。五人专项使用小型 TypeScript 夹具，不能替代完整 Linux 浏览器交互矩阵、其他发行版或 Java 等工作负载验收。
 - Kubernetes 已实现删除后端，协议测试覆盖第二页 Pod、UID 变化、异步完成与幂等；没有真实 Kubernetes 集群，不能宣称真实 PVC 删除验收通过。
 - GitHub/GitLab/Gitee 使用真实 Git HTTP 服务和 API 夹具验证，未使用外部账户创建实际 MR/PR。资源探测的协议夹具与 COS SDK 测试未替代真实云 COS、MySQL 等服务的专项验收。
 - `retained` 存储模式禁止直接镜像升级，须先备份并迁移到 PVC。当前升级验收镜像仅改变指纹，跨发布版本升级仍需发布时验收。
