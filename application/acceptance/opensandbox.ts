@@ -16,7 +16,9 @@ import { newID, now } from '../server/platform/store';
 import { Workbench } from '../server/workbench';
 
 const root = await mkdtemp(path.join(os.tmpdir(), 'webide-remote-'));
-const output = path.resolve('output/runtime-profiles/node-control-plane-20261002/remote.json');
+const output = path.resolve(
+  process.env.WEBIDE_ACCEPTANCE_OUTPUT || 'output/runtime-profiles/node-control-plane-20261002/remote.json',
+);
 const config = {
   ...loadConfig({
     WORKBENCH_RUNTIME_DRIVER: 'sandbox',

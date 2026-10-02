@@ -30,8 +30,15 @@ export WEBIDE_ACCEPTANCE_KEY
 WEBIDE_ACCEPTANCE_KEY=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')
 server_image=sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/server:v0.2.3
 execd_image=sandbox-registry.cn-zhangjiakou.cr.aliyuncs.com/opensandbox/execd:v1.1.0
-docker pull --platform linux/amd64 "$server_image"
-docker pull --platform linux/amd64 "$execd_image"
+ensure_image() {
+  # 固定版本且架构匹配的本机镜像可以复用，避免验收依赖无必要的注册表请求。
+  if [ "$(docker image inspect --platform linux/amd64 "$1" --format '{{.Os}}/{{.Architecture}}' 2>/dev/null || true)" = linux/amd64 ]; then
+    return
+  fi
+  docker pull --platform linux/amd64 "$1"
+}
+ensure_image "$server_image"
+ensure_image "$execd_image"
 # 使用不同的测试指纹验证运行时替换与数据保留。
 # 该测试不代表已完成两个正式发布版本之间的升级验收。
 docker build --platform linux/amd64 --build-arg "BASE=$workspace_image" -t "$upgrade_image" -f - . <<'DOCKERFILE'
