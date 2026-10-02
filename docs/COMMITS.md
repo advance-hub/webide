@@ -63,3 +63,24 @@ git log --reverse --format=fuller 0789312e1..HEAD
 Node 回归 140 套件/1,481 项测试、jsdom 回归 350 套件/3,264 项测试通过；终端读流修复后 Jest 正常退出。控制面 21 项、辅助工具 29 项、工程契约 62 项与 Server 诊断 26 项通过。最终 Node 镜像在专属 DinD 内通过双账户、HTTP/WS、加密备份恢复、升级保留 PVC 和实际删除等六阶段验收，测试容器、context、网络和数据卷已清理。详细计数和未验收范围见 [迁移状态](MIGRATION.md)和 [可移植摘要](node-control-plane-acceptance-20261002.json)。
 
 每次提交前检查明确的暂存范围和 `git diff --cached --check`，格式化、ESLint 与 commitlint 钩子均执行。运行数据和凭据只保留在忽略目录，本轮没有跳过检查、改写上游历史或创建外部 MR/PR。
+
+## 2026-10-02 产品结构与工程规范
+
+本轮从 `7ffc64a7c` 开始，拆分工作台的共享契约、浏览器状态、业务模块、运行驱动和 HTTP 传输，统一生产打包入口，移除已确认失效的配置与重复输入解析，并增加模块依赖和中文说明性注释检查。
+
+| 提交        | 主题                                                       |
+| ----------- | ---------------------------------------------------------- |
+| `32fe56a94` | refactor(workbench): 拆分产品职责并统一源码与生产运行入口  |
+| `f55cb2ae8` | chore(engineering): 统一中文注释并更新有效调试入口         |
+| `b9e109cd7` | test(sandbox): 复用已缓存镜像并隔离每轮验收证据            |
+| `e30342cab` | docs(architecture): 明确产品模块边界并保存本轮完整验收结果 |
+
+本表由最后的 `docs(commits): 登记产品结构重构与分批验收提交` 保存，该记录提交自身的哈希以 `git log` 为准。本轮共 5 次本地提交，没有推送。
+
+```sh
+git log --reverse --format=fuller 7ffc64a7c..HEAD
+```
+
+结构检查覆盖 112 个产品源码文件；工作台 25 项、辅助工具 29 项、工程脚本 67 项、Server 诊断 26 项及上游 4,745 项测试通过，上游另有 57 项跳过。完整构建与产物摘要检查通过，实际 Docker/OpenSandbox 六阶段验收通过并回收测试资源。注释调整的 34 个源码文件经语法树比较没有结构变化。
+
+详细分层、兼容约束和删除依据见 [架构说明](architecture/product-structure.md)，本轮计数、镜像与未验收范围见 [可移植摘要](architecture/product-structure-acceptance-20261002.json)。产品和维护入口使用中文说明性注释，上游既有 API 说明与版权原文保留。原始日志、失败尝试和 SHA-256 索引留在忽略目录 `output/refactor/`。
