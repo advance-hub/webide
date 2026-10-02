@@ -129,7 +129,12 @@ export function runtimeRecipes(root: string, mode: ProductRuntimeMode): Artifact
     ],
     outputs: ['client/dist', 'application/dist', 'application/server/main.mjs'],
     excludeInputs: ['application/server/main.mjs'],
-    requiredOutputs: ['client/dist/index.html', 'application/dist/index.html', 'application/server/main.mjs'],
+    requiredOutputs: [
+      'client/dist/index.html',
+      'client/dist/monaco/editor.worker.bundle.js',
+      'application/dist/index.html',
+      'application/server/main.mjs',
+    ],
     toolchain: {
       node: process.version,
       typescript: version('@typescript/native'),

@@ -78,6 +78,7 @@ const samples: Array<{
 const steps: Array<{ name: string; ms: number }> = [];
 const errors: Array<{ account: string; phase: string; message: string; expected: boolean; reason?: string }> = [];
 const transportDiagnostics: BrowserTransportDiagnostic[] = [];
+const localMonacoWorkers: Array<{ account: string; phase: string; path: string }> = [];
 const transitions = new WeakMap<Page, { reason: string; until: number }>();
 const owned: Workspace[] = [];
 const result: Record<string, unknown> = {
@@ -97,6 +98,7 @@ const result: Record<string, unknown> = {
   samples,
   browserErrors: errors,
   transportDiagnostics,
+  localMonacoWorkers,
   pass: false,
 };
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
@@ -182,6 +184,8 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
       permissions: ['clipboard-read', 'clipboard-write'],
     });
     contexts.push(context);
+    // 阻断历史 Worker CDN，确保实际编辑器依赖的是本轮交付的同源产物。
+    await context.route(/https:\/\/gw\.alipayobjects\.com\/.*\/worker\//, (route) => route.abort('blockedbyclient'));
     await context.addCookies([
       { name: 'workbench_session', value: sessions[actor], url: config.publicURL, httpOnly: true, sameSite: 'Strict' },
     ]);
@@ -218,6 +222,13 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
       hash(actor),
     );
     await openDocument(page, 'collaboration.ts');
+    const workerURL = new URL('/monaco/editor.worker.bundle.js', page.url()).href;
+    await until(
+      async () => page.workers().some((worker) => worker.url() === workerURL),
+      '实际同源 Monaco Worker 启动',
+      45000,
+    );
+    localMonacoWorkers.push({ account: actor, phase, path: new URL(workerURL).pathname });
     process.stdout.write(`${actor}: 实际编辑器已打开\n`);
     pages.push(page);
   }

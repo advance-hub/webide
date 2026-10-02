@@ -334,6 +334,14 @@ const config: Configuration = {
     minimize: isProduction,
   },
   plugins: [
+    new rspack.CopyRspackPlugin({
+      patterns: [
+        {
+          from: path.join(repoRoot, 'packages/monaco/worker/editor.worker.bundle.js'),
+          to: 'monaco/editor.worker.bundle.js',
+        },
+      ],
+    }),
     new rspack.HtmlRspackPlugin({
       template: templatePath,
     }),

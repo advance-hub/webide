@@ -14,6 +14,21 @@ import type { LoadedProductOption } from '@opensumi/ide-startup';
 // 后续移动渲染器时，无须调整服务端。
 
 async function main() {
+  // 产品随构建交付编辑器 Worker，通过已有认证入口加载，避免运行依赖外部 CDN。
+  const browser = window as Window & {
+    MonacoEnvironment?: { getWorker(moduleId: string, label: string): Worker };
+  };
+  browser.MonacoEnvironment ??= {
+    getWorker(moduleId, label) {
+      if (moduleId !== 'workerMain.js') {
+        throw new Error(`Unsupported monaco worker: ${moduleId}:${label}`);
+      }
+      return new Worker(new URL('/monaco/editor.worker.bundle.js', window.location.origin), {
+        type: 'classic',
+        name: label,
+      });
+    },
+  };
   const cloudWorkspace = (
     window as unknown as {
       __OPENSUMI_WORKSPACE__?: { id?: string; collaboration?: boolean; user?: { id: string; nickname: string } };
