@@ -7,8 +7,8 @@ import {
   FileChangeEvent,
   FileStat,
   FileSystemError,
+  FileSystemProvider,
   FileType,
-  IDiskFileProvider,
   getFileTypeByExt,
   isErrnoException,
   notEmpty,
@@ -26,7 +26,8 @@ export const BROWSER_HOME_DIR = FileUri.create('/home');
 
 // 预览模式下，文件改动仅同步到本地；常规场景直接同步远端，本地不做文件存储
 // 利用storage来记录文件已加载的信息，dispose时记得清楚
-export class BrowserFsProvider implements IDiskFileProvider {
+// 浏览器适配采用通用提供者契约，由文件服务的通用保存路径核对文件状态。
+export class BrowserFsProvider implements FileSystemProvider {
   static binaryExtList = [
     'aac',
     'avi',

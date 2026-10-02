@@ -1,7 +1,11 @@
 import { Range } from 'vscode-languageserver-types';
 
 import { Autowired, Injectable } from '@opensumi/di';
-import { IEditorDocumentEditChange, IEditorDocumentModelSaveResult } from '@opensumi/ide-core-browser';
+import {
+  IEditorDocumentEditChange,
+  IEditorDocumentModelSaveResult,
+  SaveTaskResponseState,
+} from '@opensumi/ide-core-browser';
 import { IHashCalculateService } from '@opensumi/ide-core-common/hash';
 import { IContentChange, IFileSchemeDocClient, ISavingContent } from '@opensumi/ide-file-scheme';
 import { IFileServiceClient, TextDocumentContentChangeEvent } from '@opensumi/ide-file-service';
@@ -30,7 +34,7 @@ export class FileSchemeDocClientService implements IFileSchemeDocClient {
           const res = await this.fileService.resolveContent(uri, { encoding });
           if (change.baseMd5 !== this.hashCalculateService.calculate(res.content)) {
             return {
-              state: 'diff',
+              state: SaveTaskResponseState.DIFF,
             };
           }
         }
@@ -53,17 +57,17 @@ export class FileSchemeDocClientService implements IFileSchemeDocClient {
         });
         await this.fileService.updateContent(stat, docChanges, { encoding });
         return {
-          state: 'success',
+          state: SaveTaskResponseState.SUCCESS,
         };
       } else {
         return {
-          state: 'error',
+          state: SaveTaskResponseState.ERROR,
           errorMessage: 'useByContent',
         };
       }
     } catch (e) {
       return {
-        state: 'error',
+        state: SaveTaskResponseState.ERROR,
         errorMessage: e.toString(),
       };
     }
@@ -82,23 +86,23 @@ export class FileSchemeDocClientService implements IFileSchemeDocClient {
           const res = await this.fileService.resolveContent(uri, { encoding });
           if (content.baseMd5 !== this.hashCalculateService.calculate(res.content)) {
             return {
-              state: 'diff',
+              state: SaveTaskResponseState.DIFF,
             };
           }
         }
         await this.fileService.setContent(stat, content.content, { encoding });
         return {
-          state: 'success',
+          state: SaveTaskResponseState.SUCCESS,
         };
       } else {
         await this.fileService.createFile(uri, { content: content.content, encoding });
         return {
-          state: 'success',
+          state: SaveTaskResponseState.SUCCESS,
         };
       }
     } catch (e) {
       return {
-        state: 'error',
+        state: SaveTaskResponseState.ERROR,
         errorMessage: e.toString(),
       };
     }
