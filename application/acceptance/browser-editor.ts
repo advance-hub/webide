@@ -71,11 +71,13 @@ export async function openTerminal(page: Page, marker: string): Promise<string> 
   }
   await input.waitFor({ state: 'visible', timeout: 1000 });
   await input.focus();
-  // xterm 焦点更新异步完成，立即插入会丢失首个字符。
+  // xterm 焦点更新异步完成，先清空输入，再通过实际剪贴板粘贴完整命令。
   await page.waitForTimeout(100);
   await page.keyboard.press('Control+u');
   await page.waitForTimeout(100);
-  await page.keyboard.type(`printf '%s' '${marker}' > '${receipt}'`, { delay: 10 });
+  await page.evaluate((text) => navigator.clipboard.writeText(text), `printf '%s' '${marker}' > '${receipt}'`);
+  await page.keyboard.press(`${modifier}+v`);
+  await page.waitForTimeout(100);
   await page.keyboard.press('Enter');
   return receipt;
 }

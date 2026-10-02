@@ -220,12 +220,19 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
     const terminalMarker = `TERMINAL_${actor}`;
     await workbench.sandbox!.run(workspace.envId!, `rm -f '/tmp/webide-terminal-${terminalMarker}'`);
     const receipt = await openTerminal(page, terminalMarker);
-    await until(
-      async () =>
-        (await workbench.sandbox!.run(workspace.envId!, `cat '${receipt}' 2>/dev/null || true`)) === terminalMarker,
-      '浏览器终端执行回执',
-      15000,
-    );
+    let observed = '';
+    try {
+      await until(
+        async () => {
+          observed = await workbench.sandbox!.run(workspace.envId!, `cat '${receipt}' 2>/dev/null || true`);
+          return observed === terminalMarker;
+        },
+        '浏览器终端执行回执',
+        15000,
+      );
+    } catch (error) {
+      throw new Error(`终端回执不匹配：期望 ${terminalMarker}，实际 ${JSON.stringify(observed)}`, { cause: error });
+    }
     await workbench.sandbox!.run(workspace.envId!, `rm '${receipt}'`);
     process.stdout.write(`${actor}: 实际终端已执行\n`);
   }
