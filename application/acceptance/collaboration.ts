@@ -15,13 +15,17 @@ import { hash, newID, now } from '../server/platform/store';
 import { Workbench } from '../server/workbench';
 
 import { appendDocument, openDocument, openTerminal, readDocument, saveDocument, undoDocument } from './browser-editor';
+import { type BrowserTransportDiagnostic, observeBrowserTransport } from './browser-transport';
 
 import type { BrowserContext, Page } from 'playwright';
 
 async function harnessHashes() {
   return Object.fromEntries(
     await Promise.all(
-      [import.meta.filename, path.join(import.meta.dirname, 'browser-editor.ts')].map(async (file) => [
+      [
+        import.meta.filename,
+        ...['browser-editor.ts', 'browser-transport.ts'].map((file) => path.join(import.meta.dirname, file)),
+      ].map(async (file) => [
         path.basename(file),
         createHash('sha256')
           .update(await readFile(file))
@@ -72,6 +76,7 @@ const samples: Array<{
 }> = [];
 const steps: Array<{ name: string; ms: number }> = [];
 const errors: Array<{ account: string; phase: string; message: string; expected: boolean; reason?: string }> = [];
+const transportDiagnostics: BrowserTransportDiagnostic[] = [];
 const transitions = new WeakMap<Page, { reason: string; until: number }>();
 const owned: Workspace[] = [];
 const result: Record<string, unknown> = {
@@ -90,6 +95,7 @@ const result: Record<string, unknown> = {
   steps,
   samples,
   browserErrors: errors,
+  transportDiagnostics,
   pass: false,
 };
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
@@ -179,6 +185,7 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
       { name: 'workbench_session', value: sessions[actor], url: config.publicURL, httpOnly: true, sameSite: 'Strict' },
     ]);
     const page = await context.newPage();
+    await observeBrowserTransport(page, actor, () => phase, transportDiagnostics);
     page.setDefaultTimeout(60000);
     page.on('pageerror', (error) => {
       const transition = transitions.get(page);
@@ -614,6 +621,7 @@ try {
     process.exitCode = 1;
   }
   result.finishedAt = now();
+  result.proxyConnectionEnds = workbench.ide.connectionEndSnapshot();
   result.unexpectedBrowserErrors = errors.filter((error) => !error.expected).length;
   result.harnessSha256AtFinish = await harnessHashes();
   result.harnessChanged = JSON.stringify(loadedHarnessHashes) !== JSON.stringify(result.harnessSha256AtFinish);
