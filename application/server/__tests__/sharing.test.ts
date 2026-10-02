@@ -223,6 +223,15 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
       200,
     );
     await closed;
+    const closedConnections = workbench.ide.connectionEndSnapshot();
+    assert(
+      closedConnections.some(
+        (entry) => entry.actor === hash('alice') && entry.side === 'browser' && entry.code === 1006,
+      ),
+    );
+    assert(closedConnections.every((entry) => !entry.path.includes('?') && !Object.hasOwn(entry, 'cookie')));
+    closedConnections[0].code = 9999;
+    assert(workbench.ide.connectionEndSnapshot().every((entry) => entry.code !== 9999));
     admit();
     assert.equal((await pendingHTTP).status, 401, '等待环境查询期间撤权的 HTTP 请求也必须拒绝');
     workbench.driver.inspect = originalInspect;

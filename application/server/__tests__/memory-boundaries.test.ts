@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { EventEmitter } from 'node:events';
+import { EventEmitter, once } from 'node:events';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 
 import { IDEProxy } from '../http/ide-proxy';
 import { IDE_MESSAGE_LIMIT, IDE_SEND_BUFFER_LIMIT, bridgeWebSockets } from '../http/websocket-bridge';
@@ -121,6 +121,49 @@ test('代理拒绝超大消息，处理分片字节数、异步发送失败和�
   closed.upstream.readyState = WebSocket.CLOSED;
   closed.client.emit('message', Buffer.from('discard'), false);
   assert.equal(closed.upstream.sent.length, 0);
+});
+
+test('真实代理关闭保留合法状态，空关闭与断网不转发保留状态码', { timeout: 20000 }, async () => {
+  for (const mode of ['normal', 'empty', 'abrupt', 'backend'] as const) {
+    const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
+    let browser: WebSocket | undefined;
+    let upstream: WebSocket | undefined;
+    try {
+      await once(server, 'listening');
+      const address = server.address();
+      assert(address && typeof address !== 'string');
+      const url = `ws://127.0.0.1:${address.port}`;
+      const backendConnected = once(server, 'connection');
+      upstream = new WebSocket(url);
+      await once(upstream, 'open');
+      const [backend] = (await backendConnected) as [WebSocket];
+      const clientConnected = once(server, 'connection');
+      browser = new WebSocket(url);
+      await once(browser, 'open');
+      const [client] = (await clientConnected) as [WebSocket];
+      bridgeWebSockets(client, upstream);
+      const closed = once(mode === 'backend' ? browser : backend, 'close');
+      if (mode === 'normal') {
+        browser.close(4001, '成员已退出');
+      } else if (mode === 'empty') {
+        browser.close();
+      } else if (mode === 'abrupt') {
+        browser.terminate();
+      } else {
+        backend.close(1008, '访问被拒绝');
+      }
+      const [code, reason] = await closed;
+      assert.equal(code, mode === 'normal' ? 4001 : mode === 'empty' ? 1000 : mode === 'abrupt' ? 1011 : 1008);
+      assert.equal(reason.toString(), mode === 'normal' ? '成员已退出' : mode === 'backend' ? '访问被拒绝' : '');
+    } finally {
+      browser?.terminate();
+      upstream?.terminate();
+      for (const client of server.clients) {
+        client.terminate();
+      }
+      await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+    }
+  }
 });
 
 test('大日志仅保留尾部，中文与四字节字符的输出和原字符截取一致', async () => {

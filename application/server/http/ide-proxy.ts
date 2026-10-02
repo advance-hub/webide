@@ -22,6 +22,16 @@ interface Ticket {
   expires: number;
 }
 
+export interface IDEConnectionEnd {
+  time: string;
+  workspace: string;
+  actor: string;
+  connection: string;
+  path: string;
+  side: 'browser' | 'upstream';
+  code: number;
+}
+
 function cookie(request: IncomingMessage, name: string): string {
   return (
     (request.headers.cookie || '')
@@ -47,6 +57,7 @@ export class IDEProxy {
   });
   private readonly sockets = new Map<string, Set<WebSocket>>();
   private readonly socketOwners = new WeakMap<WebSocket, Ticket>();
+  private readonly connectionEnds: IDEConnectionEnd[] = [];
   constructor(
     readonly config: Config,
     readonly store: Store,
@@ -76,6 +87,10 @@ export class IDEProxy {
   }
   connected(id: string): boolean {
     return !!this.sockets.get(id)?.size;
+  }
+  /** 仅保存最近的关闭元数据，不保存 Cookie、票据、认证头、帧内容或关闭原因。 */
+  connectionEndSnapshot(): IDEConnectionEnd[] {
+    return this.connectionEnds.map((entry) => ({ ...entry }));
   }
   revoke(id: string, actor: string): void {
     const matches = (value: Ticket) => value.workspace === id && value.owner === actor;
@@ -264,6 +279,22 @@ export class IDEProxy {
       return;
     }
     const target = proxyTarget(String(environment.endpoint), request.url || '/');
+    const connection = newID();
+    const pathname = new URL(request.url || '/', this.config.publicURL).pathname;
+    const recordEnd = (side: IDEConnectionEnd['side'], code: number) => {
+      this.connectionEnds.push({
+        time: now(),
+        workspace: id,
+        actor: hash(session.owner),
+        connection,
+        path: pathname,
+        side,
+        code,
+      });
+      if (this.connectionEnds.length > 128) {
+        this.connectionEnds.shift();
+      }
+    };
     target.protocol = target.protocol === 'https:' ? 'wss:' : 'ws:';
     const upstream = new WebSocket(target, {
       headers: { ...environment.headers, 'X-Workspace-Id': id, 'X-Opensumi-User': this.userHeader(session) },
@@ -280,7 +311,10 @@ export class IDEProxy {
         this.sockets.delete(id);
       }
     };
-    upstream.once('close', () => forget(upstream));
+    upstream.once('close', (code) => {
+      recordEnd('upstream', code);
+      forget(upstream);
+    });
     upstream.once('error', () => {
       forget(upstream);
       socket.destroy();
@@ -303,7 +337,10 @@ export class IDEProxy {
           connections.add(client);
           this.socketOwners.set(client, session);
           this.sockets.set(id, connections);
-          client.once('close', () => forget(client));
+          client.once('close', (code) => {
+            recordEnd('browser', code);
+            forget(client);
+          });
           bridgeWebSockets(client, upstream);
         });
       } catch {

@@ -34,8 +34,23 @@ export function bridgeWebSockets(client: WebSocket, upstream: WebSocket): void {
   };
   client.on('message', (data, binary) => forward(upstream, data, binary));
   upstream.on('message', (data, binary) => forward(client, data, binary));
-  client.once('close', () => upstream.close());
-  upstream.once('close', () => client.close());
+  const closePeer = (target: WebSocket, code: number, reason: Buffer) => {
+    stopped = true;
+    if (target.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    // 保留合法关闭码；1005/1006 等本地状态不能作为关闭帧传给下一层代理。
+    const valid =
+      (code >= 1000 && code <= 1014 && ![1004, 1005, 1006].includes(code)) || (code >= 3000 && code <= 4999);
+    const relayedCode = valid ? code : code === 1005 ? 1000 : 1011;
+    try {
+      target.close(relayedCode, valid ? reason : undefined);
+    } catch {
+      target.terminate();
+    }
+  };
+  client.once('close', (code, reason) => closePeer(upstream, code, reason));
+  upstream.once('close', (code, reason) => closePeer(client, code, reason));
   client.on('error', terminate);
   upstream.on('error', terminate);
 }
