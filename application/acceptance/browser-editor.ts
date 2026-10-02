@@ -62,11 +62,13 @@ export async function openTerminal(page: Page, marker: string): Promise<string> 
   const receipt = `/tmp/webide-terminal-${marker}`;
   await page.bringToFront();
   const input = page.getByRole('textbox', { name: 'Terminal input', exact: true }).last();
-  const trigger = page.getByText('TERMINAL', { exact: true }).filter({ visible: true }).first();
+  const trigger = page.locator('li#terminal').filter({ visible: true }).first();
   const deadline = Date.now() + 60000;
-  // 终端标签可能先于终端实例出现；点击可见入口，避免快捷键把已展开面板折叠。
+  // 标签点击会切换展开状态；等待实例期间不能再次点击已激活标签而把面板折叠。
   while (!(await input.isVisible()) && Date.now() < deadline) {
-    await trigger.click();
+    if (!(await trigger.getAttribute('class'))?.split(/\s+/).includes('active')) {
+      await trigger.click();
+    }
     await input.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {});
   }
   await input.waitFor({ state: 'visible', timeout: 1000 });
