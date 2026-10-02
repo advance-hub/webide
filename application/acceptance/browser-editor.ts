@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
 
-import type { Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 
 const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+
+/** 点击已激活标签会折叠视图，统一只激活尚未选中的入口。 */
+async function activateTab(tab: Locator): Promise<void> {
+  if (!(await tab.getAttribute('class'))?.split(/\s+/).includes('active')) {
+    await tab.click();
+  }
+}
 
 /** 操作实际 Monaco 编辑器，验收不向生产页面加入内部调试入口。 */
 export async function focusEditor(page: Page): Promise<void> {
@@ -21,6 +28,8 @@ export async function openDocument(page: Page, filename: string): Promise<void> 
   await page.bringToFront();
   await page.locator('#opensumi-left-tabbar').waitFor({ state: 'visible' });
   await page.keyboard.press('Escape');
+  // 扩展激活可能切换侧栏，先通过实际入口显示资源树再选择文件。
+  await activateTab(page.locator('#opensumi-left-tabbar li#explorer').filter({ visible: true }).first());
   // 使用真实资源树打开同一文件，兼容工作区已经恢复该编辑器的情况。
   const file = page
     .locator('[data-id][draggable="true"]')
@@ -66,9 +75,7 @@ export async function openTerminal(page: Page, marker: string): Promise<string> 
   const deadline = Date.now() + 60000;
   // 标签点击会切换展开状态；等待实例期间不能再次点击已激活标签而把面板折叠。
   while (!(await input.isVisible()) && Date.now() < deadline) {
-    if (!(await trigger.getAttribute('class'))?.split(/\s+/).includes('active')) {
-      await trigger.click();
-    }
+    await activateTab(trigger);
     await input.waitFor({ state: 'visible', timeout: 1500 }).catch(() => {});
   }
   await input.waitFor({ state: 'visible', timeout: 1000 });
