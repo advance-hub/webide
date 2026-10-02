@@ -31,7 +31,7 @@ const config = {
     OPENSUMI_NODE_WATCHER_MODE: 'shared',
     OPEN_SANDBOX_CPU: '2',
     OPEN_SANDBOX_MEMORY: '2Gi',
-    OPEN_SANDBOX_PLATFORM: 'linux/amd64',
+    OPEN_SANDBOX_PLATFORM: process.env.WEBIDE_ACCEPTANCE_PLATFORM || 'linux/amd64',
   }),
   data: path.join(root, 'control'),
   // 此入口验证开发机、运行时和卷；Git HTTP 由 git-control.test.ts 验证。
@@ -50,6 +50,7 @@ const result: Record<string, unknown> = {
   platform: process.platform,
   node: process.version,
   image: config.sandboxImage,
+  runtimePlatform: config.sandboxPlatform,
   steps,
   pass: false,
 };
