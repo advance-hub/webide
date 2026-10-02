@@ -5,7 +5,7 @@ export interface BrowserTransportDiagnostic {
   phase: string;
   time: string;
   path: string;
-  event: 'closed' | 'error';
+  event: 'closed' | 'error' | 'snapshot';
   sentFrames: number;
   receivedFrames: number;
   lastSentAt?: string;
@@ -57,6 +57,10 @@ export async function observeBrowserTransport(
   session.on('Network.webSocketFrameError', ({ requestId, errorMessage }) => append(requestId, 'error', errorMessage));
   session.on('Network.webSocketClosed', ({ requestId }) => append(requestId, 'closed'));
   page.once('close', () => {
+    // 页面销毁可能早于关闭事件；保留尚未收到关闭通知的连接最后一份计数。
+    for (const requestId of sockets.keys()) {
+      append(requestId, 'snapshot');
+    }
     sockets.clear();
     void session.detach().catch(() => {});
   });

@@ -9,6 +9,7 @@ import { chromium } from 'playwright';
 
 import { type Project, type Workspace } from '../server/domain/models';
 import { type Machine } from '../server/domain/runtime';
+import { shellQuote } from '../server/infrastructure/opensandbox';
 import { loadConfig } from '../server/platform/config';
 import { command } from '../server/platform/process';
 import { hash, newID, now } from '../server/platform/store';
@@ -270,7 +271,20 @@ const processProbe =
   "const fs=require('node:fs'); const rows=[]; for(const name of fs.readdirSync('/proc').filter(x=>/^\\d+$/.test(x))) { try {const status=fs.readFileSync('/proc/'+name+'/status','utf8'); rows.push({pid:+name,ppid:+status.match(/^PPid:\\s+(\\d+)/m)[1],rssKiB:+(status.match(/^VmRSS:\\s+(\\d+)/m)?.[1]||0),command:fs.readFileSync('/proc/'+name+'/cmdline','utf8').split('\\0').join(' ').slice(0,400)});} catch{}} process.stdout.write(JSON.stringify(rows));";
 async function processTree(workspace: Workspace) {
   const environment = await workbench.driver.inspect(workspace);
-  const pid = (environment.runtime as { pid: number }).pid;
+  const runtime = environment.runtime as { pid?: number } | undefined;
+  const pid = runtime?.pid;
+  // 就绪查询失败必须保留为失败；不能把缺失状态当成空进程树或跳过本份采样。
+  assert(
+    environment.ideReady && typeof pid === 'number' && Number.isInteger(pid) && pid > 0,
+    `采样前运行时未就绪：${JSON.stringify({
+      workspace: workspace.id,
+      exists: environment.exists,
+      phase: environment.phase,
+      ideReady: environment.ideReady,
+      runtimePresent: runtime !== undefined,
+      pid,
+    })}`,
+  );
   const rows = JSON.parse(
     await workbench.sandbox!.run(workspace.envId!, `node -e '${processProbe.replaceAll("'", "'\\''")}'`),
   ) as Array<{ pid: number; ppid: number; rssKiB: number; command: string }>;
@@ -565,6 +579,14 @@ try {
   }
   for (const workspace of owned) {
     const current = workbench.store.get<Workspace>('workspace', workspace.id) || workspace;
+    // 绕过外部代理核对容器内就绪状态，区分远端查询失败与实际 Server 退出。
+    const readinessProbe = `fetch(${JSON.stringify(`http://127.0.0.1:${current.idePort}/readyz`)}, {
+      headers: {'X-Workspace-Id': ${JSON.stringify(current.id)}}, signal: AbortSignal.timeout(8000)
+    }).then(async response => {
+      const data = await response.json();
+      console.log(JSON.stringify({probe:'container-readyz',status:response.status,pid:data.runtime?.pid,
+        owned:data.runtime?.workspace?.id===${JSON.stringify(current.id)}}));
+    }).catch(error=>console.log(JSON.stringify({probe:'container-readyz',error:error.name,code:error.cause?.code})));`;
     const args = [
       '--context',
       config.dockerContext,
@@ -572,7 +594,7 @@ try {
       `sandbox-${current.envId}`,
       'sh',
       '-c',
-      'for file in /workspace/workspaces/*/.platform/ide.log; do tail -120 "$file"; done; ps -eo pid,ppid,rss,comm; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/memory.current',
+      `node -e ${shellQuote(readinessProbe)}; for file in /workspace/workspaces/*/.platform/ide.log; do tail -120 "$file"; done; ps -eo pid,ppid,rss,comm; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/memory.current`,
     ];
     await writeFile(
       path.join(path.dirname(output), `failure-runtime-${workspace.id}.txt`),
