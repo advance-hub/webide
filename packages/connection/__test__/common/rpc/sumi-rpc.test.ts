@@ -59,6 +59,125 @@ class ControllableConnection extends SimpleConnection<Uint8Array> {
   }
 }
 
+function trackedCancellation() {
+  const listeners = new Set<() => void>();
+  const token: CancellationToken = {
+    isCancellationRequested: false,
+    onCancellationRequested(listener) {
+      const callback = () => listener();
+      listeners.add(callback);
+      return { dispose: () => listeners.delete(callback) };
+    },
+  };
+  return { token, listeners, cancel: () => listeners.forEach((listener) => listener()) };
+}
+
+describe('出站 RPC 取消监听的资源所有权', () => {
+  it('长生命周期令牌在已完成的成功与失败请求后不保留连接监听', async () => {
+    expect.hasAssertions();
+    const socket = new ControllableConnection();
+    const connection = new SumiConnection(socket, { logger: { error() {}, warn() {} } as any });
+    const cancellation = trackedCancellation();
+    const io = new MessageIO();
+    connection.listen();
+    try {
+      for (let index = 0; index < 100; index++) {
+        const request = connection.sendRequest('echo', cancellation.token);
+        const id = io.parse(socket.sent[socket.sent.length - 1]).requestId;
+        expect(cancellation.listeners.size).toBe(1);
+        socket.emitMessage(io.Response(id, 'echo', {}, index));
+        await expect(request).resolves.toBe(index);
+        expect(cancellation.listeners.size).toBe(0);
+      }
+      const request = connection.sendRequest('fail', cancellation.token).catch((error) => error);
+      const id = io.parse(socket.sent[socket.sent.length - 1]).requestId;
+      socket.emitMessage(io.Error(id, 'fail', {}, new Error('远端失败')));
+      await expect(request).resolves.toMatchObject({ message: '远端失败' });
+      expect(cancellation.listeners.size).toBe(0);
+      cancellation.cancel();
+      expect(socket.sent).toHaveLength(101);
+    } finally {
+      connection.dispose();
+    }
+  });
+
+  it('流式响应保持取消能力直到流结束或报错，首个分块不能提前释放监听', async () => {
+    expect.hasAssertions();
+    const socket = new ControllableConnection();
+    const connection = new SumiConnection(socket, { logger: { error() {}, warn() {} } as any });
+    const cancellation = trackedCancellation();
+    const io = new MessageIO();
+    connection.listen();
+    try {
+      for (const error of [false, true]) {
+        const request = connection.sendRequest('stream', cancellation.token);
+        const id = io.parse(socket.sent[socket.sent.length - 1]).requestId;
+        socket.emitMessage(io.Response(id, 'stream', { chunked: true }, 'first'));
+        const stream = await request;
+        stream.on('error', () => undefined);
+        expect(cancellation.listeners.size).toBe(1);
+        cancellation.cancel();
+        expect(io.parse(socket.sent[socket.sent.length - 1]).kind).toBe(OperationType.Cancel);
+        socket.emitMessage(
+          error
+            ? io.Error(id, 'stream', { chunked: true }, new Error('流失败'))
+            : io.Response(id, 'stream', { chunked: true }, null),
+        );
+        expect(cancellation.listeners.size).toBe(0);
+      }
+    } finally {
+      connection.dispose();
+    }
+  });
+
+  it('超时、发送异常和连接关闭均释放调用方令牌监听', async () => {
+    expect.hasAssertions();
+    jest.useFakeTimers();
+    const socket = new ControllableConnection();
+    const connection = new SumiConnection(socket, { timeout: 10, logger: { error() {}, warn() {} } as any });
+    const cancellation = trackedCancellation();
+    connection.listen();
+    try {
+      const timedOut = connection.sendRequest('timeout', cancellation.token).catch((error) => error);
+      jest.advanceTimersByTime(10);
+      await expect(timedOut).resolves.toBeInstanceOf(Error);
+      expect(cancellation.listeners.size).toBe(0);
+      socket.throwOnSend = true;
+      await expect(connection.sendRequest('sendFailure', cancellation.token)).rejects.toThrow('socket send failed');
+      expect(cancellation.listeners.size).toBe(0);
+      socket.throwOnSend = false;
+      const closed = connection.sendRequest('close', cancellation.token).catch((error) => error);
+      socket.close();
+      await expect(closed).resolves.toMatchObject({ name: 'ConnectionClosedError' });
+      expect(cancellation.listeners.size).toBe(0);
+    } finally {
+      connection.dispose();
+      jest.useRealTimers();
+    }
+  });
+
+  it('注册取消监听时同步断开连接，不会重新保留旧调用的订阅', async () => {
+    expect.hasAssertions();
+    const socket = new ControllableConnection();
+    const connection = new SumiConnection(socket, { logger: { error() {}, warn() {} } as any });
+    const disposed = jest.fn();
+    const token: CancellationToken = {
+      isCancellationRequested: false,
+      onCancellationRequested() {
+        socket.close();
+        return { dispose: disposed };
+      },
+    };
+    connection.listen();
+    await expect(connection.sendRequest('closeOnSubscribe', token)).rejects.toMatchObject({
+      name: 'ConnectionClosedError',
+    });
+    expect(disposed).toHaveBeenCalledTimes(1);
+    connection.dispose();
+    expect(disposed).toHaveBeenCalledTimes(1);
+  });
+});
+
 test('sumi rpc', {
   factory: createSumiRPCClientPair,
   pairFactory: createConnectionPair,

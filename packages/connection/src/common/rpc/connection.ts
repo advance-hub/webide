@@ -65,6 +65,7 @@ export class SumiConnection implements IDisposable {
   private _requestId = 0;
   private _minimumLiveOutboundRequestId = 0;
   private _callbacks = new Map<number, TRequestCallback>();
+  private readonly _outboundCancellationSubscriptions = new Map<number, IDisposable>();
 
   private readonly _reqTimeoutHandles = new Map<number, NodeJS.Timeout | number>();
   private readonly _cancellationTokenSources = new Map<
@@ -165,7 +166,13 @@ export class SumiConnection implements IDisposable {
       }
 
       if (cancellationToken) {
-        cancellationToken.onCancellationRequested(() => this.cancelRequest(requestId));
+        const subscription = cancellationToken.onCancellationRequested(() => this.cancelRequest(requestId));
+        // 注册钩子可能同步关闭连接；此时不能把旧请求的监听重新放回缓存。
+        if (this._callbacks.has(requestId)) {
+          this._outboundCancellationSubscriptions.set(requestId, subscription);
+        } else {
+          subscription.dispose();
+        }
       }
 
       this.capturer.captureSendRequest(requestId, method, args);
@@ -183,6 +190,7 @@ export class SumiConnection implements IDisposable {
         );
       } catch (error) {
         this._callbacks.delete(requestId);
+        this.releaseOutboundCancellation(requestId);
         const timeoutHandle = this._reqTimeoutHandles.get(requestId);
         if (timeoutHandle !== undefined) {
           clearTimeout(timeoutHandle);
@@ -211,6 +219,7 @@ export class SumiConnection implements IDisposable {
     const callback = this._callbacks.get(requestId)!;
     this._callbacks.delete(requestId);
     this._reqTimeoutHandles.delete(requestId);
+    this.releaseOutboundCancellation(requestId);
     callback(nullHeaders, new MethodTimeoutError(method));
   }
 
@@ -359,12 +368,14 @@ export class SumiConnection implements IDisposable {
 
               if (result === null) {
                 // when result is null, it means the stream is ended.
+                this.releaseOutboundCancellation(requestId);
                 activeReq.end();
                 this.activeRequestPool.delete(requestId);
                 break;
               }
 
               if (err) {
+                this.releaseOutboundCancellation(requestId);
                 activeReq.emitError(err);
                 this.activeRequestPool.delete(requestId);
                 break;
@@ -374,6 +385,7 @@ export class SumiConnection implements IDisposable {
               break;
             }
 
+            this.releaseOutboundCancellation(requestId);
             runCallback(headers, err, result);
             break;
           }
@@ -691,6 +703,8 @@ export class SumiConnection implements IDisposable {
     // epoch rather than this cleanup pass.
     const callbacks = Array.from(this._callbacks.entries());
     this._callbacks.clear();
+    const outboundSubscriptions = Array.from(this._outboundCancellationSubscriptions.entries());
+    this._outboundCancellationSubscriptions.clear();
     for (const timeoutHandle of this._reqTimeoutHandles.values()) {
       clearTimeout(timeoutHandle);
     }
@@ -721,6 +735,11 @@ export class SumiConnection implements IDisposable {
       }
     }
     this._knownCanceledRequests.clear();
+
+    // 先摘除旧连接代的监听，再调用用户回调；重连时新排队请求仍归下一代所有。
+    for (const [requestId, subscription] of outboundSubscriptions) {
+      this.disposeOutboundCancellation(requestId, subscription);
+    }
 
     for (const tokenSource of inboundTokenSources) {
       try {
@@ -838,6 +857,22 @@ export class SumiConnection implements IDisposable {
       this.logger.warn(message, error);
     } catch {
       // Logging must not keep an inbound operation active during teardown.
+    }
+  }
+
+  private releaseOutboundCancellation(requestId: number): void {
+    const subscription = this._outboundCancellationSubscriptions.get(requestId);
+    this._outboundCancellationSubscriptions.delete(requestId);
+    if (subscription) {
+      this.disposeOutboundCancellation(requestId, subscription);
+    }
+  }
+
+  private disposeOutboundCancellation(requestId: number, subscription: IDisposable): void {
+    try {
+      subscription.dispose();
+    } catch (error) {
+      this.safeWarn(`Could not release outbound RPC cancellation ${requestId}`, error);
     }
   }
 
