@@ -124,7 +124,7 @@ export class LocalRuntime implements RuntimeDriver {
         phase: readiness.ok ? 'running' : 'unhealthy',
         ideReady: readiness.ok,
         endpoint,
-        headers: { Authorization: `Bearer ${owner.token}` },
+        headers: { Authorization: `Bearer ${owner.token}`, 'X-Opensumi-Runtime-Token': owner.token },
         runtime: identity,
         recovered: !this.children.has(workspace.id),
       };

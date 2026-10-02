@@ -17,12 +17,16 @@ import { Workbench } from '../workbench';
 test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作区隔离和即时撤销贯通', { timeout: 20000 }, async () => {
   const data = await mkdtemp(path.join(os.tmpdir(), 'webide-sharing-'));
   const received: http.IncomingHttpHeaders[] = [];
+  const upgraded: http.IncomingHttpHeaders[] = [];
   const upstream = http.createServer((req, res) => {
     received.push(req.headers);
     res.end('IDE');
   });
   const ws = new WebSocketServer({ server: upstream });
-  ws.on('connection', (socket) => socket.on('message', (value) => socket.send(value)));
+  ws.on('connection', (socket, request) => {
+    upgraded.push(request.headers);
+    socket.on('message', (value) => socket.send(value));
+  });
   upstream.listen(0, '127.0.0.1');
   await once(upstream, 'listening');
   const endpoint = `http://127.0.0.1:${(upstream.address() as { port: number }).port}`;
@@ -36,7 +40,10 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
           phase: 'Running',
           ideReady: true,
           endpoint,
-          headers: { Authorization: 'Bearer internal-runtime-token' },
+          headers: {
+            Authorization: 'Bearer internal-runtime-token',
+            'X-Opensumi-Runtime-Token': 'internal-runtime-token',
+          },
         }),
         helper: async () => ({}),
         close: async () => {},
@@ -102,7 +109,15 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
         http
           .get(
             workbench.config.publicURL + route,
-            { headers: { Host: host, Cookie: cookie, Authorization: 'spoofed', 'X-Opensumi-User': 'spoofed' } },
+            {
+              headers: {
+                Host: host,
+                Cookie: cookie,
+                Authorization: 'spoofed',
+                'X-Opensumi-User': 'spoofed',
+                'X-Opensumi-Runtime-Token': 'spoofed',
+              },
+            },
             (res) => {
               res.resume();
               res.once('end', () =>
@@ -124,12 +139,20 @@ test('五个独立账户通过邀请访问同一 IDE；管理权限、跨工作�
       const identity = JSON.parse(Buffer.from(String(received.at(-1)!['x-opensumi-user']), 'base64url').toString());
       assert.equal(identity.id, hash(actor));
       assert.equal(received.at(-1)!.authorization, 'Bearer internal-runtime-token');
+      assert.equal(received.at(-1)!['x-opensumi-runtime-token'], 'internal-runtime-token');
       assert.equal(received.at(-1)!.cookie, undefined);
       const socket = new WebSocket(`ws://127.0.0.1:${workbench.config.port}/collaboration/y-room-opensumi`, {
-        headers: { Host: host, Cookie: exchanged.cookie, Origin: `http://${host}` },
+        headers: {
+          Host: host,
+          Cookie: exchanged.cookie,
+          Origin: `http://${host}`,
+          'X-Opensumi-Runtime-Token': 'spoofed',
+        },
       });
       sockets.push(socket);
       await once(socket, 'open');
+      assert.equal(upgraded.at(-1)!['x-opensumi-runtime-token'], 'internal-runtime-token');
+      assert.equal(upgraded.at(-1)!.cookie, undefined);
     }
     assert.equal((await ide('/runtime/shutdown', cookies[1])).status, 403);
     assert.equal((await ide('/assets/../runtime/shutdown', cookies[1])).status, 403);

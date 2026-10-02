@@ -9,6 +9,7 @@ import test from 'node:test';
 import Koa from 'koa';
 
 import {
+  authorizeManagedCollaboration,
   createClientStaticMiddleware,
   createRuntimeShutdownCoordinator,
   createWorkspaceIdentityMiddleware,
@@ -18,6 +19,33 @@ import {
 } from '../src/start-server';
 
 import type { ServerRuntimeState, ServerRuntimeStopOptions, ServerRuntimeStopReport } from '@opensumi/ide-core-node';
+
+test('托管协同支持过滤 Bearer 的代理，同时拒绝跨工作区、伪造和多值凭据', () => {
+  const workspace = { id: 'workspace-1', directory: '/workspace/project' };
+  const token = 'a'.repeat(64);
+  const headers = { 'x-workspace-id': workspace.id, 'x-opensumi-runtime-token': token };
+  assert.equal(authorizeManagedCollaboration({ headers }, workspace, token), true);
+  assert.equal(
+    authorizeManagedCollaboration(
+      { headers: { 'x-workspace-id': workspace.id, authorization: `Bearer ${token}` } },
+      workspace,
+      token,
+    ),
+    true,
+  );
+  for (const invalid of [
+    { ...headers, 'x-workspace-id': 'other' },
+    { ...headers, 'x-opensumi-runtime-token': 'b'.repeat(64) },
+    { ...headers, 'x-opensumi-runtime-token': '中文'.repeat(32) },
+    { ...headers, 'x-opensumi-runtime-token': [token, token] },
+    { ...headers, 'x-opensumi-runtime-token': 'spoofed', authorization: `Bearer ${token}` },
+    { 'x-workspace-id': workspace.id },
+  ]) {
+    assert.equal(authorizeManagedCollaboration({ headers: invalid }, workspace, token), false);
+  }
+  assert.equal(authorizeManagedCollaboration({ headers }, workspace, ''), false);
+  assert.equal(authorizeManagedCollaboration({ headers: {} }, undefined, ''), true);
+});
 
 test('HTML and unversioned assets revalidate while content-hashed assets can be cached', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'opensumi-static-cache-'));

@@ -240,7 +240,10 @@ rm -f -- ${q(bundle)}`,
       return {
         ...base,
         ...endpoint,
-        headers: { ...endpoint.headers, ...(auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}) },
+        headers: {
+          ...endpoint.headers,
+          ...(auth?.token ? { Authorization: `Bearer ${auth.token}`, 'X-Opensumi-Runtime-Token': auth.token } : {}),
+        },
         ideReady: response.ok && owned,
         runtime: data.runtime,
       };

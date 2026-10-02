@@ -48,6 +48,27 @@ export interface ServedWorkspaceIdentity {
   directory: string;
 }
 
+/** 托管协同凭据使用专用应用头，兼容会过滤 Authorization 的沙箱代理。 */
+export function authorizeManagedCollaboration(
+  request: Pick<http.IncomingMessage, 'headers'>,
+  workspace: ServedWorkspaceIdentity | undefined,
+  expected: string,
+): boolean {
+  if (!workspace?.id) {
+    return true;
+  }
+  const supplied =
+    request.headers['x-opensumi-runtime-token'] ?? (request.headers.authorization || '').replace(/^Bearer /, '');
+  return (
+    typeof supplied === 'string' &&
+    /^[a-f0-9]{64}$/.test(expected) &&
+    /^[a-f0-9]{64}$/.test(supplied) &&
+    request.headers['x-workspace-id'] === workspace.id &&
+    supplied.length === expected.length &&
+    timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
+  );
+}
+
 /* * 只有 WORKSPACE_DIR 启用目录绑定。控制面会为每个驱动设置它，
  * MY_WORKSPACE 只是开发工具的构建默认值；若将其用于绑定，
  * 独立开发环境的查询参数会被意外覆盖。 */
@@ -638,21 +659,8 @@ export async function startServer({
     },
     collaborationOptions: {
       transport: process.env.COLLABORATION_TRANSPORT === 'shared' ? ('shared' as const) : ('standalone' as const),
-      authorizeConnection: (request: http.IncomingMessage) => {
-        const workspace = resolveServedWorkspace();
-        if (!workspace?.id) {
-          return true;
-        }
-        const expected = process.env.OPENSUMI_RUNTIME_TOKEN || '';
-        const supplied = (request.headers.authorization || '').replace(/^Bearer /, '');
-        return (
-          /^[a-f0-9]{64}$/.test(expected) &&
-          /^[a-f0-9]{64}$/.test(supplied) &&
-          request.headers['x-workspace-id'] === workspace.id &&
-          supplied.length === expected.length &&
-          timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
-        );
-      },
+      authorizeConnection: (request: http.IncomingMessage) =>
+        authorizeManagedCollaboration(request, resolveServedWorkspace(), process.env.OPENSUMI_RUNTIME_TOKEN || ''),
       port: readPositiveInteger('COLLABORATION_PORT', 12_345),
       maxPayload: readPositiveInteger('COLLABORATION_MAX_PAYLOAD', 2 * 1024 * 1024),
       maxConnections: readPositiveInteger('COLLABORATION_MAX_CONNECTIONS', 64),
