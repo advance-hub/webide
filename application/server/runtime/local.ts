@@ -124,6 +124,7 @@ export class LocalRuntime implements RuntimeDriver {
         phase: readiness.ok ? 'running' : 'unhealthy',
         ideReady: readiness.ok,
         endpoint,
+        headers: { Authorization: `Bearer ${owner.token}` },
         runtime: identity,
         recovered: !this.children.has(workspace.id),
       };
@@ -208,7 +209,8 @@ export class LocalRuntime implements RuntimeDriver {
         OPENSUMI_RUNTIME_TOKEN: token,
         OPENSUMI_RUNTIME_FINGERPRINT: fingerprint,
         OPENSUMI_NODE_WATCHER_MODE: this.config.nodeWatcherMode,
-        ENABLE_COLLABORATION: '0',
+        ENABLE_COLLABORATION: '1',
+        COLLABORATION_TRANSPORT: 'shared',
         ENABLE_AI: '1',
         OPENSUMI_EXTENSION_DIR: path.join(this.home(workspace), '.sumi/extensions'),
         OPENSUMI_BUILTIN_EXTENSION_DIR: path.join(this.config.root, 'tools/extensions'),
@@ -217,7 +219,8 @@ export class LocalRuntime implements RuntimeDriver {
               OPENSUMI_BUILTIN_EXTENSION_MANIFEST: path.join(this.config.root, 'builtin-extensions.manifest.json'),
             }
           : {}),
-        MAX_EXTENSION_HOSTS: '3',
+        MAX_EXTENSION_HOSTS: '5',
+        MAX_MANAGED_EXTENSION_PROCESSES: '5',
         EXTENSION_HOST_STARTUP_TIMEOUT: '60000',
       },
     });

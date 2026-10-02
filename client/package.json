@@ -11,6 +11,7 @@
     "dev:collaboration": "cross-env NODE_OPTIONS=--max-old-space-size=512 ENABLE_COLLABORATION=1 HOST=127.0.0.1 WS_PATH=ws://127.0.0.1:8000 NODE_ENV=development rspack dev --config rspack.config.ts"
   },
   "dependencies": {
+    "@opensumi/di": "^1.8.0",
     "@opensumi/ide-ai-native": "workspace:*",
     "@opensumi/ide-collaboration": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",

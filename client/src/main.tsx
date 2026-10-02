@@ -14,7 +14,11 @@ import type { LoadedProductOption } from '@opensumi/ide-startup';
 // 后续移动渲染器时，无须调整服务端。
 
 async function main() {
-  const cloudWorkspace = (window as unknown as { __OPENSUMI_WORKSPACE__?: { id?: string } }).__OPENSUMI_WORKSPACE__;
+  const cloudWorkspace = (
+    window as unknown as {
+      __OPENSUMI_WORKSPACE__?: { id?: string; collaboration?: boolean; user?: { id: string; nickname: string } };
+    }
+  ).__OPENSUMI_WORKSPACE__;
   const productModules: ConstructorOf<BrowserModule>[] = [BaseSampleModule];
   if (cloudWorkspace?.id) {
     productModules.push(CloudDevModule);
@@ -89,9 +93,17 @@ async function main() {
     productOpts.notebookServerHost = process.env.NOTEBOOK_SERVER_HOST || 'localhost:8888';
   }
 
-  if (process.env.ENABLE_COLLABORATION === '1') {
+  if (cloudWorkspace?.collaboration || process.env.ENABLE_COLLABORATION === '1') {
     const { CollaborationBrowserBindings } = await import('@opensumi/ide-startup/browser/collaboration');
     loadedProductOptions.push({ id: 'collaboration', bindings: CollaborationBrowserBindings });
+    if (cloudWorkspace?.user) {
+      const { CollaborationIdentityModule } = await import('./collaboration-identity');
+      productModules.push(CollaborationIdentityModule);
+    }
+    if (cloudWorkspace?.id) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      productOpts.collaborationWsPath = `${protocol}//${window.location.host}/collaboration`;
+    }
   }
 
   const runtimePlan = compileOpenSumiProductRuntimePlan({

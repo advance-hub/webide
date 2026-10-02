@@ -54,12 +54,13 @@ export OPENSUMI_EXTENSION_DIR=${root}/.sumi/extensions
 export OPENSUMI_BUILTIN_EXTENSION_DIR=/app/tools/extensions
 export OPENSUMI_BUILTIN_EXTENSION_MANIFEST=/app/builtin-extensions.manifest.json
 test -s "$OPENSUMI_BUILTIN_EXTENSION_MANIFEST"
-export MAX_EXTENSION_HOSTS=3
-export MAX_MANAGED_EXTENSION_PROCESSES=3
+export MAX_EXTENSION_HOSTS=5
+export MAX_MANAGED_EXTENSION_PROCESSES=5
 # 本机模拟镜像中，扩展宿主冷启动可能超过 15 秒。
 # 保留有上限的启动时限，避免连续重连和重启。
 export EXTENSION_HOST_STARTUP_TIMEOUT="${EXTENSION_HOST_STARTUP_TIMEOUT:-60000}"
-export ENABLE_COLLABORATION=0
+export ENABLE_COLLABORATION=1
+export COLLABORATION_TRANSPORT=shared
 export ENABLE_AI=1
 export PORT="$port"
 # 文件锁防止重复启动；关闭后仍驻留的进程不能作为健康 IDE 使用，

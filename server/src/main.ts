@@ -17,6 +17,7 @@ import {
 import { summarizeRuntimePlan } from './runtime-plan-summary';
 import { startServer } from './start-server';
 
+import type { IServerAppOpts } from '@opensumi/ide-core-node';
 import type { LoadedProductOption } from '@opensumi/ide-startup';
 
 const injectorProviders: Provider[] = [];
@@ -46,6 +47,7 @@ const injector = new Injector(injectorProviders);
 async function main() {
   const modules = [...CommonNodeModules, ExpressFileServerModule, OpenerModule];
   const loadedProductOptions: LoadedProductOption<(typeof CommonNodeModules)[number]>[] = [];
+  const webSocketHandler: NonNullable<IServerAppOpts['webSocketHandler']> = [];
   if (process.env.ENABLE_AI === '1') {
     const { AINodeBindings } = await import('@opensumi/ide-startup/node/ai');
     loadedProductOptions.push({ id: 'ai', bindings: AINodeBindings });
@@ -53,6 +55,19 @@ async function main() {
   if (process.env.ENABLE_COLLABORATION === '1') {
     const { CollaborationNodeBindings } = await import('@opensumi/ide-startup/node/collaboration');
     loadedProductOptions.push({ id: 'collaboration', bindings: CollaborationNodeBindings });
+    if (process.env.COLLABORATION_TRANSPORT === 'shared') {
+      const { IYWebsocketServer } = await import('@opensumi/ide-collaboration');
+      const resolve = () =>
+        injector.get(IYWebsocketServer) as {
+          handleUpgrade: NonNullable<IServerAppOpts['webSocketHandler']>[number]['handleUpgrade'];
+          beginDrain(): void;
+        };
+      webSocketHandler.push({
+        handlerId: 'collaboration',
+        handleUpgrade: (pathname, request, socket, head) => resolve().handleUpgrade(pathname, request, socket, head),
+        beginDrain: () => resolve().beginDrain(),
+      });
+    }
   }
 
   const runtimePlan = compileOpenSumiProductRuntimePlan({
@@ -74,6 +89,7 @@ async function main() {
       includeFeatures: process.env.SERVER_RUNTIME_PLAN_DETAILS === '1',
     }),
     runtimeTopologyHandshake,
+    webSocketHandler,
   });
 }
 

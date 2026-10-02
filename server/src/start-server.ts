@@ -29,6 +29,7 @@ import { resolveProductRuntimeMode } from './runtime-mode';
 import { RuntimePlanHealthSummary } from './runtime-plan-summary';
 import { createWorkspaceAIConfigMiddleware } from './workspace-ai-config';
 
+import type { IServerAppOpts } from '@opensumi/ide-core-node';
 import type { RuntimeTopologyServerHandshake } from '@opensumi/ide-startup';
 
 export function createClientStaticMiddleware(directory: string) {
@@ -62,32 +63,43 @@ export function resolveServedWorkspace(env: NodeJS.ProcessEnv = process.env): Se
  * 将目录写入服务端页面，避免客户端从可伪造的查询参数读取目录。
  * 未配置服务端工作区的独立 OpenSumi 仍然使用查询参数。 */
 export function createWorkspaceIdentityMiddleware(directory: string, workspace: ServedWorkspaceIdentity) {
-  const payload = JSON.stringify({ id: workspace.id, workspaceDir: workspace.directory })
-    // 防止字面量提前结束内联脚本元素。
-    .replace(/</g, '\\u003c');
-  const inlineDeclaration = `<script>window.__OPENSUMI_WORKSPACE__=${payload};</script>`;
   let document: string | undefined;
-
   return async (context: Koa.Context, next: Koa.Next) => {
-    const wantsDocument =
-      (context.method === 'GET' || context.method === 'HEAD') &&
-      (context.path === '/' || context.path === '/index.html');
-    if (!wantsDocument) {
+    if (!['GET', 'HEAD'].includes(context.method) || !['/', '/index.html'].includes(context.path)) {
       return next();
     }
-    if (document === undefined) {
-      const source = await readFile(path.join(directory, 'index.html'), 'utf8');
-      document = source.includes('</head>')
-        ? source.replace('</head>', `${inlineDeclaration}</head>`)
-        : inlineDeclaration + source;
+    document ??= await readFile(path.join(directory, 'index.html'), 'utf8');
+    let user: { id: string; nickname: string } | undefined;
+    try {
+      const candidate = JSON.parse(Buffer.from(context.get('X-Opensumi-User'), 'base64url').toString());
+      if (
+        /^[a-f0-9]{64}$/.test(candidate.id) &&
+        typeof candidate.nickname === 'string' &&
+        candidate.nickname.length <= 256
+      ) {
+        user = candidate;
+      }
+    } catch {
+      /* 独立开发入口没有控制面账户信息。 */
     }
-    context.set('Cache-Control', 'no-cache');
+    // 只缓存 HTML 模板，账户声明必须逐请求生成，防止串号与脚本注入。
+    const payload = JSON.stringify({
+      id: workspace.id,
+      workspaceDir: workspace.directory,
+      collaboration: process.env.ENABLE_COLLABORATION === '1',
+      user,
+    }).replace(/</g, '\\u003c');
+    const declaration = `<script>window.__OPENSUMI_WORKSPACE__=${payload};</script>`;
+    context.set('Cache-Control', 'no-store');
     context.type = 'html';
-    context.body = document;
+    context.body = document.includes('</head>')
+      ? document.replace('</head>', () => `${declaration}</head>`)
+      : declaration + document;
   };
 }
 
 export interface StartServerOptions {
+  webSocketHandler?: IServerAppOpts['webSocketHandler'];
   modules: ModuleConstructor[];
   injector: Injector;
   mountStaticPath?: string;
@@ -415,6 +427,7 @@ export async function startServer({
   runtimePlanSummary,
   runtimeTopologyHandshake,
   exitAfterShutdown,
+  webSocketHandler,
 }: StartServerOptions): Promise<http.Server> {
   const app = new Koa();
   const router = new KoaRouter();
@@ -476,6 +489,7 @@ export async function startServer({
     const supplied = context.get('Authorization').replace(/^Bearer /, '');
     return (
       /^[a-f0-9]{64}$/.test(expected) &&
+      /^[a-f0-9]{64}$/.test(supplied) &&
       supplied.length === expected.length &&
       timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
     );
@@ -594,7 +608,7 @@ export async function startServer({
     modules,
     processSignalHandling: 'external' as const,
     use: app.use.bind(app),
-    webSocketHandler: [],
+    webSocketHandler: webSocketHandler || [],
     marketplace: {
       showBuiltinExtensions: true,
       ...(marketplaceExtensionDirectory ? { extensionDir: marketplaceExtensionDirectory } : {}),
@@ -623,6 +637,22 @@ export async function startServer({
       perMessageDeflate: false,
     },
     collaborationOptions: {
+      transport: process.env.COLLABORATION_TRANSPORT === 'shared' ? ('shared' as const) : ('standalone' as const),
+      authorizeConnection: (request: http.IncomingMessage) => {
+        const workspace = resolveServedWorkspace();
+        if (!workspace?.id) {
+          return true;
+        }
+        const expected = process.env.OPENSUMI_RUNTIME_TOKEN || '';
+        const supplied = (request.headers.authorization || '').replace(/^Bearer /, '');
+        return (
+          /^[a-f0-9]{64}$/.test(expected) &&
+          /^[a-f0-9]{64}$/.test(supplied) &&
+          request.headers['x-workspace-id'] === workspace.id &&
+          supplied.length === expected.length &&
+          timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
+        );
+      },
       port: readPositiveInteger('COLLABORATION_PORT', 12_345),
       maxPayload: readPositiveInteger('COLLABORATION_MAX_PAYLOAD', 2 * 1024 * 1024),
       maxConnections: readPositiveInteger('COLLABORATION_MAX_CONNECTIONS', 64),

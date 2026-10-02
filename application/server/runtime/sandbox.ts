@@ -179,9 +179,11 @@ rm -f -- ${q(bundle)}`,
     if (!workspace.idePort) {
       throw new HTTPError(409, '工作区 IDE 端口未分配');
     }
+    const token = newID() + newID();
+    this.store.secret(`runtime:${workspace.id}`, { token });
     await this.service.run(
       this.environment(workspace),
-      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node OPENSUMI_NODE_WATCHER_MODE=${q(this.config.nodeWatcherMode)} OPENSUMI_RUNTIME_TOKEN=${q(newID() + newID())} OPENSUMI_RUNTIME_FINGERPRINT="$(cat /app/.runtime-fingerprint)" PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
+      `WORKSPACE_ROOT=${q(this.root(workspace))} WORKSPACE_ID=${q(workspace.id)} OPENSUMI_RUNTIME_MODE=node OPENSUMI_NODE_WATCHER_MODE=${q(this.config.nodeWatcherMode)} OPENSUMI_RUNTIME_TOKEN=${q(token)} OPENSUMI_RUNTIME_FINGERPRINT="$(cat /app/.runtime-fingerprint)" PORT=${workspace.idePort} /opt/opensumi/bin/start-workspace`,
       180,
     );
     const state = await this.inspect(workspace);
@@ -234,7 +236,14 @@ rm -f -- ${q(bundle)}`,
       const owned =
         data.runtime?.workspace?.id === workspace.id &&
         data.runtime.workspace.directory === this.projectDirectory(workspace);
-      return { ...base, ...endpoint, ideReady: response.ok && owned, runtime: data.runtime };
+      const auth = this.store.secret(`runtime:${workspace.id}`) as { token?: string } | undefined;
+      return {
+        ...base,
+        ...endpoint,
+        headers: { ...endpoint.headers, ...(auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}) },
+        ideReady: response.ok && owned,
+        runtime: data.runtime,
+      };
     } catch {
       return base;
     }

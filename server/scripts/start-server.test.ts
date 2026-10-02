@@ -69,10 +69,22 @@ test('one-workspace server declares its directory in HTML independently of URL i
     const base = `http://127.0.0.1:${address.port}`;
     const html = await fetch(base + '/index.html?workspaceDir=/tmp/other');
     const source = await html.text();
-    assert.equal(html.headers.get('cache-control'), 'no-cache');
+    assert.equal(html.headers.get('cache-control'), 'no-store');
     assert.match(source, /"workspaceDir":"\/workspace\/project"/);
     assert.ok(!source.includes('/tmp/other'));
     assert.equal(await (await fetch(base + '/asset.js')).text(), 'asset');
+    for (const [id, nickname] of [
+      ['a'.repeat(64), '</script><script>spoofed</script>'],
+      ['b'.repeat(64), '第二位成员'],
+    ]) {
+      const response = await fetch(base, {
+        headers: { 'X-Opensumi-User': Buffer.from(JSON.stringify({ id, nickname })).toString('base64url') },
+      });
+      const body = await response.text();
+      assert.ok(body.includes(id));
+      assert.ok(!body.includes('</script><script>spoofed'));
+      assert.ok(!body.includes(id === 'b'.repeat(64) ? 'a'.repeat(64) : 'b'.repeat(64)));
+    }
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(directory, { recursive: true, force: true });
