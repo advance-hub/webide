@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-03",
+  "timezone": "Asia/Shanghai",
+  "startedAt": "2026-10-02T17:46:43.621Z",
+  "finishedAt": "2026-10-02T18:06:01.254Z",
+  "pass": false,
+  "status": "incomplete",
+  "reason": "独立工作区第二轮 Dave 等待页面标题就绪超过 60 秒，未完成计划的两场景三轮验收。失败截图已经显示 IDE 界面，根因未定位；不将探针超时直接等同于产品无法启动。",
+  "node": "v24.16.0",
+  "hostPlatform": "darwin/arm64",
+  "runtimePlatform": "linux/arm64",
+  "watcherMode": "per-client",
+  "fixture": {
+    "files": 100,
+    "language": "TypeScript",
+    "builtinExtensions": 70,
+    "authenticatedAccounts": 5,
+    "aiRequests": false,
+    "sandboxLimit": {
+      "cpu": 4,
+      "memory": "4Gi"
+    }
+  },
+  "image": {
+    "name": "opensumi-webide-workspace:collaboration-worker-byte-20261003",
+    "id": "sha256:4354488884f739d020ba844e7fc0cee8fb6b0fbd76300065ed9c355f0d704d37",
+    "sourceFilesCompared": 61,
+    "mismatches": 0
+  },
+  "scope": "实际 IDE Server 与其扩展宿主、语言服务、watcher、终端进程的 RSS 合计；不含浏览器、控制面验收入口与 OpenSandbox 守护进程。",
+  "memory": {
+    "shared-workspace": {
+      "status": "diagnostic-only",
+      "completedRounds": 3,
+      "plannedRounds": 3,
+      "samples": 90,
+      "roundP95RssMiB": [4364.06640625, 4398.2265625, 4310.21875],
+      "diagnosticMedianP95RssMiB": 4364.06640625,
+      "extensionHostsPerSample": 5,
+      "idleOpenCodePerSample": 0
+    },
+    "independent-workspaces": {
+      "status": "diagnostic-only",
+      "completedRounds": 1,
+      "plannedRounds": 3,
+      "samples": 30,
+      "roundP95RssMiB": [5201.4609375],
+      "diagnosticMedianP95RssMiB": null,
+      "extensionHostsPerSample": 5,
+      "idleOpenCodePerSample": 0
+    }
+  },
+  "hostOneMinuteLoad": {
+    "minimum": 100.46630859375,
+    "maximum": 271.03564453125
+  },
+  "sampleIntervalsSeconds": {
+    "minimum": 2.127,
+    "maximum": 7.305
+  },
+  "functionalSteps": [
+    {
+      "name": "同一隔离环境先完成控制面六阶段回归",
+      "ms": 78314
+    },
+    {
+      "name": "邀请四名成员与所有者管理权限",
+      "ms": 6138
+    },
+    {
+      "name": "同一工作区第1轮五人并发编辑与真实磁盘保存",
+      "ms": 9724
+    },
+    {
+      "name": "同一工作区第1轮撤销重做与离线重连",
+      "ms": 16505
+    },
+    {
+      "name": "同一工作区第1轮内存采样",
+      "ms": 131709
+    },
+    {
+      "name": "同一工作区第2轮五人并发编辑与真实磁盘保存",
+      "ms": 6421
+    },
+    {
+      "name": "同一工作区第2轮撤销重做与离线重连",
+      "ms": 10935
+    },
+    {
+      "name": "同一工作区第2轮内存采样",
+      "ms": 133658
+    },
+    {
+      "name": "同一工作区第3轮五人并发编辑与真实磁盘保存",
+      "ms": 8340
+    },
+    {
+      "name": "同一工作区第3轮撤销重做与离线重连",
+      "ms": 8110
+    },
+    {
+      "name": "同一工作区第3轮内存采样",
+      "ms": 96406
+    },
+    {
+      "name": "同一 Server 五个活跃浏览器与终端下停止并回收全部进程",
+      "ms": 6660
+    },
+    {
+      "name": "活跃连接移除成员并维持其他四人编辑",
+      "ms": 45309
+    },
+    {
+      "name": "五台开发机的真实操作系统与账户隔离",
+      "ms": 5086
+    },
+    {
+      "name": "独立工作区第1轮五人编辑与内容隔离",
+      "ms": 10724
+    },
+    {
+      "name": "独立工作区第1轮内存采样",
+      "ms": 108668
+    }
+  ],
+  "controlPlane": {
+    "pass": true,
+    "steps": [
+      {
+        "name": "real-sdk-provision-and-start-two-accounts",
+        "elapsedMs": 20979
+      },
+      {
+        "name": "node24-os-and-api-account-isolation",
+        "elapsedMs": 4242
+      },
+      {
+        "name": "actual-ide-http-and-websocket-proxy",
+        "elapsedMs": 471
+      },
+      {
+        "name": "real-encrypted-backup-and-dirty-file-restore",
+        "elapsedMs": 29731
+      },
+      {
+        "name": "actual-container-runtime-upgrade-retains-pvc",
+        "elapsedMs": 10276
+      },
+      {
+        "name": "actual-container-and-docker-pvc-release",
+        "elapsedMs": 10036
+      }
+    ]
+  },
+  "browser": {
+    "unexpectedPageErrors": 0,
+    "totalPageErrors": 0,
+    "startupProbeTimeouts": 1
+  },
+  "localMonacoWorker": {
+    "legacyCdnBlocked": true,
+    "confirmedPages": 28,
+    "requiredPagesForFullRun": 35,
+    "byteComparison": true
+  },
+  "cleanup": {
+    "workloadReportedErrors": [],
+    "activeSharedServerSampledProcessesExited": true,
+    "independentActiveServerStopAcceptanceCompleted": false,
+    "ownedAcceptanceProcessesPresentAtHandoff": false,
+    "outerDockerContextPresentAtHandoff": false,
+    "hostDockerResourceRecheck": "unavailable-daemon-stopped",
+    "note": "工作区停止和释放无报告错误；外层 shell 清理忽略命令失败，收尾 Docker 未运行，不能再次证明容器、卷和网络均已删除。未启动或修改 Docker。"
+  },
+  "harness": {
+    "before": {
+      "collaboration.ts": "c1fa777fc78d4a70b71d84f857f6d215c1704f2bdab63432dea9a70bf2df003b",
+      "browser-editor.ts": "4179d43f86cf42d87147603b78cc31600ed859c5ad34969ceb1b0f3eeb9d49d6",
+      "browser-transport.ts": "ee030bbe75c2a1c644501833b396a36d5f8a237488db466ab41bbb18094c5c21"
+    },
+    "after": {
+      "collaboration.ts": "c1fa777fc78d4a70b71d84f857f6d215c1704f2bdab63432dea9a70bf2df003b",
+      "browser-editor.ts": "4179d43f86cf42d87147603b78cc31600ed859c5ad34969ceb1b0f3eeb9d49d6",
+      "browser-transport.ts": "ee030bbe75c2a1c644501833b396a36d5f8a237488db466ab41bbb18094c5c21"
+    },
+    "changed": false,
+    "matchesHeadAndDiskAtHandoff": true
+  },
+  "sourceRewriteInvestigation": {
+    "rootCauseIdentified": false,
+    "observedEvents": 17,
+    "lastObservedChangeWasAuthorized": true,
+    "isolatedPartialStageHookReproduction": {
+      "exitCode": 0,
+      "patchPreserved": true,
+      "productionSha256Unchanged": true
+    },
+    "evidence": "source-investigation.md"
+  },
+  "verification": {
+    "productStructure": {
+      "sourceFiles": 123,
+      "issues": 0
+    },
+    "clientTypes": {
+      "finalPass": true,
+      "retainedInitialErrors": 9,
+      "note": "保留完整检查范围，修复轻量示例接口后通过。"
+    },
+    "build": {
+      "hostAndArm64ImagePass": true,
+      "artifactHashesPass": true,
+      "localWorkerBytesMatch": true
+    },
+    "nodeFullLatest": {
+      "pass": false,
+      "passedSuites": 139,
+      "failedSuites": 1,
+      "skippedSuites": 4,
+      "passed": 1495,
+      "failed": 1,
+      "skipped": 29,
+      "snapshots": 6,
+      "reason": "源码模式扩展宿主未在 15 秒内完成子进程与 IPC 就绪；单独及诊断复测仍失败，未提高期限。"
+    },
+    "earlierJsdomFull": {
+      "passedSuites": 350,
+      "skippedSuites": 2,
+      "passed": 3277,
+      "skipped": 28,
+      "snapshots": 7,
+      "note": "该全量运行早于最后的 Worker 构建修复；不冒充最终全量回归。"
+    },
+    "workbenchFull": {
+      "passed": 40
+    },
+    "collaborationTargeted": {
+      "suites": 5,
+      "passed": 41
+    },
+    "browserTransportObservation": {
+      "pass": true,
+      "coversActivePageClose": true
+    },
+    "lint": {
+      "editedCodePass": true,
+      "warningsRetained": true
+    }
+  },
+  "retainedFailures": {
+    "attemptDirectories": [
+      "attempt-1",
+      "attempt-2",
+      "attempt-3",
+      "attempt-4",
+      "attempt-5",
+      "attempt-6",
+      "attempt-7",
+      "attempt-8",
+      "attempt-9",
+      "attempt-10",
+      "attempt-11",
+      "attempt-12",
+      "attempt-13",
+      "attempt-14",
+      "attempt-15",
+      "attempt-16",
+      "attempt-17",
+      "attempt-18",
+      "attempt-19",
+      "attempt-20",
+      "attempt-21",
+      "attempt-22",
+      "attempt-23"
+    ],
+    "latest": "attempt-23/result.json",
+    "previousWorkerByteMismatch": "image-local-worker-check.log",
+    "sourceProbeRewriteRootCauseUnresolved": true
+  },
+  "limitations": [
+    "两场景计划 180 份样本，实际只有 120 份；不发布稳定容量或共享与独立模式的内存改善承诺。",
+    "100 个小型 TypeScript 文件、70 个内置扩展、没有 AI 请求；不代表大型仓库、Java、构建或五人同时使用 AI。",
+    "4 CPU / 4 GiB 是每个容器上限，默认 2 GiB 尚无五人容量保证。",
+    "固定先共享三轮再独立三轮，主机负载较高；本数据不用于延迟或吞吐比较。",
+    "RSS 会重复计入共享页，不等于 PSS 或 cgroup 内存；不含 Chromium、控制面、OpenSandbox 守护进程。",
+    "Windows、其他 Linux 发行版、真实 Kubernetes、外部 OAuth/MR/PR 和云资源专项仍未完整验收。",
+    "共享 watcher 崩溃自动重订阅及快速创建修改语义专项仍未完成；本轮为默认每连接 Node watcher。"
+  ],
+  "evidence": {
+    "directory": "output/runtime-profiles/collaboration-20261002/",
+    "index": "proof-index.json",
+    "files": 631,
+    "indexSha256": "cc4e6d213cfc6a4fa0081988be9c70c3f678a6094e11448c56fa3baa969b6756"
+  }
+}
