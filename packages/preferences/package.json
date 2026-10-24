@@ -32,7 +32,7 @@
     "classnames": "2.5.1",
     "lodash": "^4.17.21",
     "jsonc-parser": "^2.1.0",
-    "react-virtuoso": "^3.1.5"
+    "react-virtuoso": "^4.18.19"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*"
