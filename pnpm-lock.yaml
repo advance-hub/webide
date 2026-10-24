@@ -2435,8 +2435,8 @@ importers:
         specifier: ^5.6.1
         version: 5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@difizen/libro-code-editor':
-        specifier: 0.2.45
-        version: 0.2.45(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
+        specifier: 0.3.58
+        version: 0.3.58(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
       '@difizen/libro-common':
         specifier: 0.2.45
         version: 0.2.45(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
@@ -4892,6 +4892,11 @@ packages:
     peerDependencies:
       react: '>=16'
 
+  '@difizen/libro-code-editor@0.3.58':
+    resolution: {integrity: sha512-c8Pr3sEpx/YQ7FUu0FFSNPNvvKNiDGr4UJmh+KJgfo1n0WUKhJ4xSQVcRPsX5hl3AdcII1o7msR5UUm6qDlL4A==}
+    peerDependencies:
+      react: '>=16'
+
   '@difizen/libro-codemirror@0.2.45':
     resolution: {integrity: sha512-FNnX+a6Rz/F+zXR27R5FPvm9xgCekvh9PjvDniKBp6ecd7s7wR/q7YdbFy2Yx5BMUrw8rEy05K7Uc9aRu8cFYw==}
 
@@ -4911,6 +4916,11 @@ packages:
 
   '@difizen/libro-common@0.2.45':
     resolution: {integrity: sha512-Pzkfroxcg1SbpQwsYzgb80JXuJS4HBZtNIAL7CoUlDjiFzPUHkUviI5+Si1wgCLsq7A5+9rTlP0wFqkj2O+JaA==}
+    peerDependencies:
+      react: '>=16'
+
+  '@difizen/libro-common@0.3.58':
+    resolution: {integrity: sha512-CFAf7tcF3x5lEe8Pzgz+/0Vy3IlM+Mc6GDOX56i5n1qgUFgrksmJK7W/mffarSHPZX9Yh9VQO/J/8CdOf//PlQ==}
     peerDependencies:
       react: '>=16'
 
@@ -16140,6 +16150,17 @@ snapshots:
       - react-dom
       - supports-color
 
+  '@difizen/libro-code-editor@0.3.58(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)':
+    dependencies:
+      '@difizen/libro-common': 0.3.58(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
+      '@difizen/mana-app': 0.1.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
+      '@difizen/mana-l10n': 0.1.27(react@18.3.1)
+      react: 18.3.1
+      uuid: 11.1.1
+    transitivePeerDependencies:
+      - react-dom
+      - supports-color
+
   '@difizen/libro-codemirror@0.2.45(@types/node@24.13.3)(@types/react@18.3.28)(antd@5.29.3(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
@@ -16227,6 +16248,17 @@ snapshots:
       - supports-color
 
   '@difizen/libro-common@0.2.45(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)':
+    dependencies:
+      '@difizen/mana-app': 0.1.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
+      path-browserify: 1.0.1
+      react: 18.3.1
+      sanitize-html: 2.17.6
+      url-parse: 1.5.10
+    transitivePeerDependencies:
+      - react-dom
+      - supports-color
+
+  '@difizen/libro-common@0.3.58(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)':
     dependencies:
       '@difizen/mana-app': 0.1.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
       path-browserify: 1.0.1
@@ -16470,7 +16502,7 @@ snapshots:
 
   '@difizen/libro-search@0.2.45(@types/node@24.13.3)(@types/react@18.3.28)(antd@5.29.3(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)':
     dependencies:
-      '@ant-design/icons': 5.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@ant-design/icons': 5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@difizen/libro-code-editor': 0.2.45(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
       '@difizen/libro-common': 0.2.45(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
       '@difizen/libro-core': 0.2.45(@types/node@24.13.3)(@types/react@18.3.28)(antd@5.29.3(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@8.1.1)
