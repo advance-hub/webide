@@ -89,7 +89,7 @@
     "@vscode/spdlog": "^0.15.8",
     "node-gyp": "^12.4.0",
     "node-pty": "1.1.0",
-    "vscode-oniguruma": "1.6.1"
+    "vscode-oniguruma": "2.0.1"
   },
   "devDependencies": {
     "@opensumi/ide-dev-tool": "workspace:*",
