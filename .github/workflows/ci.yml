@@ -41,7 +41,7 @@ jobs:
           ARCHITECTURE_BASELINE_REF=HEAD^
           pnpm check:architecture --baseline-ref="$ARCHITECTURE_BASELINE_REF"
       - run: pnpm test --selectProjects ${{ matrix.project }} --runInBand
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: regression-${{ matrix.project }}

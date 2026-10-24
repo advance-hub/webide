@@ -30,7 +30,7 @@ jobs:
           docker build -f application/runtime/Dockerfile --build-arg "OPENSUMI_BASE=webide-node:$IMAGE_TAG" -t "webide-workspace:$IMAGE_TAG" .
           docker run --rm --entrypoint node "webide-workspace:$IMAGE_TAG" -e "if(!process.version.startsWith('v24.'))process.exit(1)"
           docker save "webide-node:$IMAGE_TAG" "webide-workspace:$IMAGE_TAG" | gzip > webide-images.tar.gz
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: webide-images-${{ inputs.tag }}
           path: webide-images.tar.gz
