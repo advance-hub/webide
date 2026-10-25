@@ -281,18 +281,7 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
     );
     localMonacoWorkers.push({ account: actor, phase, path: new URL(workerURL).pathname });
     const editorReadyMs = Date.now() - startupStart;
-    process.stdout.write(`${actor}: 开始补全、类型诊断与导航检查\n`);
-    const language = await verifyLanguageFeatures(page);
-    process.stdout.write(`${actor}: 补全与类型诊断通过\n`);
-    const navigation = await verifySearchAndQuickOpen(page);
-    performanceMeasurements.push({ account: actor, phase, editorReadyMs, ...language, ...navigation });
-    process.stdout.write(`${actor}: 实际编辑器已打开\n`);
-    pages.push(page);
-  }
-  for (let index = 0; index < pages.length; index++) {
-    const page = pages[index];
-    const actor = accounts[index];
-    const workspace = workspaces[index];
+    // 先完成远端终端连接和真实回执，再开始依赖编辑器焦点的语义与导航测量。
     const terminalMarker = `TERMINAL_${actor}`;
     await workbench.sandbox!.run(workspace.envId!, `rm -f '/tmp/webide-terminal-${terminalMarker}'`);
     const receipt = await openTerminal(page, terminalMarker);
@@ -311,6 +300,13 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
     }
     await workbench.sandbox!.run(workspace.envId!, `rm '${receipt}'`);
     process.stdout.write(`${actor}: 实际终端已执行\n`);
+    process.stdout.write(`${actor}: 开始补全、类型诊断与导航检查\n`);
+    const language = await verifyLanguageFeatures(page);
+    process.stdout.write(`${actor}: 补全与类型诊断通过\n`);
+    const navigation = await verifySearchAndQuickOpen(page);
+    performanceMeasurements.push({ account: actor, phase, editorReadyMs, ...language, ...navigation });
+    process.stdout.write(`${actor}: 实际编辑器已打开\n`);
+    pages.push(page);
   }
   return pages;
 }
