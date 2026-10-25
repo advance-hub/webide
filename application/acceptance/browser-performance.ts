@@ -35,16 +35,34 @@ async function replaceDocument(page: Page, text: string): Promise<void> {
 }
 
 async function quickOpenFile(page: Page, filename: string): Promise<number> {
-  await page.keyboard.press('Escape');
-  await page.keyboard.press(`${modifier}+p`);
   const input = page.locator('#opensumi-quickpick-input');
-  await input.waitFor({ state: 'visible' });
-  await input.fill('');
   const started = Date.now();
-  await input.fill(filename);
+  const deadline = started + 60000;
   // 已打开标签也可能拥有同名标签文本；只等待并选择本次 Quick Open 列表中的真实结果。
   const result = page.locator('quick-open-container').getByLabel(filename, { exact: true }).first();
-  await result.waitFor({ state: 'visible' });
+  let closed = 0;
+  for (;;) {
+    const remaining = () => Math.max(1, deadline - Date.now());
+    assert(Date.now() < deadline, `Quick Open ${filename} 在总期限内未返回实际文件，弹层关闭 ${closed} 次`);
+    await page.keyboard.press('Escape');
+    await focusEditor(page);
+    await page.keyboard.press(`${modifier}+p`);
+    await input.waitFor({ state: 'visible', timeout: remaining() });
+    await input.fill('', { timeout: remaining() });
+    await input.fill(filename, { timeout: remaining() });
+    // 初始化期间的异步焦点切换可能关闭弹层；仅重开已关闭的弹层，不重试缺失结果或延长期限。
+    const outcome = await Promise.race([
+      result.waitFor({ state: 'visible', timeout: remaining() }).then(() => 'result'),
+      input.waitFor({ state: 'hidden', timeout: remaining() }).then(() => 'closed'),
+    ]);
+    if (outcome === 'result') {
+      break;
+    }
+    closed++;
+    process.stdout.write(
+      `Quick Open ${filename}: 弹层提前关闭，第 ${closed} 次重新打开，耗时 ${Date.now() - started} ms\n`,
+    );
+  }
   const elapsed = Date.now() - started;
   await result.click();
   await input.waitFor({ state: 'hidden' });
@@ -64,6 +82,8 @@ export async function verifyLanguageFeatures(page: Page): Promise<{ completionMs
   const suggestion = page
     .locator('.suggest-widget.visible .monaco-list-row')
     .filter({ hasText: 'probeNumber' })
+    // 单词补全只有文本图标；要求函数类型，确认实际语言服务提供了语义补全。
+    .filter({ has: page.locator('.codicon-symbol-function, .codicon-symbol-method') })
     .first();
   await suggestion.waitFor({ state: 'visible' });
   const completionMs = Date.now() - completionStart;
