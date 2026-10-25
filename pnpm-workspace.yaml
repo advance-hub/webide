@@ -87,3 +87,5 @@ allowBuilds:
   '@vscode/spdlog': true
   unrs-resolver: true
   protobufjs: false
+patchedDependencies:
+  '@opensumi/monaco-editor-core@0.54.0-patch.2': patches/@opensumi__monaco-editor-core@0.54.0-patch.2.patch

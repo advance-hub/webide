@@ -1,0 +1,23 @@
+diff --git a/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.js b/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.js
+index c38e034be530ed0a6cc5737ba3f943c96635f4e4..950e2e5a44f066b1e3975c41cddccb34acbf9508 100644
+--- a/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.js
++++ b/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.js
+@@ -188,7 +188,8 @@ let WordHighlighter = class WordHighlighter {
+                 // Leave some form of early exit check here if you wish to continue being a cursor position change listener ;)
+                 return;
+             }
+-            this.runDelayer.trigger(() => { this._onPositionChanged(e); });
++            // 切换模型会取消待执行的任务；观察其拒绝，同时保留真正的异常报告。
++            this.runDelayer.trigger(() => this._onPositionChanged(e)).catch(onUnexpectedError);
+         }));
+         this.toUnhook.add(editor.onDidFocusEditorText((e) => {
+             if (this.occurrencesHighlightEnablement === 'off') {
+@@ -196,7 +197,7 @@ let WordHighlighter = class WordHighlighter {
+                 return;
+             }
+             if (!this.workerRequest) {
+-                this.runDelayer.trigger(() => { this._run(); });
++                this.runDelayer.trigger(() => this._run()).catch(onUnexpectedError);
+             }
+         }));
+         this.toUnhook.add(editor.onDidChangeModelContent((e) => {

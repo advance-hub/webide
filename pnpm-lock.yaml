@@ -185,6 +185,9 @@ overrides:
   markdown-it: 14.3.1
   uuid@<11.1.1: 11.1.1
 
+patchedDependencies:
+  '@opensumi/monaco-editor-core@0.54.0-patch.2': 0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c
+
 importers:
 
   .:
@@ -643,7 +646,7 @@ importers:
         version: link:../workspace-edit
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       fuzzy:
         specifier: ^0.1.3
         version: 0.1.3
@@ -755,7 +758,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@xterm/xterm':
         specifier: 5.5.0
         version: 5.5.0
@@ -855,7 +858,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@y/websocket-server':
         specifier: 0.1.1
         version: 0.1.1(yjs@13.6.33)
@@ -913,7 +916,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -953,7 +956,7 @@ importers:
         version: link:../utils
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@opensumi/react-custom-scrollbars-2':
         specifier: ^4.3.4
         version: 4.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1114,7 +1117,7 @@ importers:
         version: link:../utils
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@opensumi/vscode-debugprotocol':
         specifier: 1.49.0-beta.1
         version: 1.49.0-beta.1
@@ -1186,7 +1189,7 @@ importers:
         version: link:../utils
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@types/react':
         specifier: 18.3.28
         version: 18.3.28
@@ -1360,7 +1363,7 @@ importers:
         version: link:../workspace-edit
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@opensumi/vscode-debugprotocol':
         specifier: 1.49.0-beta.1
         version: 1.49.0-beta.1
@@ -1516,7 +1519,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -1736,7 +1739,7 @@ importers:
         version: link:../workspace-edit
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@opensumi/vscode-debugprotocol':
         specifier: 1.49.0-beta.1
         version: 1.49.0-beta.1
@@ -1996,7 +1999,7 @@ importers:
         version: link:../utils
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@parcel/watcher':
         specifier: 2.6.0
         version: 2.6.0
@@ -2211,7 +2214,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -2371,7 +2374,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -2420,7 +2423,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       lodash:
         specifier: ^4.17.21
         version: 4.18.1
@@ -2505,7 +2508,7 @@ importers:
         version: link:../utils
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       antd:
         specifier: ^5.21.4
         version: 5.29.3(moment@2.30.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2645,7 +2648,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2676,7 +2679,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2719,7 +2722,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -2793,7 +2796,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -2903,7 +2906,7 @@ importers:
         version: link:../workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -3151,7 +3154,7 @@ importers:
         version: link:../workspace-edit
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@opensumi/textmate-languages':
         specifier: ^2.8.1
         version: 2.8.1
@@ -3441,7 +3444,7 @@ importers:
         version: link:../theme
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       classnames:
         specifier: 2.5.1
         version: 2.5.1
@@ -3689,7 +3692,7 @@ importers:
         version: link:../overlay
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -3956,7 +3959,7 @@ importers:
         version: link:../../packages/workspace
       '@opensumi/monaco-editor-core':
         specifier: 0.54.0-patch.2
-        version: 0.54.0-patch.2
+        version: 0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)
       '@rspack/cli':
         specifier: 2.2.8
         version: 2.2.8(@rspack/core@2.2.8)(@rspack/dev-server@2.2.1(@rspack/core@2.2.8)(selfsigned@5.5.0))
@@ -17718,7 +17721,7 @@ snapshots:
 
   '@opensumi/mock-socket@9.3.1': {}
 
-  '@opensumi/monaco-editor-core@0.54.0-patch.2': {}
+  '@opensumi/monaco-editor-core@0.54.0-patch.2(patch_hash=0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c)': {}
 
   '@opensumi/react-custom-scrollbars-2@4.3.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
