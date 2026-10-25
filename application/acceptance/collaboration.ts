@@ -99,7 +99,14 @@ const samples: Array<{
   containers: Array<ContainerSample & { workspace: string }>;
 }> = [];
 const steps: Array<{ name: string; ms: number }> = [];
-const errors: Array<{ account: string; phase: string; message: string; expected: boolean; reason?: string }> = [];
+const errors: Array<{
+  account: string;
+  phase: string;
+  message: string;
+  stack?: string;
+  expected: boolean;
+  reason?: string;
+}> = [];
 const transportDiagnostics: BrowserTransportDiagnostic[] = [];
 const localMonacoWorkers: Array<{ account: string; phase: string; path: string }> = [];
 const performanceMeasurements: Array<Record<string, string | number>> = [];
@@ -233,9 +240,13 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
         account: actor,
         phase,
         message: error.message,
+        stack: error.stack,
         expected,
         reason: expected ? transition?.reason : undefined,
       });
+      if (!expected) {
+        process.stderr.write(`${actor}: ${error.stack || error.message}\n`);
+      }
     });
     await page.goto(config.publicURL + '/#/workspaces', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '进入 IDE', exact: true }).first().waitFor({ state: 'visible' });
@@ -247,6 +258,13 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
     await page.goto(entry.url, { waitUntil: 'domcontentloaded' });
     // 标题会被主题或文件名改变；以下真实文件打开、账户、Worker 和终端检查共同判定就绪。
     await page.locator('#opensumi-left-tabbar').waitFor({ state: 'visible' });
+    assert.equal(
+      await page.evaluate(
+        () => (window as unknown as { __OPENSUMI_WORKSPACE__: { id: string } }).__OPENSUMI_WORKSPACE__.id,
+      ),
+      workspace.id,
+      '实际页面必须属于请求的工作区',
+    );
     assert.equal(
       await page.evaluate(
         () =>
@@ -263,7 +281,9 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
     );
     localMonacoWorkers.push({ account: actor, phase, path: new URL(workerURL).pathname });
     const editorReadyMs = Date.now() - startupStart;
+    process.stdout.write(`${actor}: 开始补全、类型诊断与导航检查\n`);
     const language = await verifyLanguageFeatures(page);
+    process.stdout.write(`${actor}: 补全与类型诊断通过\n`);
     const navigation = await verifySearchAndQuickOpen(page);
     performanceMeasurements.push({ account: actor, phase, editorReadyMs, ...language, ...navigation });
     process.stdout.write(`${actor}: 实际编辑器已打开\n`);
@@ -310,10 +330,13 @@ async function equalDocuments(pages: Page[], markers: string[]): Promise<string>
   return texts[0];
 }
 async function diskText(workspace: Workspace): Promise<string> {
-  return workbench.sandbox!.run(
-    workspace.envId!,
-    `cat '${workbench.driver.projectDirectory(workspace)}/collaboration.ts'`,
-  );
+  const filename = `${workbench.driver.projectDirectory(workspace)}/collaboration.ts`;
+  // execd 的命令输出按事件分行；用无换行的编码传回原始文件，避免丢失或重组末尾换行。
+  const script = `process.stdout.write(require('node:fs').readFileSync(${JSON.stringify(filename)}).toString('base64'));`;
+  const encoded = (await workbench.sandbox!.run(workspace.envId!, `node -e ${shellQuote(script)}`)).trim();
+  const bytes = Buffer.from(encoded, 'base64');
+  assert.equal(bytes.toString('base64'), encoded, '磁盘内容编码必须完整且可逆');
+  return bytes.toString('utf8');
 }
 const processProbe = `${await readFile(new URL('./runtime-metrics.cjs', import.meta.url), 'utf8')}
 process.stdout.write(JSON.stringify(module.exports()));`;
@@ -452,8 +475,23 @@ try {
     workbench.store.put('user', { id: actor, owner: actor, username: actor, name: actor });
     sessions[actor] = workbench.store.createSession(actor);
   }
-  browser = await chromium.launch({ headless: true, args: ['--disable-background-timer-throttling'] });
+  const debugPort = Number(process.env.WEBIDE_ACCEPTANCE_BROWSER_DEBUG_PORT || 0);
+  assert(Number.isInteger(debugPort) && (debugPort === 0 || (debugPort >= 1024 && debugPort <= 65535)));
+  browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--disable-background-timer-throttling',
+      ...(debugPort ? [`--remote-debugging-port=${debugPort}`, '--remote-debugging-address=127.0.0.1'] : []),
+    ],
+  });
   const shared = await createWorkspace('alice');
+  const outputFixture = 'WEBIDE_STDOUT_FRAMING\n';
+  const framedOutput = await workbench.sandbox!.run(shared.envId!, `printf '%s' ${shellQuote(outputFixture)}`);
+  result.commandOutputFraming = {
+    expected: outputFixture,
+    actual: framedOutput,
+    finalLineBreakPreserved: outputFixture === framedOutput,
+  };
   await step('邀请四名成员与所有者管理权限', async () => {
     const ownerContext = await browser!.newContext({ viewport: { width: 1440, height: 1000 } });
     try {
@@ -637,6 +675,7 @@ try {
   result.pass = true;
 } catch (error) {
   result.error = (error as Error).stack;
+  process.stderr.write(`${phase}: ${result.error}\n`);
   // SDK 失败时仍通过本轮专属 daemon 读取状态，保留 OOM 与资源压力证据。
   result.failureHost = { load: os.loadavg(), freeMiB: os.freemem() / 1024 / 1024 };
   for (const [name, args] of [
@@ -651,6 +690,10 @@ try {
   }
   for (const workspace of owned) {
     const current = workbench.store.get<Workspace>('workspace', workspace.id) || workspace;
+    await writeFile(
+      path.join(path.dirname(output), `failure-disk-${workspace.id}.txt`),
+      await diskText(current).catch(String),
+    );
     // 绕过外部代理核对容器内就绪状态，区分远端查询失败与实际 Server 退出。
     const readinessProbe = `fetch(${JSON.stringify(`http://127.0.0.1:${current.idePort}/readyz`)}, {
       headers: {'X-Workspace-Id': ${JSON.stringify(current.id)}}, signal: AbortSignal.timeout(8000)
@@ -685,6 +728,10 @@ try {
           .locator('body')
           .innerText()
           .catch(() => '页面已关闭'),
+      ).catch(() => {});
+      await writeFile(
+        path.join(path.dirname(output), `failure-${index}-editor.txt`),
+        await readDocument(page).catch(() => '编辑器文本无法读取'),
       ).catch(() => {});
       // 握手阻断页的摘要省略了原因，通过页面提供的诊断按钮保留完整错误。
       const copyDiagnostics = page.getByRole('button', { name: 'Copy diagnostics', exact: true });

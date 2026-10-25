@@ -42,9 +42,14 @@ export async function openDocument(page: Page, filename: string): Promise<void> 
 
 /** 全选复制读取完整文档，避免只读取可视区域而漏掉合并错误。 */
 export async function readDocument(page: Page): Promise<string> {
+  await page.keyboard.press('Escape');
   await focusEditor(page);
+  const sentinel = `WEBIDE_CLIPBOARD_${Date.now()}_${Math.random()}`;
+  await page.evaluate((value) => navigator.clipboard.writeText(value), sentinel);
   await page.keyboard.press(`${modifier}+a`);
   await page.keyboard.press(`${modifier}+c`);
+  // 复制处理异步完成，必须等真实复制覆盖哨兵，避免把旧剪贴板当作文档内容。
+  await page.waitForFunction(async (value) => (await navigator.clipboard.readText()) !== value, sentinel);
   const text = await page.evaluate(() => navigator.clipboard.readText());
   await page.keyboard.press('ArrowRight');
   return text;
