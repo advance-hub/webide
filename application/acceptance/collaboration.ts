@@ -716,7 +716,7 @@ try {
       `sandbox-${current.envId}`,
       'sh',
       '-c',
-      `node -e ${shellQuote(readinessProbe)}; for file in /workspace/workspaces/*/.platform/ide.log; do tail -120 "$file"; done; ps -eo pid,ppid,rss,comm; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/memory.current`,
+      `node -e ${shellQuote(readinessProbe)}; for file in /workspace/workspaces/*/.platform/ide.log; do tail -120 "$file"; done; ps -eo pid,ppid,rss,args; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/memory.current`,
     ];
     await writeFile(
       path.join(path.dirname(output), `failure-runtime-${workspace.id}.txt`),
@@ -754,6 +754,41 @@ try {
   await closePages();
   await browser?.close();
   const cleanupErrors: string[] = [];
+  if (process.env.WEBIDE_ACCEPTANCE_COLLECT_TS_LOGS === '1') {
+    const diagnosticErrors: string[] = [];
+    try {
+      // 诊断镜像按 PID 写入协议日志；释放沙箱前收集，正式性能镜像不启用日志开销。
+      const traceProbe = `const fs=require('node:fs');
+      console.log(JSON.stringify(fs.readdirSync('/tmp').filter(name=>/^webide-tsserver-\\d+\\.log$/.test(name)).map(name=>{
+        const file='/tmp/'+name;const bytes=fs.readFileSync(file);
+        return {name,bytes:bytes.length,truncated:bytes.length>262144,text:bytes.subarray(-262144).toString()};
+      })));`;
+      await mkdir(path.dirname(output), { recursive: true });
+      for (const workspace of owned) {
+        const current = workbench.store.get<Workspace>('workspace', workspace.id) || workspace;
+        const file = path.join(path.dirname(output), `typescript-protocol-${workspace.id}.json`);
+        try {
+          const logs = await command(
+            'docker',
+            ['--context', config.dockerContext, 'exec', `sandbox-${current.envId}`, 'node', '-e', traceProbe],
+            { timeout: 45000 },
+          );
+          assert(Array.isArray(JSON.parse(logs)), '语言服务日志必须是结构化数组');
+          await writeFile(file, logs);
+        } catch (error) {
+          diagnosticErrors.push(`${workspace.id}: ${String(error)}`);
+          await writeFile(file, JSON.stringify({ error: String(error) })).catch(() => {});
+        }
+      }
+    } catch (error) {
+      diagnosticErrors.push(String(error));
+    }
+    result.diagnosticCaptureErrors = diagnosticErrors;
+    if (diagnosticErrors.length) {
+      result.pass = false;
+      process.exitCode = 1;
+    }
+  }
   for (const workspace of owned) {
     await workbench.driver
       .stop(workbench.store.get<Workspace>('workspace', workspace.id) || workspace)
