@@ -91,11 +91,9 @@ for (const directory of packageDirectories) {
   }
   installedPackages.set(manifest.name, installed);
 }
-for (const directory of packageDirectories) {
-  const original = path.join(repoRoot, directory);
+function linkDeclaredDependencies(original: string, installed: string): void {
   const manifest = JSON.parse(fs.readFileSync(path.join(original, 'package.json'), 'utf8'));
   const requireFromPackage = createRequire(path.join(original, 'package.json'));
-  const installed = installedPackages.get(manifest.name)!;
   const dependencies = new Set([
     ...Object.keys(manifest.dependencies || {}),
     ...Object.keys(manifest.peerDependencies || {}).filter(
@@ -122,6 +120,11 @@ for (const directory of packageDirectories) {
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.symlinkSync(dependencyDirectory, target, 'dir');
   }
+}
+for (const directory of packageDirectories) {
+  const original = path.join(repoRoot, directory);
+  const manifest = JSON.parse(fs.readFileSync(path.join(original, 'package.json'), 'utf8'));
+  linkDeclaredDependencies(original, installedPackages.get(manifest.name)!);
 }
 after(() => fs.rmSync(fixture, { recursive: true, force: true }));
 
@@ -1613,6 +1616,12 @@ test('published browser feature catalogs and Electron renderer modules bundle in
   );
   const productEntry = path.join(app, 'product-client.tsx');
   fs.copyFileSync(path.join(repoRoot, 'client/src/main.tsx'), productEntry);
+  // 消费者夹具也必须包含产品入口实际使用的本地动态模块，不能仅复制入口文件。
+  fs.copyFileSync(
+    path.join(repoRoot, 'client/src/collaboration-identity.ts'),
+    path.join(app, 'collaboration-identity.ts'),
+  );
+  linkDeclaredDependencies(path.join(repoRoot, 'client'), app);
   const consumerRequire = createRequire(path.join(app, 'consumer.cjs'));
   const { createRspackConfig } = consumerRequire('@opensumi/ide-dev-tool/rspack');
   for (const source of [false, true]) {
@@ -1635,6 +1644,7 @@ test('published browser feature catalogs and Electron renderer modules bundle in
     assert.ok(modules.includes(`ide-startup/${source ? 'src' : 'lib'}/browser/common-modules.`));
     assert.ok(modules.includes(`ide-startup/${source ? 'src' : 'lib'}/browser/renderer/index.`));
     assert.ok(modules.includes(`ide-startup/${source ? 'src' : 'lib'}/browser/examples/base.`));
+    assert.ok(modules.includes('collaboration-identity.ts'));
     assert.ok(fs.statSync(path.join(output, 'consumer.js')).size > 0);
     assert.ok(fs.statSync(path.join(output, 'product.js')).size > 0);
   }
