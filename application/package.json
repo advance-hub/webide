@@ -8,7 +8,7 @@
     "dev:client": "rspack dev --config rspack.config.ts",
     "build": "pnpm run typecheck && pnpm run build:client && pnpm run build:server",
     "start": "node server/main.mjs",
-    "test": "tsx --test server/__tests__/*.test.ts",
+    "test": "tsx --test server/__tests__/*.test.ts acceptance/*.test.cjs",
     "typecheck": "tsc --noEmit",
     "build:client": "rspack build --config rspack.config.ts",
     "build:server": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../scripts/build-application-server.ts"

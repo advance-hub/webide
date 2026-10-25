@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 
 import type { Locator, Page } from 'playwright';
 
-const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+export const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 /** 点击已激活标签会折叠视图，统一只激活尚未选中的入口。 */
-async function activateTab(tab: Locator): Promise<void> {
+export async function activateTab(tab: Locator): Promise<void> {
   if (!(await tab.getAttribute('class'))?.split(/\s+/).includes('active')) {
     await tab.click();
   }

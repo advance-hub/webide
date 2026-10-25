@@ -16,6 +16,7 @@ import { hash, newID, now } from '../server/platform/store';
 import { Workbench } from '../server/workbench';
 
 import { appendDocument, openDocument, openTerminal, readDocument, saveDocument, undoDocument } from './browser-editor';
+import { languageFixture, searchToken, verifyLanguageFeatures, verifySearchAndQuickOpen } from './browser-performance';
 import { type BrowserTransportDiagnostic, observeBrowserTransport } from './browser-transport';
 
 import type { BrowserContext, Page } from 'playwright';
@@ -25,7 +26,9 @@ async function harnessHashes() {
     await Promise.all(
       [
         import.meta.filename,
-        ...['browser-editor.ts', 'browser-transport.ts'].map((file) => path.join(import.meta.dirname, file)),
+        ...['browser-editor.ts', 'browser-transport.ts', 'browser-performance.ts', 'runtime-metrics.cjs'].map((file) =>
+          path.join(import.meta.dirname, file),
+        ),
       ].map(async (file) => [
         path.basename(file),
         createHash('sha256')
@@ -47,6 +50,8 @@ const rounds = Number(process.env.WEBIDE_COLLABORATION_ROUNDS || 3);
 assert(Number.isInteger(rounds) && rounds > 0 && rounds <= 5);
 const accounts = ['alice', 'bob', 'carol', 'dave', 'eve'];
 const mode = process.env.WEBIDE_COLLABORATION_WATCHER_MODE || 'per-client';
+const comparisonVariant = process.env.WEBIDE_ACCEPTANCE_VARIANT || 'standalone';
+const comparisonRound = Number(process.env.WEBIDE_ACCEPTANCE_COMPARISON_ROUND || 1);
 const config = {
   ...loadConfig({
     WORKBENCH_RUNTIME_DRIVER: 'sandbox',
@@ -67,6 +72,22 @@ const config = {
 };
 assert(config.sandboxURL && config.sandboxKey && config.sandboxImage, '必须使用显式隔离的 OpenSandbox 配置');
 const workbench = new Workbench(config);
+interface ContainerSample {
+  available: boolean;
+  timestamp: number;
+  uptimeSeconds: number;
+  memoryCurrentBytes: number;
+  memoryPeakBytes: number;
+  memoryMaxBytes: number | null;
+  fileCacheBytes: number;
+  cpuUsageUsec: number;
+  cpuThrottledUsec: number;
+  oomKills: number;
+  oomEvents: number;
+  cpuPercent?: number;
+  error?: string;
+}
+const previousContainers = new Map<string, ContainerSample>();
 const samples: Array<{
   scenario: string;
   round: number;
@@ -74,11 +95,14 @@ const samples: Array<{
   rssMiB: number;
   processes: unknown;
   hostLoad: number[];
+  pssMiB: number | null;
+  containers: Array<ContainerSample & { workspace: string }>;
 }> = [];
 const steps: Array<{ name: string; ms: number }> = [];
 const errors: Array<{ account: string; phase: string; message: string; expected: boolean; reason?: string }> = [];
 const transportDiagnostics: BrowserTransportDiagnostic[] = [];
 const localMonacoWorkers: Array<{ account: string; phase: string; path: string }> = [];
+const performanceMeasurements: Array<Record<string, string | number>> = [];
 const transitions = new WeakMap<Page, { reason: string; until: number }>();
 const owned: Workspace[] = [];
 const result: Record<string, unknown> = {
@@ -89,6 +113,8 @@ const result: Record<string, unknown> = {
   hostPlatform: `${process.platform}/${process.arch}`,
   runtimePlatform: config.sandboxPlatform,
   watcherMode: mode,
+  comparisonVariant,
+  comparisonRound,
   rounds,
   harnessSha256: loadedHarnessHashes,
   scope:
@@ -99,6 +125,7 @@ const result: Record<string, unknown> = {
   browserErrors: errors,
   transportDiagnostics,
   localMonacoWorkers,
+  performanceMeasurements,
   pass: false,
 };
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
@@ -149,8 +176,12 @@ async function createWorkspace(actor: string): Promise<Workspace> {
   await command('git', ['-C', source, 'config', 'user.name', 'Fixture']);
   await writeFile(path.join(source, 'README.md'), '# 五人协同隔离验收\n');
   await writeFile(path.join(source, 'collaboration.ts'), 'export const collaboration = "Node 24";\n');
+  await writeFile(path.join(source, 'language-features.ts'), languageFixture);
   for (let index = 0; index < 100; index++) {
-    await writeFile(path.join(source, `fixture-${index}.ts`), `export const value${index} = ${index};\n`);
+    await writeFile(
+      path.join(source, `fixture-${index}.ts`),
+      `export const value${index} = ${index};${index < 8 ? ` // ${searchToken}` : ''}\n`,
+    );
   }
   await command('git', ['-C', source, 'add', '.']);
   await command('git', ['-C', source, 'commit', '-m', 'fixture']);
@@ -212,8 +243,10 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
       assert.equal(await page.getByRole('button', { name: '管理', exact: true }).count(), 0);
     }
     const entry = await request(actor, `/workspaces/${workspace.id}/enter`, {});
+    const startupStart = Date.now();
     await page.goto(entry.url, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => document.title.endsWith('— OpenSumi'));
+    // 标题会被主题或文件名改变；以下真实文件打开、账户、Worker 和终端检查共同判定就绪。
+    await page.locator('#opensumi-left-tabbar').waitFor({ state: 'visible' });
     assert.equal(
       await page.evaluate(
         () =>
@@ -229,6 +262,10 @@ async function pagesFor(workspaces: Workspace[]): Promise<Page[]> {
       45000,
     );
     localMonacoWorkers.push({ account: actor, phase, path: new URL(workerURL).pathname });
+    const editorReadyMs = Date.now() - startupStart;
+    const language = await verifyLanguageFeatures(page);
+    const navigation = await verifySearchAndQuickOpen(page);
+    performanceMeasurements.push({ account: actor, phase, editorReadyMs, ...language, ...navigation });
     process.stdout.write(`${actor}: 实际编辑器已打开\n`);
     pages.push(page);
   }
@@ -278,9 +315,9 @@ async function diskText(workspace: Workspace): Promise<string> {
     `cat '${workbench.driver.projectDirectory(workspace)}/collaboration.ts'`,
   );
 }
-const processProbe =
-  "const fs=require('node:fs'); const rows=[]; for(const name of fs.readdirSync('/proc').filter(x=>/^\\d+$/.test(x))) { try {const status=fs.readFileSync('/proc/'+name+'/status','utf8'); rows.push({pid:+name,ppid:+status.match(/^PPid:\\s+(\\d+)/m)[1],rssKiB:+(status.match(/^VmRSS:\\s+(\\d+)/m)?.[1]||0),command:fs.readFileSync('/proc/'+name+'/cmdline','utf8').split('\\0').join(' ').slice(0,400)});} catch{}} process.stdout.write(JSON.stringify(rows));";
-async function processTree(workspace: Workspace) {
+const processProbe = `${await readFile(new URL('./runtime-metrics.cjs', import.meta.url), 'utf8')}
+process.stdout.write(JSON.stringify(module.exports()));`;
+async function processTree(workspace: Workspace, containers?: Map<string, ContainerSample>) {
   const environment = await workbench.driver.inspect(workspace);
   const runtime = environment.runtime as { pid?: number } | undefined;
   const pid = runtime?.pid;
@@ -296,9 +333,19 @@ async function processTree(workspace: Workspace) {
       pid,
     })}`,
   );
-  const rows = JSON.parse(
-    await workbench.sandbox!.run(workspace.envId!, `node -e '${processProbe.replaceAll("'", "'\\''")}'`),
-  ) as Array<{ pid: number; ppid: number; rssKiB: number; command: string }>;
+  const snapshot = JSON.parse(
+    await workbench.sandbox!.run(workspace.envId!, `node -e ${shellQuote(processProbe)}`),
+  ) as {
+    processes: Array<{ pid: number; ppid: number; rssKiB: number; pssKiB: number | null; command: string }>;
+    container: ContainerSample;
+  };
+  if (containers) {
+    assert(snapshot.container.available, `无法读取容器计数器：${snapshot.container.error}`);
+    assert.equal(snapshot.container.memoryMaxBytes, 4 * 1024 ** 3, '容器计数器必须来自受限的本轮开发机');
+    assert.equal(snapshot.container.oomKills, 0, '容器发生 OOM，不能将本轮标记为容量通过');
+    containers.set(workspace.id, snapshot.container);
+  }
+  const rows = snapshot.processes;
   const ids = new Set([pid]);
   let changed = true;
   while (changed) {
@@ -316,7 +363,16 @@ async function processTree(workspace: Workspace) {
 }
 async function sample(scenario: string, round: number, workspaces: Workspace[]) {
   const unique = [...new Map(workspaces.map((w) => [w.id, w])).values()];
-  const trees = await Promise.all(unique.map(processTree));
+  const containers = new Map<string, ContainerSample>();
+  const trees = await Promise.all(unique.map((workspace) => processTree(workspace, containers)));
+  for (const [id, metrics] of containers) {
+    const previous = previousContainers.get(id);
+    if (previous && metrics.timestamp > previous.timestamp && metrics.cpuUsageUsec >= previous.cpuUsageUsec) {
+      metrics.cpuPercent =
+        (metrics.cpuUsageUsec - previous.cpuUsageUsec) / ((metrics.timestamp - previous.timestamp) * 10);
+    }
+    previousContainers.set(id, metrics);
+  }
   samples.push({
     scenario,
     round,
@@ -324,9 +380,14 @@ async function sample(scenario: string, round: number, workspaces: Workspace[]) 
     rssMiB: trees.flat().reduce((sum, row) => sum + row.rssKiB / 1024, 0),
     processes: trees,
     hostLoad: os.loadavg(),
+    pssMiB: trees.flat().every((row) => row.pssKiB !== null)
+      ? trees.flat().reduce((sum, row) => sum + row.pssKiB!, 0) / 1024
+      : null,
+    containers: [...containers].map(([workspace, metrics]) => ({ workspace, ...metrics })),
   });
 }
 async function measure(scenario: string, round: number, workspaces: Workspace[]) {
+  previousContainers.clear();
   await delay(30000);
   for (let index = 0; index < 30; index++) {
     await sample(scenario, round, workspaces);
