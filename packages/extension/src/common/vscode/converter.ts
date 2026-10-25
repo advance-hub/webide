@@ -27,7 +27,6 @@ import {
 } from '@opensumi/ide-core-common';
 import * as debugModel from '@opensumi/ide-debug';
 import { IEvaluatableExpression } from '@opensumi/ide-debug/evaluatable-expression';
-import { TrackedRangeStickiness } from '@opensumi/ide-editor';
 import { CellKind } from '@opensumi/ide-editor/notebook';
 import { FileStat, FileType } from '@opensumi/ide-file-service';
 import { TestId } from '@opensumi/ide-testing';
@@ -69,6 +68,7 @@ import type {
   LanguageFilter,
   LanguageSelector,
   NotebookCellInternalMetadata,
+  TrackedRangeStickiness,
 } from '@opensumi/ide-editor';
 import type * as languages from '@opensumi/monaco-editor-core/esm/vs/editor/common/languages';
 import type vscode from 'vscode';
@@ -899,13 +899,11 @@ export namespace DecorationRangeBehavior {
     }
     switch (value) {
       case types.DecorationRangeBehavior.OpenOpen:
-        return TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges;
       case types.DecorationRangeBehavior.ClosedClosed:
-        return TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges;
       case types.DecorationRangeBehavior.OpenClosed:
-        return TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
       case types.DecorationRangeBehavior.ClosedOpen:
-        return TrackedRangeStickiness.GrowsOnlyWhenTypingAfter;
+        // 两个协议枚举使用相同线值；校验范围后转换，避免源码宿主为常量加载浏览器编辑器。
+        return value as number as TrackedRangeStickiness;
     }
   }
 }

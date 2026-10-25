@@ -15,6 +15,7 @@
     "@opensumi/ide-ai-native": "workspace:*",
     "@opensumi/ide-collaboration": "workspace:*",
     "@opensumi/ide-core-browser": "workspace:*",
+    "@opensumi/ide-core-common": "workspace:*",
     "@opensumi/ide-design": "workspace:*",
     "@opensumi/ide-notebook": "workspace:*",
     "@opensumi/ide-startup": "workspace:*"

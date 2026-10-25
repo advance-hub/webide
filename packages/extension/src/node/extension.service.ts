@@ -792,8 +792,7 @@ export class ExtensionNodeServiceImpl implements IExtensionNodeService, Extensio
 
     let extProcessPath: string;
     forkOptions.execArgv = [];
-    // Node 21+ exposes navigator. Legacy VS Code extensions use its presence
-    // to detect a browser host and would disable Node language services.
+    // Node 21+ 的 navigator 会使旧扩展误判为浏览器宿主，导致 Node 语言服务被关闭。
     if (!isElectronNode() && process.allowedNodeEnvironmentFlags.has('--no-experimental-global-navigator')) {
       forkOptions.execArgv.push('--no-experimental-global-navigator');
     }
@@ -808,7 +807,13 @@ export class ExtensionNodeServiceImpl implements IExtensionNodeService, Extensio
           ? path.join(__dirname, '../../lib/hosted/ext.host.js')
           : path.join(__dirname, '../hosted/ext.host.' + processUtil.extFileType);
       if (process.env.EXT_MODE !== 'js' && processUtil.extFileType === 'ts') {
-        forkOptions.execArgv = forkOptions.execArgv.concat(['-r', 'ts-node/register', '-r', 'tsconfig-paths/register']);
+        // 启动只负责转译；完整类型检查由构建与测试门禁执行，避免每个宿主重复创建类型检查器。
+        forkOptions.execArgv = forkOptions.execArgv.concat([
+          '-r',
+          'ts-node/register/transpile-only',
+          '-r',
+          'tsconfig-paths/register',
+        ]);
       }
 
       forkArgs.push(`--kt-process-preload=${preloadPath}`);

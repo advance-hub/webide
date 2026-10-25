@@ -547,6 +547,9 @@ importers:
       '@opensumi/ide-core-browser':
         specifier: workspace:*
         version: link:../packages/core-browser
+      '@opensumi/ide-core-common':
+        specifier: workspace:*
+        version: link:../packages/core-common
       '@opensumi/ide-design':
         specifier: workspace:*
         version: link:../packages/design

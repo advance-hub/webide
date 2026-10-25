@@ -1,6 +1,7 @@
 {
   "extends": "./configs/ts/tsconfig.resolve.json",
   "compilerOptions": {
+    "rootDir": ".",
     "sourceMap": true,
     "skipLibCheck": false,
     "outDir": "./dist",
