@@ -79,8 +79,10 @@ function copyOnWriteConfigurationValue(value: any): any {
           const copy = writable(properties);
           return () => copy;
         }
-        const current = snapshot ? at(properties) : target;
-        const result = current[property];
+        if (snapshot) {
+          return at(properties)[property];
+        }
+        const result = target[property];
         return typeof property === 'string' ? wrap(result, [...properties, property]) : result;
       },
       set: (_target, property, nextValue) => {

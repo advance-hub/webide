@@ -23,6 +23,7 @@ describe('扩展配置对象的独立快照', () => {
     const configuration = service.getConfiguration();
     const value = configuration.get<any>('sample.options');
     value.nested.value = 9;
+    expect(value.nested).toBe(value.nested);
     expect(JSON.parse(JSON.stringify(value)).nested.value).toBe(9);
     expect(configuration.get<any>('sample.options').nested.value).toBe(1);
     expect(configuration.get<any>('unrelated.options')).toEqual({ content: '独立配置' });
