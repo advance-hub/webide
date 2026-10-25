@@ -151,25 +151,43 @@ export class TextModelBinding implements ITextModelBinding {
 
   private yTextObserver = (event: YTextEvent) => {
     this.mutex(() => {
-      // fixme line seq issue
-      let index = 0;
+      // 在变更前的模型上计算全部范围，同一协同事务只发布一次完整文档变更。
+      const edits: editor.IIdentifiedSingleEditOperation[] = [];
+      let offset = 0;
+      let start: number | undefined;
+      let text = '';
+      const flush = () => {
+        if (start !== undefined) {
+          const from = this.textModel.getPositionAt(start);
+          const to = this.textModel.getPositionAt(offset);
+          edits.push({ range: new Range(from.lineNumber, from.column, to.lineNumber, to.column), text });
+          start = undefined;
+          text = '';
+        }
+      };
       event.delta.forEach((op) => {
         if (op.retain !== undefined) {
-          index += op.retain;
+          if (op.retain > 0) {
+            flush();
+            offset += op.retain;
+          }
         } else if (op.insert !== undefined) {
-          const pos = this.textModel.getPositionAt(index);
-          const range = new Selection(pos.lineNumber, pos.column, pos.lineNumber, pos.column);
-          this.textModel.applyEdits([{ range, text: op.insert as string }]);
-          index += (op.insert as string).length;
+          if (typeof op.insert !== 'string') {
+            throw new Error('协同文本不支持嵌入对象');
+          }
+          start ??= offset;
+          text += op.insert;
         } else if (op.delete !== undefined) {
-          const pos = this.textModel.getPositionAt(index);
-          const endPos = this.textModel.getPositionAt(index + op.delete);
-          const range = new Selection(pos.lineNumber, pos.column, endPos.lineNumber, endPos.column);
-          this.textModel.applyEdits([{ range, text: '' }]);
+          start ??= offset;
+          offset += op.delete;
         } else {
-          throw new Error('Unexpected error');
+          throw new Error('无法识别的协同文本变更');
         }
       });
+      flush();
+      if (edits.length) {
+        this.textModel.applyEdits(edits);
+      }
       this.savedSelections.forEach((relSelection, editor) => {
         // restore self-saved selection
         const sel = this.createMonacoSelectionFromRelativeSelection(relSelection);

@@ -58,6 +58,9 @@ describe('TextModelBinding test for yText and TextModel', () => {
   afterEach(() => {
     user1.binding.destroy();
     user2.binding.destroy();
+    user1.textModel.dispose();
+    user2.textModel.dispose();
+    wsProvider.destroy();
     // @ts-ignore
     doc.destroy();
   });
@@ -129,6 +132,57 @@ describe('TextModelBinding test for yText and TextModel', () => {
     user2.yText.delete(0, 3);
     expect(deletionSpy).toHaveBeenCalled();
     expect(user2.textModel.getValue()).toBe('ert');
+  });
+
+  it.each(['\n', '\r\n'])('同一远端事务只向编辑器发布一次完整变更，换行 %j', (eol) => {
+    const mode = eol === '\r\n' ? monacoApi.editor.EndOfLineSequence.CRLF : monacoApi.editor.EndOfLineSequence.LF;
+    user1.textModel.setEOL(mode);
+    user2.textModel.setEOL(mode);
+    user1.yText.insert(0, ['alpha', 'beta', 'gamma', ''].join(eol));
+    const snapshots: string[] = [];
+    const beforeVersion = user2.textModel.getVersionId();
+    const listener = user2.textModel.onDidChangeContent(() => snapshots.push(user2.textModel.getValue()));
+    doc.transact(() => {
+      user1.yText.delete(0, 5);
+      user1.yText.insert(0, '甲🙂');
+      const last = user1.yText.toString().indexOf('gamma');
+      user1.yText.delete(last, 5);
+      user1.yText.insert(last, '末尾');
+    });
+    const expected = ['甲🙂', 'beta', '末尾', ''].join(eol);
+    expect(user1.textModel.getValue()).toBe(expected);
+    expect(user2.textModel.getValue()).toBe(expected);
+    expect(snapshots).toEqual([expected]);
+    expect(user2.textModel.getVersionId()).toBe(beforeVersion + 1);
+    listener.dispose();
+  });
+
+  it('属性变化不产生空文本变更', () => {
+    user1.yText.insert(0, '正文');
+    const changed = jest.fn();
+    const listener = user2.textModel.onDidChangeContent(changed);
+    const beforeVersion = user2.textModel.getVersionId();
+    user1.yText.format(0, 2, { emphasis: true });
+    expect(user2.textModel.getValue()).toBe('正文');
+    expect(changed).not.toHaveBeenCalled();
+    expect(user2.textModel.getVersionId()).toBe(beforeVersion);
+    listener.dispose();
+  });
+
+  it('多处本地编辑及撤销重做均按事务同步完整文本', () => {
+    user1.yText.insert(0, 'one\ntwo\nthree');
+    const snapshots: string[] = [];
+    const listener = user2.textModel.onDidChangeContent(() => snapshots.push(user2.textModel.getValue()));
+    user1.textModel.applyEdits([
+      { range: new monaco.Range(1, 1, 1, 4), text: 'ONE' },
+      { range: new monaco.Range(3, 1, 3, 6), text: 'THREE' },
+    ]);
+    expect(user2.yText.toString()).toBe('ONE\ntwo\nTHREE');
+    user1.binding.undo();
+    expect(user2.textModel.getValue()).toBe('one\ntwo\nthree');
+    user1.binding.redo();
+    expect(snapshots).toEqual(['ONE\ntwo\nTHREE', 'one\ntwo\nthree', 'ONE\ntwo\nTHREE']);
+    listener.dispose();
   });
 
   it('should mutex on two events mentioned above', () => {
@@ -212,10 +266,11 @@ describe('TextModelBinding test for editor', () => {
   let binding: TextModelBinding;
   let yText: YText;
   let textModel: monaco.ITextModel;
+  let wsProvider: WebsocketProvider;
 
   beforeAll(() => {
     doc = new YDoc();
-    const wsProvider = new WebsocketProvider(`ws://127.0.0.1:${DEFAULT_COLLABORATION_PORT}`, 'test', doc, {
+    wsProvider = new WebsocketProvider(`ws://127.0.0.1:${DEFAULT_COLLABORATION_PORT}`, 'test', doc, {
       connect: false,
     });
 
@@ -332,5 +387,9 @@ describe('TextModelBinding test for editor', () => {
 
   afterAll(() => {
     binding.destroy();
+    editor.dispose();
+    textModel.dispose();
+    wsProvider.destroy();
+    doc.destroy();
   });
 });
