@@ -1240,8 +1240,8 @@ importers:
         specifier: ^2.8.1
         version: 2.8.1
       vscode-oniguruma:
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 2.0.1
+        version: 2.0.1
     devDependencies:
       '@opensumi/ide-dev-tool':
         specifier: workspace:*
@@ -1539,8 +1539,8 @@ importers:
         specifier: ^3.18.4
         version: 3.18.4
       vscode-oniguruma:
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 2.0.1
+        version: 2.0.1
       vscode-textmate:
         specifier: 7.0.1
         version: 7.0.1
@@ -4237,8 +4237,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       vscode-oniguruma:
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 2.0.1
+        version: 2.0.1
     devDependencies:
       '@opensumi/ide-dev-tool':
         specifier: workspace:*
@@ -14994,6 +14994,9 @@ packages:
 
   vscode-oniguruma@1.6.1:
     resolution: {integrity: sha512-vc4WhSIaVpgJ0jJIejjYxPvURJavX6QG41vu0mGhqywMkQqulezEqEQ3cO3gc8GvcOpX6ycmKGqRoROEMBNXTQ==}
+
+  vscode-oniguruma@2.0.1:
+    resolution: {integrity: sha512-poJU8iHIWnC3vgphJnrLZyI3YdqRlR27xzqDmpPXYzA93R4Gk8z7T6oqDzDoHjoikA2aS82crdXFkjELCdJsjQ==}
 
   vscode-textmate@7.0.1:
     resolution: {integrity: sha512-zQ5U/nuXAAMsh691FtV0wPz89nSkHbs+IQV8FDk+wew9BlSDhf4UmWGlWJfTR2Ti6xZv87Tj5fENzKf6Qk7aLw==}
@@ -28712,6 +28715,8 @@ snapshots:
   vscode-languageserver-types@3.18.4: {}
 
   vscode-oniguruma@1.6.1: {}
+
+  vscode-oniguruma@2.0.1: {}
 
   vscode-textmate@7.0.1: {}
 
