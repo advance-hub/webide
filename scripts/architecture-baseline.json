@@ -21,7 +21,7 @@
     "@opensumi/ide-editor -> @opensumi/ide-monaco": 6,
     "@opensumi/ide-extension -> @opensumi/ide-ai-native": 2,
     "@opensumi/ide-extension -> @opensumi/ide-debug": 3,
-    "@opensumi/ide-extension -> @opensumi/ide-editor": 8,
+    "@opensumi/ide-extension -> @opensumi/ide-editor": 7,
     "@opensumi/ide-extension -> @opensumi/ide-monaco": 1,
     "@opensumi/ide-main-layout -> @opensumi/ide-core-browser": 1,
     "@opensumi/ide-task -> @opensumi/ide-editor": 2
