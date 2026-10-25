@@ -1,0 +1,1041 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "timezone": "Asia/Shanghai",
+  "status": "complete-functional-comparison",
+  "functionalPass": true,
+  "stableCapacityValidated": false,
+  "source": {
+    "commonRevision": "b995efa5138b284d5841b4c4aabc24d2066373e5",
+    "baselineOverridesFrom": "51969304ad5e398f89e3b9f71df4d48d60f95167",
+    "changedProductionFiles": [
+      {
+        "path": "packages/extension/src/hosted/api/vscode/ext.host.preference.ts",
+        "baselineSha256": "befdc0f2857cc94069589a6a121f3b4f93c22ef5c6bf44329f0005e91b22b7e8",
+        "optimizedSha256": "3d77a9aa340c63137a79a0929737624d3a1bd5203d20310296c74f5b13599a41"
+      },
+      {
+        "path": "application/runtime/default-settings.json",
+        "baselineSha256": "eed46e0747dc29c704ab5b5fb8e4273de1f4496f7c77533a92e189f43c6b9571",
+        "optimizedSha256": "1416c34b0aa5331372834e332177d29c848867e125e9845e1458d41551b52849"
+      }
+    ],
+    "acceptanceHarnessRevision": "b995efa5138b284d5841b4c4aabc24d2066373e5",
+    "monacoPatch": {
+      "path": "patches/@opensumi__monaco-editor-core@0.54.0-patch.2.patch",
+      "sha256": "0d468fefea83dd9e4fd01d6b5d601ed46ce888c782c9b00c17b3424d6a75c06c"
+    }
+  },
+  "images": {
+    "baseline": {
+      "name": "opensumi-webide-workspace:memory-baseline-r3-20261025",
+      "id": "sha256:e4c96dc6c3e3f8c346f4b363c6bc8987f40993b7af9756a45022145989b7db7e",
+      "node": "v24.16.0",
+      "platform": "linux/arm64",
+      "syntaxServerSetting": "auto(default)",
+      "preferenceHash": "9186d599242d40c2bbf0f3b037ac71a9ed53bd925bebf5d1d8d47dfe8d859ec0",
+      "bindingHash": "47844e34602283221bd353f3a6636a524d1826966884e2ae05e8e64b9ca86dba",
+      "completionHash": "39479e33902e57d32185982ed86b77c82739e81d4e2aa6d8914a67155db0e093",
+      "builtinManifestHash": "7d0a5d209fef604cf3bbcfdc537c801a0b26e3550a93c37222102c3a233dc173",
+      "manifestShardsHash": "334283a7512a22c6431a375ca6e311ef505b244f7e48d13fe6072bb92a2b40a8",
+      "extensionSetHash": "8890cca9ab60ba9afc473dd3cadb16d7ee1d2ce5652f9bdfc409ebf77d113578",
+      "wordHighlighterPatchApplied": true,
+      "extensionCount": 70,
+      "localeShards": 18
+    },
+    "optimized": {
+      "name": "opensumi-webide-workspace:memory-optimized-r3-20261025",
+      "id": "sha256:287dddb2d7f5d25589ecb8c5e8223b2f17be01d88af922c44be7c53ebfaf7376",
+      "node": "v24.16.0",
+      "platform": "linux/arm64",
+      "syntaxServerSetting": "never",
+      "preferenceHash": "2fa1cb9869a05fc903e59822a53f2b6befe8ca8a496a5acfb205422973847411",
+      "bindingHash": "47844e34602283221bd353f3a6636a524d1826966884e2ae05e8e64b9ca86dba",
+      "completionHash": "39479e33902e57d32185982ed86b77c82739e81d4e2aa6d8914a67155db0e093",
+      "builtinManifestHash": "7d0a5d209fef604cf3bbcfdc537c801a0b26e3550a93c37222102c3a233dc173",
+      "manifestShardsHash": "334283a7512a22c6431a375ca6e311ef505b244f7e48d13fe6072bb92a2b40a8",
+      "extensionSetHash": "8890cca9ab60ba9afc473dd3cadb16d7ee1d2ce5652f9bdfc409ebf77d113578",
+      "wordHighlighterPatchApplied": true,
+      "extensionCount": 70,
+      "localeShards": 18
+    }
+  },
+  "startupLoaderComparison": {
+    "scope": "macOS ARM64 源码宿主实际 IPC ready；不是生产页面启动耗时",
+    "deadlineMs": 15000,
+    "variants": {
+      "ts-node/register": {
+        "runs": [
+          {
+            "round": 1,
+            "loader": "ts-node/register",
+            "status": "ready",
+            "elapsedMs": 8947.187541000001,
+            "connectedMs": 4978.124958,
+            "hostLoad": [30.5986328125, 40.8076171875, 39.99267578125]
+          },
+          {
+            "round": 2,
+            "loader": "ts-node/register",
+            "status": "ready",
+            "elapsedMs": 4644.986957999998,
+            "connectedMs": 2813.437167,
+            "hostLoad": [28.38818359375, 40.1796875, 39.77587890625]
+          },
+          {
+            "round": 3,
+            "loader": "ts-node/register",
+            "status": "ready",
+            "elapsedMs": 9295.017625,
+            "connectedMs": 2750.389707999999,
+            "hostLoad": [33.67724609375, 40.90283203125, 40.03564453125]
+          }
+        ],
+        "medianReadyMs": 8947.187541000001
+      },
+      "ts-node/register/transpile-only": {
+        "runs": [
+          {
+            "round": 1,
+            "loader": "ts-node/register/transpile-only",
+            "status": "ready",
+            "elapsedMs": 1997.1352499999994,
+            "connectedMs": 976.3822920000002,
+            "hostLoad": [30.5986328125, 40.8076171875, 39.99267578125]
+          },
+          {
+            "round": 2,
+            "loader": "ts-node/register/transpile-only",
+            "status": "ready",
+            "elapsedMs": 1903.7907080000004,
+            "connectedMs": 848.3840830000008,
+            "hostLoad": [30.5986328125, 40.8076171875, 39.99267578125]
+          },
+          {
+            "round": 3,
+            "loader": "ts-node/register/transpile-only",
+            "status": "ready",
+            "elapsedMs": 3551.0986249999987,
+            "connectedMs": 1972.172584,
+            "hostLoad": [39.46826171875, 41.9833984375, 40.421875]
+          }
+        ],
+        "medianReadyMs": 1997.1352499999994
+      }
+    }
+  },
+  "configurationProbe": {
+    "scope": "隔离进程显式 GC 的增量；不能换算为整个 IDE RSS",
+    "configurationKeys": 2001,
+    "retainedSnapshots": 80,
+    "variants": {
+      "baseline": {
+        "runs": [
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "9186d599242d40c2bbf0f3b037ac71a9ed53bd925bebf5d1d8d47dfe8d859ec0",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": 23.31029510498047,
+            "rssDeltaMiB": 44.98046875,
+            "elapsedMs": 1623.6972930000002,
+            "cpuMs": 1669.037
+          },
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "9186d599242d40c2bbf0f3b037ac71a9ed53bd925bebf5d1d8d47dfe8d859ec0",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": 23.311302185058594,
+            "rssDeltaMiB": 40.66796875,
+            "elapsedMs": 1840.3297089999999,
+            "cpuMs": 1830.515
+          },
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "9186d599242d40c2bbf0f3b037ac71a9ed53bd925bebf5d1d8d47dfe8d859ec0",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": 23.314109802246094,
+            "rssDeltaMiB": 44.921875,
+            "elapsedMs": 1872.346417,
+            "cpuMs": 1891.822
+          }
+        ],
+        "median": {
+          "heapDeltaMiB": 23.311302185058594,
+          "rssDeltaMiB": 44.921875,
+          "elapsedMs": 1840.3297089999999,
+          "cpuMs": 1830.515
+        }
+      },
+      "optimized": {
+        "runs": [
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "2fa1cb9869a05fc903e59822a53f2b6befe8ca8a496a5acfb205422973847411",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": -0.00830078125,
+            "rssDeltaMiB": -0.01171875,
+            "elapsedMs": 7.055624999999992,
+            "cpuMs": 18.785
+          },
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "2fa1cb9869a05fc903e59822a53f2b6befe8ca8a496a5acfb205422973847411",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": 0.07062530517578125,
+            "rssDeltaMiB": 0,
+            "elapsedMs": 6.10008400000001,
+            "cpuMs": 15.61
+          },
+          {
+            "scope": "隔离配置快照探针；显式 GC，不代表整棵 IDE",
+            "node": "v24.16.0",
+            "sourceSHA256": "2fa1cb9869a05fc903e59822a53f2b6befe8ca8a496a5acfb205422973847411",
+            "configurationKeys": 2001,
+            "retainedSnapshots": 80,
+            "heapDeltaMiB": 0.0712127685546875,
+            "rssDeltaMiB": 0,
+            "elapsedMs": 6.198291999999981,
+            "cpuMs": 18.589
+          }
+        ],
+        "median": {
+          "heapDeltaMiB": 0.07062530517578125,
+          "rssDeltaMiB": 0,
+          "elapsedMs": 6.198291999999981,
+          "cpuMs": 18.589
+        }
+      }
+    }
+  },
+  "checks": {
+    "framework": {
+      "node": {
+        "suitesPassed": 140,
+        "testsPassed": 1496,
+        "testsSkipped": 29,
+        "snapshotsPassed": 6
+      },
+      "jsdom": {
+        "suitesPassed": 353,
+        "testsPassed": 3297,
+        "testsSkipped": 28,
+        "snapshotsPassed": 7
+      }
+    },
+    "runtimeBuildExportTests": 69,
+    "workbenchTests": 41,
+    "runtimeMetricsReportTests": 33,
+    "reportSummaryTestsAfterFinalGuards": 3,
+    "fullLinuxBuilds": 2,
+    "localFullBuild": true,
+    "artifactVerification": true,
+    "productArchitectureDependencyGates": true,
+    "finalMatrixVerification": true,
+    "comparisonSummaryPass": true
+  },
+  "comparison": {
+    "schemaVersion": 1,
+    "functionalPass": true,
+    "generatedAt": "2026-10-25T15:41:21.779Z",
+    "hostLogicalCPUs": 10,
+    "harnessSha256": {
+      "collaboration.ts": "66e227c7ed0d61fe9ad215221e7fb8f7f84267e909359348288e301b0dcef94b",
+      "browser-editor.ts": "316063ad269a7a576f030c8cce3a4f61687a1e52864e0c387fde039e88c9f170",
+      "browser-transport.ts": "ee030bbe75c2a1c644501833b396a36d5f8a237488db466ab41bbb18094c5c21",
+      "browser-performance.ts": "619ad8623dd209853fca5c185181c07a7dc59c97ca2d0b9a618aff2f2036625a",
+      "runtime-metrics.cjs": "c2fa811632dabfabf43194ec6381377a223bb581e7818be5e27df339b5e79144"
+    },
+    "imageManifest": {
+      "baseline": {
+        "name": "opensumi-webide-workspace:memory-baseline-r3-20261025",
+        "id": "sha256:e4c96dc6c3e3f8c346f4b363c6bc8987f40993b7af9756a45022145989b7db7e"
+      },
+      "optimized": {
+        "name": "opensumi-webide-workspace:memory-optimized-r3-20261025",
+        "id": "sha256:287dddb2d7f5d25589ecb8c5e8223b2f17be01d88af922c44be7c53ebfaf7376"
+      },
+      "startedAt": "2026-10-25T14:44:50.988Z",
+      "order": "基线/优化、优化/基线、基线/优化",
+      "dockerContext": "webide-acceptance-94eeb4c11dc0",
+      "preparation": "同服协议诊断全部沙箱与卷释放后复用专属 daemon 镜像缓存；正式镜像没有 TSS_LOG"
+    },
+    "variants": {
+      "baseline": {
+        "samples": 180,
+        "scenarios": {
+          "shared-workspace": {
+            "samples": 90,
+            "rounds": [
+              {
+                "rssP95MiB": 4573.61328125,
+                "pssP95MiB": 3178.1787109375,
+                "containerMemoryP95MiB": 3325.91015625,
+                "sumContainerLifetimePeaksMiB": 3402.0625,
+                "cpuP95Percent": 49.65759019741321,
+                "lifetimeThrottledUsec": 16429133,
+                "typescriptRssP95MiB": 2221.13671875,
+                "otherLanguageServersRssP95MiB": 756.60546875,
+                "extensionHostsRssP95MiB": 1029.08203125,
+                "watchersRssP95MiB": 359.7578125
+              },
+              {
+                "rssP95MiB": 4688.1875,
+                "pssP95MiB": 3147.3515625,
+                "containerMemoryP95MiB": 3320.90234375,
+                "sumContainerLifetimePeaksMiB": 3354.91796875,
+                "cpuP95Percent": 11.67221451687471,
+                "lifetimeThrottledUsec": 11054954,
+                "typescriptRssP95MiB": 2218.890625,
+                "otherLanguageServersRssP95MiB": 788.74609375,
+                "extensionHostsRssP95MiB": 1055.3671875,
+                "watchersRssP95MiB": 393.75
+              },
+              {
+                "rssP95MiB": 4711.52734375,
+                "pssP95MiB": 3181.8759765625,
+                "containerMemoryP95MiB": 3376.2109375,
+                "sumContainerLifetimePeaksMiB": 3390.89453125,
+                "cpuP95Percent": 18.12331797235023,
+                "lifetimeThrottledUsec": 10072909,
+                "typescriptRssP95MiB": 2256.88671875,
+                "otherLanguageServersRssP95MiB": 790.234375,
+                "extensionHostsRssP95MiB": 1070.57421875,
+                "watchersRssP95MiB": 393.30859375
+              }
+            ],
+            "medianRoundMetrics": {
+              "rssP95MiB": 4688.1875,
+              "pssP95MiB": 3178.1787109375,
+              "containerMemoryP95MiB": 3325.91015625,
+              "sumContainerLifetimePeaksMiB": 3390.89453125,
+              "cpuP95Percent": 18.12331797235023,
+              "lifetimeThrottledUsec": 11054954,
+              "typescriptRssP95MiB": 2221.13671875,
+              "otherLanguageServersRssP95MiB": 788.74609375,
+              "extensionHostsRssP95MiB": 1055.3671875,
+              "watchersRssP95MiB": 393.30859375
+            },
+            "tsserverCount": {
+              "minimum": 10,
+              "maximum": 10
+            }
+          },
+          "independent-workspaces": {
+            "samples": 90,
+            "rounds": [
+              {
+                "rssP95MiB": 4969.97265625,
+                "pssP95MiB": 3598.1494140625,
+                "containerMemoryP95MiB": 3873.6328125,
+                "sumContainerLifetimePeaksMiB": 6802.15625,
+                "cpuP95Percent": 20.173189121047415,
+                "lifetimeThrottledUsec": 44803997,
+                "typescriptRssP95MiB": 2081,
+                "otherLanguageServersRssP95MiB": 706.109375,
+                "extensionHostsRssP95MiB": 981.015625,
+                "watchersRssP95MiB": 333.75
+              },
+              {
+                "rssP95MiB": 5351.046875,
+                "pssP95MiB": 3650.390625,
+                "containerMemoryP95MiB": 3910.15234375,
+                "sumContainerLifetimePeaksMiB": 6612.96484375,
+                "cpuP95Percent": 22.152769497315663,
+                "lifetimeThrottledUsec": 28929375,
+                "typescriptRssP95MiB": 2212.8828125,
+                "otherLanguageServersRssP95MiB": 768.64453125,
+                "extensionHostsRssP95MiB": 1036.43359375,
+                "watchersRssP95MiB": 383.3203125
+              },
+              {
+                "rssP95MiB": 5371.0078125,
+                "pssP95MiB": 3610.0791015625,
+                "containerMemoryP95MiB": 3912.0859375,
+                "sumContainerLifetimePeaksMiB": 6546.32421875,
+                "cpuP95Percent": 21.706847834788274,
+                "lifetimeThrottledUsec": 28034652,
+                "typescriptRssP95MiB": 2227.15234375,
+                "otherLanguageServersRssP95MiB": 771.18359375,
+                "extensionHostsRssP95MiB": 1035.48828125,
+                "watchersRssP95MiB": 398.5859375
+              }
+            ],
+            "medianRoundMetrics": {
+              "rssP95MiB": 5351.046875,
+              "pssP95MiB": 3610.0791015625,
+              "containerMemoryP95MiB": 3910.15234375,
+              "sumContainerLifetimePeaksMiB": 6612.96484375,
+              "cpuP95Percent": 21.706847834788274,
+              "lifetimeThrottledUsec": 28929375,
+              "typescriptRssP95MiB": 2212.8828125,
+              "otherLanguageServersRssP95MiB": 768.64453125,
+              "extensionHostsRssP95MiB": 1035.48828125,
+              "watchersRssP95MiB": 383.3203125
+            },
+            "tsserverCount": {
+              "minimum": 10,
+              "maximum": 10
+            }
+          }
+        },
+        "latencyMs": {
+          "editorReadyMs": {
+            "samples": 45,
+            "p50": 2604,
+            "p95": 9709
+          },
+          "completionMs": {
+            "samples": 45,
+            "p50": 323,
+            "p95": 2003
+          },
+          "diagnosticMs": {
+            "samples": 45,
+            "p50": 671,
+            "p95": 1441
+          },
+          "searchMs": {
+            "samples": 45,
+            "p50": 42,
+            "p95": 151
+          },
+          "quickOpenMs": {
+            "samples": 45,
+            "p50": 143,
+            "p95": 233
+          }
+        },
+        "hostLoad": {
+          "minimum": 12.9287109375,
+          "maximum": 121.7509765625
+        }
+      },
+      "optimized": {
+        "samples": 180,
+        "scenarios": {
+          "shared-workspace": {
+            "samples": 90,
+            "rounds": [
+              {
+                "rssP95MiB": 3894.3828125,
+                "pssP95MiB": 2600.390625,
+                "containerMemoryP95MiB": 2756.61328125,
+                "sumContainerLifetimePeaksMiB": 2799.734375,
+                "cpuP95Percent": 8.368486811661269,
+                "lifetimeThrottledUsec": 5182408,
+                "typescriptRssP95MiB": 1445.84765625,
+                "otherLanguageServersRssP95MiB": 786.41796875,
+                "extensionHostsRssP95MiB": 1038.87109375,
+                "watchersRssP95MiB": 396.52734375
+              },
+              {
+                "rssP95MiB": 3866.82421875,
+                "pssP95MiB": 2556.3583984375,
+                "containerMemoryP95MiB": 2852.640625,
+                "sumContainerLifetimePeaksMiB": 2859.48046875,
+                "cpuP95Percent": 9.155386740331492,
+                "lifetimeThrottledUsec": 4585341,
+                "typescriptRssP95MiB": 1411.0859375,
+                "otherLanguageServersRssP95MiB": 775.51953125,
+                "extensionHostsRssP95MiB": 1054.0546875,
+                "watchersRssP95MiB": 395.734375
+              },
+              {
+                "rssP95MiB": 3833.28125,
+                "pssP95MiB": 2571.947265625,
+                "containerMemoryP95MiB": 2758.7265625,
+                "sumContainerLifetimePeaksMiB": 2805.2890625,
+                "cpuP95Percent": 11.788894030541416,
+                "lifetimeThrottledUsec": 5261866,
+                "typescriptRssP95MiB": 1429.1484375,
+                "otherLanguageServersRssP95MiB": 787.84765625,
+                "extensionHostsRssP95MiB": 1015.23046875,
+                "watchersRssP95MiB": 391.69921875
+              }
+            ],
+            "medianRoundMetrics": {
+              "rssP95MiB": 3866.82421875,
+              "pssP95MiB": 2571.947265625,
+              "containerMemoryP95MiB": 2758.7265625,
+              "sumContainerLifetimePeaksMiB": 2805.2890625,
+              "cpuP95Percent": 9.155386740331492,
+              "lifetimeThrottledUsec": 5182408,
+              "typescriptRssP95MiB": 1429.1484375,
+              "otherLanguageServersRssP95MiB": 786.41796875,
+              "extensionHostsRssP95MiB": 1038.87109375,
+              "watchersRssP95MiB": 395.734375
+            },
+            "tsserverCount": {
+              "minimum": 5,
+              "maximum": 5
+            }
+          },
+          "independent-workspaces": {
+            "samples": 90,
+            "rounds": [
+              {
+                "rssP95MiB": 4597.36328125,
+                "pssP95MiB": 3040.77734375,
+                "containerMemoryP95MiB": 3407.3671875,
+                "sumContainerLifetimePeaksMiB": 5540.93359375,
+                "cpuP95Percent": 21.896239193961524,
+                "lifetimeThrottledUsec": 14971872,
+                "typescriptRssP95MiB": 1402.140625,
+                "otherLanguageServersRssP95MiB": 780.625,
+                "extensionHostsRssP95MiB": 1059.33984375,
+                "watchersRssP95MiB": 396.33984375
+              },
+              {
+                "rssP95MiB": 4563.83984375,
+                "pssP95MiB": 3001.9794921875,
+                "containerMemoryP95MiB": 3481.24609375,
+                "sumContainerLifetimePeaksMiB": 5741.59765625,
+                "cpuP95Percent": 17.95085275551393,
+                "lifetimeThrottledUsec": 11770664,
+                "typescriptRssP95MiB": 1390.828125,
+                "otherLanguageServersRssP95MiB": 787.25,
+                "extensionHostsRssP95MiB": 1038.890625,
+                "watchersRssP95MiB": 397.23828125
+              },
+              {
+                "rssP95MiB": 4572.05078125,
+                "pssP95MiB": 3015.9892578125,
+                "containerMemoryP95MiB": 3479.640625,
+                "sumContainerLifetimePeaksMiB": 5615,
+                "cpuP95Percent": 16.903894995172486,
+                "lifetimeThrottledUsec": 12420462,
+                "typescriptRssP95MiB": 1402.83984375,
+                "otherLanguageServersRssP95MiB": 775.9765625,
+                "extensionHostsRssP95MiB": 1046.78125,
+                "watchersRssP95MiB": 395.41796875
+              }
+            ],
+            "medianRoundMetrics": {
+              "rssP95MiB": 4572.05078125,
+              "pssP95MiB": 3015.9892578125,
+              "containerMemoryP95MiB": 3479.640625,
+              "sumContainerLifetimePeaksMiB": 5615,
+              "cpuP95Percent": 17.95085275551393,
+              "lifetimeThrottledUsec": 12420462,
+              "typescriptRssP95MiB": 1402.140625,
+              "otherLanguageServersRssP95MiB": 780.625,
+              "extensionHostsRssP95MiB": 1046.78125,
+              "watchersRssP95MiB": 396.33984375
+            },
+            "tsserverCount": {
+              "minimum": 5,
+              "maximum": 5
+            }
+          }
+        },
+        "latencyMs": {
+          "editorReadyMs": {
+            "samples": 45,
+            "p50": 2505,
+            "p95": 2913
+          },
+          "completionMs": {
+            "samples": 45,
+            "p50": 318,
+            "p95": 422
+          },
+          "diagnosticMs": {
+            "samples": 45,
+            "p50": 666,
+            "p95": 1219
+          },
+          "searchMs": {
+            "samples": 45,
+            "p50": 40,
+            "p95": 53
+          },
+          "quickOpenMs": {
+            "samples": 45,
+            "p50": 139,
+            "p95": 152
+          }
+        },
+        "hostLoad": {
+          "minimum": 10.68408203125,
+          "maximum": 109.7900390625
+        }
+      }
+    },
+    "changes": {
+      "shared-workspace": {
+        "rssP95MiB": {
+          "before": 4688.1875,
+          "after": 3866.82421875,
+          "reductionPercent": 17.5198470890936
+        },
+        "pssP95MiB": {
+          "before": 3178.1787109375,
+          "after": 2571.947265625,
+          "reductionPercent": 19.074806688062978
+        },
+        "containerMemoryP95MiB": {
+          "before": 3325.91015625,
+          "after": 2758.7265625,
+          "reductionPercent": 17.053485124490127
+        },
+        "sumContainerLifetimePeaksMiB": {
+          "before": 3390.89453125,
+          "after": 2805.2890625,
+          "reductionPercent": 17.26994052316118
+        },
+        "cpuP95Percent": {
+          "before": 18.12331797235023,
+          "after": 9.155386740331492,
+          "reductionPercent": 49.48283336252571
+        },
+        "lifetimeThrottledUsec": {
+          "before": 11054954,
+          "after": 5182408,
+          "reductionPercent": 53.121396977318945
+        },
+        "typescriptRssP95MiB": {
+          "before": 2221.13671875,
+          "after": 1429.1484375,
+          "reductionPercent": 35.65689021140991
+        },
+        "otherLanguageServersRssP95MiB": {
+          "before": 788.74609375,
+          "after": 786.41796875,
+          "reductionPercent": 0.29516786434164194
+        },
+        "extensionHostsRssP95MiB": {
+          "before": 1055.3671875,
+          "after": 1038.87109375,
+          "reductionPercent": 1.5630667643814729
+        },
+        "watchersRssP95MiB": {
+          "before": 393.30859375,
+          "after": 395.734375,
+          "reductionPercent": -0.6167628392940498
+        }
+      },
+      "independent-workspaces": {
+        "rssP95MiB": {
+          "before": 5351.046875,
+          "after": 4572.05078125,
+          "reductionPercent": 14.557826009513326
+        },
+        "pssP95MiB": {
+          "before": 3610.0791015625,
+          "after": 3015.9892578125,
+          "reductionPercent": 16.456421785685205
+        },
+        "containerMemoryP95MiB": {
+          "before": 3910.15234375,
+          "after": 3479.640625,
+          "reductionPercent": 11.010100909191717
+        },
+        "sumContainerLifetimePeaksMiB": {
+          "before": 6612.96484375,
+          "after": 5615,
+          "reductionPercent": 15.091035070195325
+        },
+        "cpuP95Percent": {
+          "before": 21.706847834788274,
+          "after": 17.95085275551393,
+          "reductionPercent": 17.303272717721974
+        },
+        "lifetimeThrottledUsec": {
+          "before": 28929375,
+          "after": 12420462,
+          "reductionPercent": 57.06626223345648
+        },
+        "typescriptRssP95MiB": {
+          "before": 2212.8828125,
+          "after": 1402.140625,
+          "reductionPercent": 36.63737559532426
+        },
+        "otherLanguageServersRssP95MiB": {
+          "before": 768.64453125,
+          "after": 780.625,
+          "reductionPercent": -1.5586487983615638
+        },
+        "extensionHostsRssP95MiB": {
+          "before": 1035.48828125,
+          "after": 1046.78125,
+          "reductionPercent": -1.0905935831902973
+        },
+        "watchersRssP95MiB": {
+          "before": 383.3203125,
+          "after": 396.33984375,
+          "reductionPercent": -3.3965148272699484
+        }
+      }
+    },
+    "evidence": [
+      {
+        "file": "baseline/round-1/result.json",
+        "sha256": "197279e89a098d85a9ab7008377c67fe05ce94fb8d79a0f88a3b20456cbb0c28"
+      },
+      {
+        "file": "baseline/round-2/result.json",
+        "sha256": "aea03fbe3026e473736ebe6fd9555a414c77b4f2ad3451a1db4170e3223af6ae"
+      },
+      {
+        "file": "baseline/round-3/result.json",
+        "sha256": "2f9501a4b57fe354af00804436a87fac016edf2d659e6b27d7d00d8aba883694"
+      },
+      {
+        "file": "optimized/round-1/result.json",
+        "sha256": "23e01ae281b5a50b838e77f3d17e5ecfc8b42413442b1ef4523487088531866f"
+      },
+      {
+        "file": "optimized/round-2/result.json",
+        "sha256": "2078321900e867effdaad59bfa1c0bd51e014cdde908dfe35ceb7680bc5c7f14"
+      },
+      {
+        "file": "optimized/round-3/result.json",
+        "sha256": "11c52b334745541811366b02df14a891425feaacfa727fc43079d341663ccdfe"
+      }
+    ],
+    "interpretation": "前后同一探针、各三轮交替顺序；内存取每轮 P95 的中位数。RSS、PSS 与容器实际内存分开。CPU 单位为一个逻辑核的百分比，包含采样开销；延迟包含真实 UI 操作。外部主机负载必须一并评估，不据此自动承诺稳定容量。"
+  },
+  "rawEvidenceDirectory": "output/runtime-profiles/runtime-memory-20261025/",
+  "qualification": "两版各三轮交替，360 份样本与 90 次真实页面功能检查通过；小型 TypeScript 夹具、每机 4 CPU/4 GiB、70 个内置扩展、无 AI 请求。内存为操作完成后的驻留状态，独立场景为五台合计。主机负载未受控、旁路观察存在换页；RSS/PSS/容器内存不含相同范围，不构成默认 2 GiB、大型仓库、持续重负载或安静主机的稳定容量保证。",
+  "excludedAttempts": [
+    {
+      "directory": "comparison-failed-attempt-1/",
+      "samples": 60,
+      "unexpectedBrowserErrors": 12,
+      "reason": "补全文档行号竞态，整轮失败",
+      "cleanupPass": true
+    },
+    {
+      "directory": "comparison-failed-attempt-2/",
+      "samples": 30,
+      "unexpectedBrowserErrors": 0,
+      "reason": "独立场景文件弹层提前关闭后超时，整轮失败；关闭原因未确定",
+      "cleanupPass": true
+    },
+    {
+      "directory": "comparison-failed-attempt-3/",
+      "samples": 90,
+      "unexpectedBrowserErrors": 0,
+      "reason": "基线完整通过，优化版在独立场景选择文件时弹层消失，整组失败；鼠标路径关闭原因未确定",
+      "cleanupPass": true
+    },
+    {
+      "directory": "comparison-failed-attempt-4/",
+      "samples": 0,
+      "unexpectedBrowserErrors": 0,
+      "reason": "探针错误要求目标文件仅有一条结果，实际同时有最近打开和搜索结果；已修正首项文件名校验",
+      "cleanupPass": true
+    },
+    {
+      "directory": "comparison-failed-attempt-5/",
+      "samples": 30,
+      "unexpectedBrowserErrors": 0,
+      "reason": "共享场景通过，重连Dave等待实际函数补全超时；进程存活、OOM为零，继续协议诊断",
+      "cleanupPass": true
+    }
+  ],
+  "diagnostics": {
+    "directTsserverProtocol": {
+      "file": "tsserver-protocol-probe.json",
+      "pass": true,
+      "processes": 5,
+      "completionMs": [5916, 5849, 5821, 5814, 5772],
+      "scope": "独立协议进程，不能替代浏览器验收"
+    },
+    "browserProtocolCapture": {
+      "functionalPass": true,
+      "samples": 60,
+      "unexpectedBrowserErrors": 0,
+      "finalCaptureComplete": false,
+      "scope": "旧R2带日志诊断，不参与性能统计；最终收集器错误已修正，实时捕获日志与缺失说明单独保留"
+    }
+  },
+  "startedAt": "2026-10-25T14:44:50.988Z",
+  "finishedAt": "2026-10-25T15:41:14.872Z",
+  "buildBaseImage": {
+    "name": "opensumi-webide-workspace:memory-baseline-r2-20261025",
+    "id": "sha256:01863e2c670914a2029cd1edc60ece22ea6ac79370f9c6acd4993b7dc22f5690",
+    "scope": "只作为两版共同工具与扩展基底，正式 R3 两版重新冻结安装、完整构建并校验清单；R2 样本不参与统计"
+  },
+  "roundVerification": [
+    {
+      "variant": "baseline",
+      "round": 1,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T14:44:56.760Z",
+      "finishedAt": "2026-10-25T14:59:28.596Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": true,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    },
+    {
+      "variant": "baseline",
+      "round": 2,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T15:16:51.058Z",
+      "finishedAt": "2026-10-25T15:24:48.494Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": null,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    },
+    {
+      "variant": "baseline",
+      "round": 3,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T15:24:49.499Z",
+      "finishedAt": "2026-10-25T15:32:56.796Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": null,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    },
+    {
+      "variant": "optimized",
+      "round": 1,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T14:59:29.841Z",
+      "finishedAt": "2026-10-25T15:08:52.385Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": true,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    },
+    {
+      "variant": "optimized",
+      "round": 2,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T15:08:53.451Z",
+      "finishedAt": "2026-10-25T15:16:50.110Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": null,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    },
+    {
+      "variant": "optimized",
+      "round": 3,
+      "pass": true,
+      "samples": 60,
+      "startedAt": "2026-10-25T15:32:57.881Z",
+      "finishedAt": "2026-10-25T15:40:54.142Z",
+      "measurements": 15,
+      "localMonacoWorkers": 15,
+      "counts": {
+        "tsserver": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "typingsInstaller": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "otherLanguageServers": {
+          "minimum": 10,
+          "maximum": 10
+        },
+        "extensionHosts": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "watchers": {
+          "minimum": 5,
+          "maximum": 5
+        },
+        "opencode": {
+          "minimum": 0,
+          "maximum": 0
+        }
+      },
+      "controlPlane": null,
+      "unexpectedBrowserErrors": 0,
+      "cleanupErrors": [],
+      "harnessChanged": false
+    }
+  ],
+  "cleanup": {
+    "runName": "webide-acceptance-94eeb4c11dc0",
+    "timestamp": "2026-10-25T15:41:14.872Z",
+    "pass": true,
+    "containers": "",
+    "volumes": "",
+    "networks": "",
+    "contextPresent": false,
+    "temporaryImages": [],
+    "evidence": "comparison/cleanup/webide-acceptance-94eeb4c11dc0/cleanup.json",
+    "sha256": "70ac26bdbbc590946396afb0e3e11d2b704959d2105c6309896f2ce31e10b9ba"
+  },
+  "swapObservations": {
+    "startedAt": "2026-10-25T14:59:50.835Z",
+    "finishedAt": "2026-10-25T15:41:02.501Z",
+    "polls": 1153,
+    "errors": 0,
+    "observedContainers": 29,
+    "maximumObservedSingleContainerLifetimePeakBytes": 67489792,
+    "coverageComplete": false,
+    "method": "从专属 daemon 的父 cgroup 读取，不在受测容器创建采样进程；是补充观察，不是原始逐样本字段。启动前的第一共享阶段另有历史峰值快照；容器删除前最后一次观察之后的变化可能未覆盖。"
+  },
+  "rawEvidenceIndex": {
+    "file": "proof-index.json",
+    "files": 422,
+    "sha256": "ac8492b7c79dd6a47ad38729477d5c81267da3c73f75b4fad5d32ea46776a58c",
+    "excludes": ["rebuild-sources/", "proof-index.json"],
+    "comparisonSummarySha256": "da3ace121282517bfcec24fa41efdc1c33b742a246edb253a13bc7ceef2e5670"
+  }
+}
