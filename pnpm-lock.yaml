@@ -1018,8 +1018,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.24(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-virtuoso:
-        specifier: ^3.1.5
-        version: 3.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^4.18.19
+        version: 4.18.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-window:
         specifier: ^1.8.5
         version: 1.8.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2739,8 +2739,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.24(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-virtuoso:
-        specifier: ^3.1.5
-        version: 3.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^4.18.19
+        version: 4.18.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -7194,15 +7194,6 @@ packages:
     resolution: {integrity: sha512-nAB74NfSNKknqQ1RrYj6uz8FcXEomu/MATJZxh/x+BArzN2U3JbOYC0APYzUIGhVY3m5hRxA8VPNdPBoG8txlA==}
     cpu: [x64]
     os: [win32]
-
-  '@virtuoso.dev/react-urx@0.2.13':
-    resolution: {integrity: sha512-MY0ugBDjFb5Xt8v2HY7MKcRGqw/3gTpMlLXId2EwQvYJoC8sP7nnXjAxcBtTB50KTZhO0SbzsFimaZ7pSdApwA==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      react: '>=16'
-
-  '@virtuoso.dev/urx@0.2.13':
-    resolution: {integrity: sha512-iirJNv92A1ZWxoOHHDYW/1KPoi83939o83iUBQHIim0i3tMeSKEh+bxhJdTHQ86Mr4uXx9xGUTq69cp52ZP8Xw==}
 
   '@vscode/codicons@0.0.35':
     resolution: {integrity: sha512-7iiKdA5wHVYSbO7/Mm0hiHD3i4h+9hKUe1O4hISAe/nHhagMwb2ZbFC8jU6d7Cw+JNT2dWXN2j+WHbkhT5/l2w==}
@@ -13435,12 +13426,11 @@ packages:
       react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
       react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
 
-  react-virtuoso@3.1.5:
-    resolution: {integrity: sha512-Dwf7SGr73UAahfcQNIND+c+MtCb0PeHu+QTZ5ptR7oXxQkupfHXEKGwEDF5lDkLqdGxm+yH4uh/IFCqMKxudJw==}
-    engines: {node: '>=10'}
+  react-virtuoso@4.18.19:
+    resolution: {integrity: sha512-dewyZisA5IiQTldh7eHM5KpI+qxi0nKRVYi2iM01XmPkNa5tjvVUKJKAIc6ted1hAK1/NFlXuhXpVYqGHHdcdQ==}
     peerDependencies:
-      react: '>=16 || >=17 || >= 18'
-      react-dom: '>=16 || >=17 || >= 18'
+      react: '>=16 || >=17 || >= 18 || >= 19'
+      react-dom: '>=16 || >=17 || >= 18 || >=19'
 
   react-window@1.8.10:
     resolution: {integrity: sha512-Y0Cx+dnU6NLa5/EvoHukUD0BklJ8qITCtVEPY1C/nL8wwoZ0b5aEw8Ff1dOVHw7fCzMt55XfJDd8S8W8LCaUCg==}
@@ -19057,13 +19047,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
-
-  '@virtuoso.dev/react-urx@0.2.13(react@18.3.1)':
-    dependencies:
-      '@virtuoso.dev/urx': 0.2.13
-      react: 18.3.1
-
-  '@virtuoso.dev/urx@0.2.13': {}
 
   '@vscode/codicons@0.0.35': {}
 
@@ -26856,10 +26839,8 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       react-lifecycles-compat: 3.0.4
 
-  react-virtuoso@3.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-virtuoso@4.18.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      '@virtuoso.dev/react-urx': 0.2.13(react@18.3.1)
-      '@virtuoso.dev/urx': 0.2.13
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
