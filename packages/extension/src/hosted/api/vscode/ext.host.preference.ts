@@ -61,6 +61,45 @@ function lookUp(tree: any, key: string): any {
   return node;
 }
 
+/** 副本只拥有当前配置值，返回对象不通过闭包保留整棵配置树。 */
+function copyOnWriteConfigurationValue(value: any): any {
+  let snapshot: any;
+  const at = (properties: PropertyKey[]) => properties.reduce((target, property) => target[property], snapshot);
+  const writable = (properties: PropertyKey[]) => {
+    snapshot ||= cloneDeep(value);
+    return at(properties);
+  };
+  const wrap = (target: any, properties: PropertyKey[]): any => {
+    if (!isObject(target)) {
+      return target;
+    }
+    return new Proxy(target, {
+      get: (_target, property) => {
+        if (typeof property === 'string' && property.toLowerCase() === 'tojson') {
+          const copy = writable(properties);
+          return () => copy;
+        }
+        const current = snapshot ? at(properties) : target;
+        const result = current[property];
+        return typeof property === 'string' ? wrap(result, [...properties, property]) : result;
+      },
+      set: (_target, property, nextValue) => {
+        writable(properties)[property] = nextValue;
+        return true;
+      },
+      deleteProperty: (_target, property) => {
+        delete writable(properties)[property];
+        return true;
+      },
+      defineProperty: (_target, property, descriptor) => {
+        Object.defineProperty(writable(properties), property, descriptor);
+        return true;
+      },
+    });
+  };
+  return wrap(value, []);
+}
+
 export class ExtHostPreference implements IExtHostPreference {
   private proxy: IMainThreadPreference;
   private _preferences: Configuration;
@@ -68,7 +107,10 @@ export class ExtHostPreference implements IExtHostPreference {
   private readonly _onDidChangeConfiguration = new Emitter<ConfigurationChangeEvent>();
   readonly onDidChangeConfiguration: Event<ConfigurationChangeEvent> = this._onDidChangeConfiguration.event;
 
-  constructor(rpcProtocol: IRPCProtocol, private readonly workspace: IExtHostWorkspace) {
+  constructor(
+    rpcProtocol: IRPCProtocol,
+    private readonly workspace: IExtHostWorkspace,
+  ) {
     this.rpcProtocol = rpcProtocol;
     this.proxy = this.rpcProtocol.getProxy(MainThreadAPIIdentifier.MainThreadPreference);
   }
@@ -174,54 +216,7 @@ export class ExtHostPreference implements IExtHostPreference {
         if (typeof result === 'undefined') {
           return defaultValue;
         } else {
-          let clonedConfig: any;
-          const cloneOnWriteProxy = (target: any, accessor: string): any => {
-            let clonedTarget: any;
-            const cloneTarget = () => {
-              clonedConfig = clonedConfig ? clonedConfig : cloneDeep(preferences);
-              clonedTarget = clonedTarget ? clonedTarget : lookUp(clonedConfig, accessor);
-            };
-            if (!isObject(target)) {
-              return target;
-            }
-            return new Proxy(target, {
-              get: (targ: any, prop: string) => {
-                if (typeof prop === 'string' && prop.toLowerCase() === 'tojson') {
-                  cloneTarget();
-                  // 当调用过配置对象的toJSON方法后，会固化某一份配置的配置值
-                  // 从而保障在某些情况下插件的配置值不被外部改变
-                  return () => clonedTarget;
-                }
-                if (clonedConfig) {
-                  // 当存在克隆过的配置对象时，直接从缓存对象中获取属性值
-                  clonedTarget = clonedTarget ? clonedTarget : lookUp(clonedConfig, accessor);
-                  return clonedTarget[prop];
-                }
-
-                const res = targ[prop];
-                if (typeof prop === 'string') {
-                  return cloneOnWriteProxy(res, `${accessor}.${prop}`);
-                }
-                return res;
-              },
-              set: (targ: any, prop: string, val: any) => {
-                cloneTarget();
-                clonedTarget[prop] = val;
-                return true;
-              },
-              deleteProperty: (targ: any, prop: string) => {
-                cloneTarget();
-                delete clonedTarget[prop];
-                return true;
-              },
-              defineProperty: (targ: any, prop: string, descr: any) => {
-                cloneTarget();
-                Object.defineProperty(clonedTarget, prop, descr);
-                return true;
-              },
-            });
-          };
-          return cloneOnWriteProxy(result, key);
+          return copyOnWriteConfigurationValue(result);
         }
       },
       update: (key: string, value: any, arg?: ConfigurationTarget | boolean): PromiseLike<void> => {

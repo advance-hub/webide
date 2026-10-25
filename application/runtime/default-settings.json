@@ -6,6 +6,7 @@
   "xml.server.vmargs": "-Xmx128m",
   "liveServer.settings.NoBrowser": true,
   "git.autofetch": false,
+  "typescript.tsserver.useSyntaxServer": "never",
   "git.enableStatusBarSync": true,
   "git.showActionButton": {
     "commit": true,
