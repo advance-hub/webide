@@ -366,6 +366,7 @@ async function processTree(workspace: Workspace, containers?: Map<string, Contai
     assert(snapshot.container.available, `无法读取容器计数器：${snapshot.container.error}`);
     assert.equal(snapshot.container.memoryMaxBytes, 4 * 1024 ** 3, '容器计数器必须来自受限的本轮开发机');
     assert.equal(snapshot.container.oomKills, 0, '容器发生 OOM，不能将本轮标记为容量通过');
+    assert.equal(snapshot.container.oomEvents, 0, '容器出现分配失败，不能将本轮标记为容量通过');
     containers.set(workspace.id, snapshot.container);
   }
   const rows = snapshot.processes;
@@ -417,11 +418,21 @@ async function measure(scenario: string, round: number, workspaces: Workspace[])
     {
       const trees = samples.at(-1)!.processes as Array<Array<{ command: string }>>;
       for (const tree of trees) {
+        const clients = scenario === 'shared-workspace' ? 5 : 1;
         assert.equal(
           tree.filter((row) => /\/ext\.process\.js(?: |$)/.test(row.command)).length,
-          scenario === 'shared-workspace' ? 5 : 1,
+          clients,
           '每个独立浏览器必须拥有实际扩展宿主，不能以未激活的空连接测量容量',
         );
+        const tsservers = tree.filter((row) => /\/tsserver\.js(?: |$)/.test(row.command)).length;
+        assert(tsservers >= clients, '每个连接的语义服务在整个采样期间都必须存活');
+        if (comparisonVariant === 'baseline' || comparisonVariant === 'optimized') {
+          assert.equal(
+            tsservers,
+            clients * (comparisonVariant === 'baseline' ? 2 : 1),
+            '对照必须使用预期的语言服务拓扑',
+          );
+        }
         assert.equal(
           tree.filter((row) => /(?:^|\/)opencode(?: |$)/.test(row.command)).length,
           0,

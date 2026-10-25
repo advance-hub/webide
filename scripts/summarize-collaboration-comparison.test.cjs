@@ -40,6 +40,7 @@ function fixture(t) {
             processes: [[{ command: '/node/tsserver.js --flag', rssKiB: amount * 1024 }]],
             containers: Array.from({ length: scenario === 'shared-workspace' ? 1 : 5 }, () => ({
               available: true,
+              oomEvents: 0,
               memoryMaxBytes: 4 * 1024 ** 3,
               oomKills: 0,
               memoryCurrentBytes: amount * 1024 ** 2,
@@ -97,6 +98,9 @@ test('失败、探针变化、缺失 CPU 区间或未回收均拒绝发布统计
     },
     (record) => {
       record.samples[0].containers[0].oomKills = 1;
+    },
+    (record) => {
+      record.samples[0].containers[0].oomEvents = 1;
     },
   ]) {
     const value = structuredClone(first.record);

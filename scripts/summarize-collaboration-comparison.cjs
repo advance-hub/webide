@@ -53,6 +53,7 @@ function summarizeComparison(root) {
             assert.equal(container.available, true);
             assert.equal(container.memoryMaxBytes, 4 * 1024 ** 3);
             assert.equal(container.oomKills, 0);
+            assert.equal(container.oomEvents, 0);
             assert(Number.isFinite(container.memoryCurrentBytes) && container.memoryCurrentBytes > 0);
           }
           assert(Number.isFinite(sample.rssMiB) && sample.rssMiB > 0);
