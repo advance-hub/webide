@@ -63,11 +63,11 @@ async function quickOpenFile(page: Page, filename: string): Promise<number> {
       `Quick Open ${filename}: 弹层提前关闭，第 ${closed} 次重新打开，耗时 ${Date.now() - started} ms\n`,
     );
   }
-  // 精确文件名应只有一项；使用 Quick Open 的键盘确认路径，避免鼠标与异步焦点恢复竞争。
+  // 最近打开和文件搜索可能同时返回目标文件；回车前核对首个可选项，最终仍校验实际标签和全文。
   await page.waitForFunction(
     (name) => {
       const rows = document.querySelectorAll('quick-open-container [id="opensumi-quickpick-item"]');
-      return rows.length === 1 && rows[0].getAttribute('aria-label') === name;
+      return rows.length > 0 && rows[0].getAttribute('aria-label') === name;
     },
     filename,
     { timeout: Math.max(1, deadline - Date.now()) },
