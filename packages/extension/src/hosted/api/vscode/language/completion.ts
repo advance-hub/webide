@@ -27,7 +27,7 @@ export class CompletionAdapter {
   private cache = new Cache<{
     item: vscode.CompletionItem;
     resource: URI;
-    position: Position;
+    ranges: { inserting: vscode.Range; replacing: vscode.Range };
   }>('CompletionItem');
   private toDispose = new Map<number, DisposableStore>();
 
@@ -47,20 +47,34 @@ export class CompletionAdapter {
     context: CompletionContext,
     token: vscode.CancellationToken,
   ) {
-    const { doc, pos, replacing, inserting } = await this.getInsertOrReplace(resource, position);
+    const request = this.getInsertOrReplace(resource, position);
+    if (!request || !this.isCurrent(request.doc, request.version, token)) {
+      return undefined;
+    }
+    const { doc, pos, replacing, inserting, version } = request;
 
     const perf = getPerformance();
     const startTime = perf ? perf.now() : 0;
-    const itemOrList = await this.delegate.provideCompletionItems(doc, pos, token, context);
+    let itemOrList: vscode.CompletionItem[] | vscode.CompletionList | null | undefined;
+    try {
+      itemOrList = await this.delegate.provideCompletionItems(doc, pos, token, context);
+    } catch (error) {
+      // 提供者等待期间文档可能缩短或关闭，旧位置的错误随请求失效；当前请求的真实错误仍传播。
+      if (!this.isCurrent(doc, version, token)) {
+        return undefined;
+      }
+      throw error;
+    }
     const duration = perf ? Math.round(perf.now() - startTime) : 0;
-    if (!itemOrList) {
+    if (!itemOrList || !this.isCurrent(doc, version, token)) {
       return undefined;
     }
 
     const isIncomplete = Array.isArray(itemOrList) ? false : itemOrList.isIncomplete;
     const list = Array.isArray(itemOrList) ? new CompletionList(itemOrList) : itemOrList;
+    const ranges = { inserting, replacing };
     const pid = CompletionAdapter.supportsResolving(this.delegate)
-      ? this.cache.add(list.items.map((e: vscode.CompletionItem) => ({ item: e, resource, position })))
+      ? this.cache.add(list.items.map((e: vscode.CompletionItem) => ({ item: e, resource, ranges })))
       : this.cache.add([]);
 
     const disposables = new DisposableStore();
@@ -96,36 +110,34 @@ export class CompletionAdapter {
       return undefined;
     }
 
-    const { item, resource, position } = _cache;
-
-    let inserting;
-    let replacing;
-
-    if (resource && position) {
-      const _ = await this.getInsertOrReplace(resource, position);
-      inserting = _.inserting;
-      replacing = _.replacing;
+    const { item, resource, ranges } = _cache;
+    const doc = this.documents.getDocumentData(resource)?.document;
+    if (!doc || doc.isClosed || token.isCancellationRequested) {
+      return undefined;
     }
-
-    const convertItem = this.convertCompletionItem(item, id, inserting, replacing);
+    const version = doc.version;
+    const { inserting, replacing } = ranges;
 
     if (typeof this.delegate.resolveCompletionItem !== 'function') {
-      return convertItem;
+      return this.convertCompletionItem(item, id, inserting, replacing);
     }
 
     try {
       const resolvedItem = await this.delegate.resolveCompletionItem(item, token);
-
-      if (!resolvedItem) {
-        return convertItem;
+      // 完整列表会在继续输入时复用；成功的详情解析不因正常版本变化而失效。
+      if (doc.isClosed || token.isCancellationRequested) {
+        return undefined;
       }
-
-      return this.convertCompletionItem(resolvedItem, id);
+      // 确定返回值后只转换一次，避免为未使用的回退项重复注册命令和释放资源。
+      return resolvedItem
+        ? this.convertCompletionItem(resolvedItem, id)
+        : this.convertCompletionItem(item, id, inserting, replacing);
     } catch (error) {
-      new Error(`Delegate.resolveCompletionItem error: ${error}`);
+      if (!this.isCurrent(doc, version, token)) {
+        return undefined;
+      }
+      throw error;
     }
-
-    return convertItem;
   }
 
   async releaseCompletionItems(id: number) {
@@ -138,17 +150,25 @@ export class CompletionAdapter {
     return Promise.resolve();
   }
 
-  private async getInsertOrReplace(resource: URI, position: Position) {
+  private isCurrent(document: vscode.TextDocument, version: number, token: vscode.CancellationToken): boolean {
+    return !token.isCancellationRequested && !document.isClosed && document.version === version;
+  }
+
+  private getInsertOrReplace(resource: URI, position: Position) {
     const document = this.documents.getDocumentData(resource);
-    if (!document) {
-      return Promise.reject(new Error(`There are no document for  ${resource}`));
+    if (!document || document.document.isClosed) {
+      return undefined;
     }
 
     const doc = document.document;
     const pos = Converter.toPosition(position);
+    const validPosition = doc.validatePosition(pos);
+    if (pos.line !== validPosition.line || pos.character !== validPosition.character) {
+      return undefined;
+    }
     const replacing = doc.getWordRangeAtPosition(pos) || new Range(pos, pos);
     const inserting = replacing.with({ end: pos });
-    return { inserting, replacing, doc, pos };
+    return { inserting, replacing, doc, pos, version: doc.version };
   }
 
   private convertRange(
