@@ -32,24 +32,31 @@ OpenSandbox 的代理会过滤 `Authorization`，托管协同使用控制面覆�
 
 ACP Agent 默认按需启动，`ai-native.acp.backgroundStartup` 默认为 `false`。打开 IDE 不再为了预热和查询历史会话启动 OpenCode；首次发送请求或显式打开历史仍启动 Agent。需要后台预热时可在设置中启用该选项。本轮内存夹具没有发送 AI 请求或打开历史，必须核对实际进程树中没有 OpenCode；结果不包含五人同时使用 AI 的额外占用。
 
+托管运行时默认使用一个 TypeScript Server 同时处理语法与语义，每个连接仍拥有自己的服务和扩展宿主。`typescript.tsserver.useSyntaxServer=never` 不关闭类型检查或补全；已有的显式用户设置保持原值。配置快照按请求值复制，不再因保留小配置对象而保留整个配置根。前后镜像、采样边界和复现命令见[启动与五人内存对照](RUNTIME-PERFORMANCE-20261025.md)。
+
 协同 RPC 连接单独持有文档引用，销毁时释放自身租约，迟到的磁盘加载立即退租。共享房间仍保留既有文档数量、单文件、消息缓冲和 CRDT 状态上限；这些是应用边界，不能当作整个 IDE 的 RSS 上限。外部程序修改已有文件的完整冲突合并、长期大量离线编辑和崩溃后的未保存内容持久化不在本轮验收范围。
 
 ## 真实验收入口
 
 ```sh
 WEBIDE_ACCEPTANCE_SUITE=collaboration \
-WEBIDE_ACCEPTANCE_PREFLIGHT=1 \
 WEBIDE_ACCEPTANCE_PLATFORM=linux/arm64 \
-WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:collaboration-worker-byte-20261003 \
-WEBIDE_ACCEPTANCE_OUTPUT=output/runtime-profiles/collaboration-20261002/result.json \
+WEBIDE_ACCEPTANCE_IMAGE=opensumi-webide-workspace:memory-baseline-r3-20261025 \
+WEBIDE_ACCEPTANCE_COMPARE_IMAGE=opensumi-webide-workspace:memory-optimized-r3-20261025 \
+WEBIDE_ACCEPTANCE_COMPARISON_ROUNDS=3 \
+WEBIDE_ACCEPTANCE_COMPARISON_OUTPUT=output/runtime-profiles/runtime-memory-20261025/comparison \
+WEBIDE_ACCEPTANCE_EVIDENCE_DIR=output/runtime-profiles/runtime-memory-20261025/comparison/cleanup \
 bash scripts/run-local-sandbox-acceptance.sh
+
+node scripts/summarize-collaboration-comparison.cjs \
+  output/runtime-profiles/runtime-memory-20261025/comparison
 ```
 
 入口使用固定版本官方 OpenSandbox Server/execd、独立 Docker daemon、回环随机端口和测试账户；不会切换默认 Docker context。测试账户由验收入口创建，外部 GitLab 登录不包含在该探针中。
 
 入口默认读取工作区镜像的架构，也可显式设置 `WEBIDE_ACCEPTANCE_PLATFORM=linux/amd64|linux/arm64`；官方 Server、execd 和 SDK 创建参数使用同一架构。上面的本轮镜像在 ARM 主机上原生运行。构建与注册表的本机代理配置属于测试环境，不是运行时版本变更。
 
-`WEBIDE_ACCEPTANCE_PREFLIGHT=1` 在同一隔离环境先完成原有六阶段控制面回归，分别保存结果；省略时只运行协同探针。默认三轮，调试时可使用 `WEBIDE_COLLABORATION_ROUNDS=1`。探针为每个沙箱配置 4 CPU / 4 GiB 上限，上限不代表实际占用，也不代表默认 2 GiB 配置已覆盖五人大型仓库。
+对照模式默认在每个版本首次运行时完成六阶段控制面回归，每次运行包含共享与独立两个场景；两版各三轮，共 360 份样本。单镜像模式可以省略 `WEBIDE_ACCEPTANCE_COMPARE_IMAGE`，使用 `WEBIDE_ACCEPTANCE_OUTPUT` 指定结果路径；此模式通过 `WEBIDE_ACCEPTANCE_PREFLIGHT=1` 开启控制面回归，默认三轮，调试时可使用 `WEBIDE_COLLABORATION_ROUNDS=1`。探针为每个沙箱配置 4 CPU / 4 GiB 上限，上限不代表实际占用，也不代表默认 2 GiB 配置已覆盖五人大型仓库。
 
 浏览器通过实际工作台邀请、认证入口和 Monaco 键盘操作完成编辑；完整文档由全选复制读取，再与真实磁盘文件核对，不向生产页面添加调试命令入口。终端命令通过浏览器输入，并核对真实磁盘回执，避免依赖 xterm 的渲染器文本结构。覆盖五人并发编辑、撤销重做保留他人编辑、离线重连、刷新、成员撤销、独立开发机隔离、五个活跃浏览器及终端下的 Server 停止。运行结束释放本轮沙箱、卷、浏览器和临时工作目录。
 
@@ -59,9 +66,9 @@ bash scripts/run-local-sandbox-acceptance.sh
 
 每种场景三轮：五人共享一个工作区，以及五人分别拥有独立工作区。预热 30 秒后采集 30 份进程树样本，记录每轮 P95 和三轮中位数。测量仅包括 IDE Server 的后代进程，不含 Chromium、控制面验收入口与 OpenSandbox 守护进程。镜像提供内置扩展，夹具为 100 个小型 TypeScript 文件；结果不能直接外推到 Java、大型仓库或构建任务，也不能与历史 OpenSumi 整仓实验相减来宣称内存降幅。
 
-顺序固定为共享工作区三轮，再独立工作区三轮；各轮关闭并重新打开浏览器，场景内复用运行实例。主机负载逐样本保存，当前数据不用于吞吐或延迟对照。每份样本都核对扩展宿主数量和空闲 OpenCode 进程数；连接掉线或后台 Agent 被启动时不能给出本轮容量结论。主动断网、刷新、撤权及关闭期间的 RPC 关闭单独标记，原始浏览器错误全部保留；启动超时和正常在线期间的错误仍使验收失败。
+对照模式按基线/优化、优化/基线、基线/优化交替，每次重新创建账户、项目和开发机；每次先共享、再独立。单镜像历史模式固定先共享三轮、再独立三轮。主机负载逐样本保存，不能将外部负载下的 UI 延迟解释为服务内部耗时。每份样本核对扩展宿主、TypeScript Server 和空闲 OpenCode 进程数，同时保存 PSS、容器内存、CPU 与 OOM 计数；连接掉线、发生 OOM 或后台 Agent 被启动时不能给出本轮容量结论。主动断网、刷新、撤权及关闭期间的 RPC 关闭单独标记，原始浏览器错误全部保留；启动超时和正常在线期间的错误仍使验收失败。
 
-探针启动时保存自身和浏览器辅助文件的 SHA-256，结束时再次核对；运行中发生修改时本轮标记失败。清理失败也保存到结果中，不能用已完成的编辑步骤替代资源释放验收。
+探针启动时保存自身、浏览器和采样辅助文件的 SHA-256，结束时再次核对；运行中发生修改时本轮标记失败。外层清理后重新查询 Docker daemon，验证专属容器、卷、网络、context 和临时镜像已不存在，查询失败不能视为已回收。汇总要求六次完整通过、探针一致、零非预期浏览器错误及清理通过，不能用已完成的编辑步骤替代资源释放验收。
 
 失败保留浏览器截图、页面正文、容器资源与 OOM 计数、实际进程树和 IDE 日志。运行计划握手阻断页面还通过自身的诊断按钮保存错误原因与关联标识，避免仅凭错误代码推断版本不一致。
 
@@ -70,6 +77,16 @@ bash scripts/run-local-sandbox-acceptance.sh
 采样前必须得到就绪状态及合法 Server 根 PID；查询失败直接保留为失败，不跳过样本。失败后从本轮容器内再次查询 `/readyz`，同时保存进程表与资源状态，辅助区分代理查询失败、进程退出和内存压力，不据一次容器内成功响应将原失败改为通过。
 
 RSS 合计包含进程间重复计入的共享页，不能当作 PSS 或容器 cgroup 总内存；Docker 缓存、文件页缓存和守护进程另占内存。采样必须检查实际扩展宿主数量，五人共享有五个扩展宿主，每台独立开发机有一个。离线探针先逐份核对文档隔离，再恢复网络核对合并后的完整内容。
+
+## 2026-10-25 完整对照结果
+
+优化前后各三轮、共享与独立两个场景均通过，共 360 份内存样本、90 次实际页面检查。非预期浏览器错误为 0，采样容器 OOM 为 0，六次运行的探针摘要一致；五个活跃浏览器及终端下停止共享 Server、五台独立 Server 并回收采样进程全部通过。每版首次运行的六阶段控制面回归通过，外层测试容器、卷、网络、Docker context 及临时升级镜像已实际查询确认释放。
+
+每轮 P95 的三轮中位数：共享工作区 RSS 为 4,688.2 → 3,866.8 MiB（降低 17.5%），PSS 为 3,178.2 → 2,571.9 MiB；五台独立工作区合计 RSS 为 5,351.0 → 4,572.1 MiB（降低 14.6%），PSS 为 3,610.1 → 3,016.0 MiB。容器含缓存内存分别为 3,325.9 → 2,758.7 MiB、3,910.2 → 3,479.6 MiB。
+
+两版保留相同 70 个扩展和共同可靠性修复，只比较配置快照与单 TypeScript 服务默认值。所有样本均保留五个扩展宿主、十个其他语言服务、五个类型安装器和五个每连接 watcher；tsserver 从十个降至五个。使用小型 TypeScript 夹具、4 CPU / 4 GiB 容器，操作完成后采样，没有 AI 请求。采样主机负载为 10.7–121.8，旁路观察存在换页，因此完整功能验收通过仍不等于稳定容量保证。
+
+实现、原始分轮数据、延迟与 CPU 边界、失败记录和重跑方法见[完整报告](RUNTIME-PERFORMANCE-20261025.md)，精确值与证据索引摘要见[验收 JSON](runtime-memory-acceptance-20261025.json)。本轮修复了源码扩展宿主的启动超时，未延长原 15 秒期限；最终框架全量 4,793 项通过、57 项既有跳过。以下 10 月 3 日记录保持原结论，不能与本轮新基线直接相减。
 
 ## 2026-10-03 收尾结果
 
