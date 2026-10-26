@@ -40,7 +40,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           bash tools/playwright/scripts/wait.sh
           pnpm --dir tools/playwright ui-tests-ci
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: browser-acceptance
