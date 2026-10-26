@@ -21,7 +21,7 @@ jobs:
     env:
       IMAGE_TAG: ${{ inputs.tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Validate tag
         run: node -e "if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/.test(process.env.IMAGE_TAG))process.exit(1)"
       - name: Build Node control plane and workspace
